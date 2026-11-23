@@ -1,0 +1,5 @@
+Contact: https://github.com/MootSasa/theaver-frontend/security/advisories/new
+Expires: 2028-01-01T00:00:00.000Z
+Preferred-Languages: en, ru
+Canonical: https://theaver.app/.well-known/security.txt
+Policy: https://theaver.app/security

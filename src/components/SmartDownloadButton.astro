@@ -1,0 +1,127 @@
+---
+import Icon from './Icon.astro';
+import type { Locale } from '../lib/i18n';
+import { localizePath } from '../lib/i18n';
+import { PUBLIC_API_URL, type PublicReleasesPayload } from '../lib/releases';
+
+interface Props {
+  locale: Locale;
+  initialReleases: PublicReleasesPayload;
+}
+
+const { locale, initialReleases } = Astro.props;
+const downloadsHref = localizePath('/downloads', locale);
+const defaultLabel = locale === 'ru' ? 'Скачать Theaver' : 'Download Theaver';
+const subFallback = locale === 'ru' ? 'Все платформы' : 'All platforms';
+---
+
+<div class="flex flex-col gap-2">
+  <div class="flex flex-wrap items-center gap-3">
+    <a
+      href={downloadsHref}
+      data-smart-download
+      data-locale={locale}
+      data-api-base={PUBLIC_API_URL}
+      data-fallback-href={downloadsHref}
+      class="btn-primary"
+    >
+      <Icon name="download" size={17} />
+      <span data-smart-download-label>{defaultLabel}</span>
+    </a>
+
+    <slot name="secondary" />
+  </div>
+
+  <p class="text-[13px] text-[var(--text-muted)]" data-smart-download-meta>
+    <span class="tabular" data-smart-download-version>
+      {initialReleases.channels.stable?.latest_version ||
+        initialReleases.channels.beta?.latest_version ||
+        'v1.20'}
+    </span>
+    <span> · </span>
+    <a href={downloadsHref} class="text-[var(--text-secondary)] underline underline-offset-4 hover:text-[var(--text-primary)]">
+      {subFallback}
+    </a>
+  </p>
+</div>
+
+<script is:inline>
+  (() => {
+    const btn = document.querySelector('[data-smart-download]');
+    const labelEl = document.querySelector('[data-smart-download-label]');
+    const versionEl = document.querySelector('[data-smart-download-version]');
+    if (!(btn instanceof HTMLAnchorElement) || !labelEl) return;
+
+    const locale = btn.getAttribute('data-locale') || 'en';
+    const apiBase = (btn.getAttribute('data-api-base') || '').replace(/\/+$/, '');
+
+    function detectTarget() {
+      const ua = (navigator.userAgent || '').toLowerCase();
+      const plat = (
+        navigator.userAgentData && navigator.userAgentData.platform
+          ? String(navigator.userAgentData.platform)
+          : ua
+      ).toLowerCase();
+
+      if (ua.includes('android')) {
+        return {
+          platform: 'android',
+          arch: 'arm64-v8a',
+          label: locale === 'ru' ? 'Скачать для Android' : 'Download for Android',
+        };
+      }
+      if (ua.includes('iphone') || ua.includes('ipad')) {
+        return {
+          platform: 'ios',
+          arch: 'arm64',
+          label: locale === 'ru' ? 'Скачать для iOS' : 'Download for iOS',
+        };
+      }
+      if (plat.includes('win') || ua.includes('windows')) {
+        return {
+          platform: 'windows',
+          arch: 'x64-installer',
+          label: locale === 'ru' ? 'Скачать для Windows' : 'Download for Windows',
+        };
+      }
+      if (plat.includes('mac') || ua.includes('mac os')) {
+        return {
+          platform: 'macos',
+          arch: 'universal',
+          label: locale === 'ru' ? 'Скачать для macOS' : 'Download for macOS',
+        };
+      }
+      if (plat.includes('linux') || ua.includes('linux')) {
+        return {
+          platform: 'linux',
+          arch: 'x64',
+          label: locale === 'ru' ? 'Скачать для Linux' : 'Download for Linux',
+        };
+      }
+      return null;
+    }
+
+    const detected = detectTarget();
+    if (!detected) return;
+    labelEl.textContent = detected.label;
+
+    if (!apiBase) return;
+    fetch(`${apiBase}/api/public/releases`, { headers: { Accept: 'application/json' } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!data || !data.channels) return;
+        const ch = data.channels.stable || data.channels.beta || data.channels.alpha;
+        if (!ch || !Array.isArray(ch.artifacts)) return;
+        const match =
+          ch.artifacts.find((a) => a.platform === detected.platform && a.architecture === detected.arch) ||
+          ch.artifacts.find((a) => a.platform === detected.platform);
+        if (match && match.download_url) {
+          btn.href = match.download_url;
+          if (versionEl && match.latest_version) {
+            versionEl.textContent = `v${match.latest_version}`;
+          }
+        }
+      })
+      .catch(() => {});
+  })();
+</script>

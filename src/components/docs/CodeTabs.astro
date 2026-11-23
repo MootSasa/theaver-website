@@ -1,0 +1,68 @@
+---
+interface Props {
+  tabs: string[];
+  id?: string;
+}
+
+const { tabs, id = `tabs-${Math.random().toString(36).slice(2, 8)}` } = Astro.props;
+---
+
+<div class="ink-card my-5 w-full min-w-0 max-w-full overflow-hidden" data-code-tabs={id}>
+  <div class="flex flex-wrap items-center gap-1 border-b border-[var(--border-hairline)] bg-[var(--bg-deep)] px-3 py-2" role="tablist">
+    {tabs.map((tab, idx) => (
+      <button
+        type="button"
+        role="tab"
+        aria-selected={idx === 0 ? 'true' : 'false'}
+        data-tab-index={idx}
+        class:list={[
+          'rounded-[var(--radius-chip)] px-3 py-1 font-mono text-[12px] transition-colors duration-150',
+          idx === 0
+            ? 'bg-[var(--bg-raised)] font-medium text-[var(--text-primary)]'
+            : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]',
+        ]}
+      >
+        {tab}
+      </button>
+    ))}
+  </div>
+  <div class="code-tabs-panels p-0 [&_.astro-code]:rounded-none [&_.astro-code]:border-0">
+    <slot />
+  </div>
+</div>
+
+<script is:inline>
+  (() => {
+    document.querySelectorAll('[data-code-tabs]').forEach((root) => {
+      if (root.getAttribute('data-bound') === '1') return;
+      root.setAttribute('data-bound', '1');
+
+      const buttons = Array.from(root.querySelectorAll('[data-tab-index]'));
+      const panelsContainer = root.querySelector('.code-tabs-panels');
+      if (!panelsContainer) return;
+      const panels = Array.from(panelsContainer.children);
+
+      function activate(index) {
+        buttons.forEach((btn, i) => {
+          const active = i === index;
+          btn.setAttribute('aria-selected', active ? 'true' : 'false');
+          btn.classList.toggle('bg-[var(--bg-raised)]', active);
+          btn.classList.toggle('font-medium', active);
+          btn.classList.toggle('text-[var(--text-primary)]', active);
+          btn.classList.toggle('text-[var(--text-muted)]', !active);
+        });
+        panels.forEach((panel, i) => {
+          panel.classList.toggle('hidden', i !== index);
+        });
+      }
+
+      activate(0);
+      buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.getAttribute('data-tab-index') || '0');
+          activate(idx);
+        });
+      });
+    });
+  })();
+</script>

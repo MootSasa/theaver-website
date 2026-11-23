@@ -1,0 +1,59 @@
+---
+title: WebSocket API & RPC
+description: Bidirectional WebSocket protocol (/api/ws) for low-latency RPC calls and real-time events.
+track: client
+order: 4
+---
+
+Connect to the bidirectional WebSocket stream at:
+
+```text
+wss://api.theaver.app/api/ws?token=<jwt_token>
+```
+
+You can also pass `Authorization: Bearer <jwt_token>` as a connection header on native clients.
+
+## Client RPC calls (Client → Server)
+
+When a JSON frame includes `req_id`, the server guarantees an `rpc_result` or `rpc_error` response carrying the matching `req_id`.
+
+```json
+{
+  "type": "send_message",
+  "req_id": "req-101",
+  "chat_id": 849201432,
+  "content": "Hello over WebSocket RPC",
+  "local_id": "client-uuid-991",
+  "reply_to_id": null
+}
+```
+
+### Supported RPC methods
+
+| `type` | Key parameters | Description |
+|---|---|---|
+| `send_message` | `chat_id`, `content`, `local_id`, `reply_to_id`, `thread_root_id`, `attachment_ids`, `entities`, `is_silent` | Idempotent message creation; returns created `Message` in `result` |
+| `read_history` / `mark_read` | `chat_id`, `max_id` | Advances High-Water Mark read state and returns `unread_count` |
+| `typing` | `chat_id`, `action` (`typing`, `record_voice`, `upload_photo`) | Broadcasts activity indicator (throttled to 1 event / 2s) |
+| `active_chat` | `chat_id` | Reports foreground chat to suppress duplicate push notifications |
+| `emoji_interaction` | `chat_id`, `message_id`, `emoji` | Synchronizes fullscreen emoji tap effects |
+| `ping` | `req_id` (optional) | Keepalive check returning `pong` |
+
+## Real-time server events (Server → Client)
+
+| `type` | Payload highlights | Trigger |
+|---|---|---|
+| `new_message` | Full `Message` object | New message delivered in any user chat |
+| `new_chat` | Full `Chat` object | Added to a new DM, group, or channel |
+| `message_edited` | Updated `Message` | Text, entities, or inline keyboard edited |
+| `message_deleted` | `{"message_id", "chat_id"}` | Message deleted for everyone |
+| `message_read` | `{"chat_id", "user_id", "max_id", "last_read_outbox_message_id"}` | Recipient read messages up to `max_id` |
+| `unread_count_updated` | `{"chat_id", "unread_count", "last_read_inbox_message_id"}` | Cross-device unread counter sync |
+| `message_reaction_updated` | `{"chat_id", "message_id", "reactions", "emoji", "action"}` | Reaction toggled |
+| `poll_updated` | Updated `Poll` object | Vote cast or poll closed |
+| `draft_updated` | `{"chat_id", "draft"}` | Cloud draft updated on another device |
+| `typing` | `{"chat_id", "user_id", "action"}` | Live typing/upload indicator |
+| `user_online` / `user_offline` / `user_status` | `{"user_id", "is_online", "last_seen"}` | Presence updates respecting privacy rules |
+| `callback_query_answer` | `{"query_id", "text", "show_alert", "url"}` | Bot callback response |
+| `inline_query_results` | `{"query_id", "results", "next_offset"}` | Bot inline query results |
+| `session_terminated` | `{"session_id", "reason"}` | Current device session was revoked |

@@ -1,0 +1,70 @@
+---
+title: Mini Apps SDK (v8.0)
+description: Создание веб-приложений внутри Theaver на базе Telegram.WebApp, темизации, безопасных отступов, CloudStorage и проверки initData.
+track: bots
+order: 4
+---
+
+Платформа Mini Apps v8.0 запускает веб-приложения внутри нативных WebView на мобильных, десктопных и браузерных клиентах с поддержкой JS-моста `window.Telegram.WebApp`.
+
+## Подключение Mini App к боту
+
+Вы можете привязать главное приложение или именованный `short_name` через **`@BotMother`** (или его студию) и открывать приложение через:
+
+- Кнопку меню чата (`setChatMenuButton` с типом `web_app`)
+- Inline-кнопки с полем `web_app: { url }`
+- Прямую ссылку вида `https://theaver.app/u/<bot_username>?startapp=<param>`
+
+## Клиентский JS-интерфейс (`window.Telegram.WebApp`)
+
+```js
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+// Подстройка под активную тему пользователя Theaver
+document.body.style.backgroundColor = tg.themeParams.bg_color;
+document.body.style.color = tg.themeParams.text_color;
+
+// Основная нативная кнопка внизу окна
+tg.MainButton.setText("Сохранить");
+tg.MainButton.show();
+tg.MainButton.onClick(() => {
+  tg.HapticFeedback.impactOccurred("medium");
+  tg.sendData(JSON.stringify({ action: "saved" }));
+});
+```
+
+### Поддерживаемые возможности v8
+
+- **Жизненный цикл и отступы:** `ready()`, `expand()`, `close()`, `safeAreaInset`, `contentSafeAreaInset`, события `safe_area_changed` и `content_safe_area_changed`.
+- **Нативные кнопки:** `MainButton`, `SecondaryButton`, `BackButton`, `SettingsButton`.
+- **Хранилище и сенсоры:** `CloudStorage` (ключ-значение на пару бот + пользователь), `HapticFeedback`, `showScanQrPopup` и `requestWriteAccess`.
+
+## Проверка `initData` на вашем сервере
+
+Никогда не доверяйте не подписанному `initDataUnsafe`. Проверяйте подпись строки `initData` по алгоритму `HMAC-SHA256` с ключом `HMAC_SHA256("WebAppData", bot_token)`:
+
+```python
+import hashlib
+import hmac
+from urllib.parse import parse_qsl
+
+def verify_init_data(init_data: str, bot_token: str) -> dict[str, str] | None:
+    pairs = dict(parse_qsl(init_data, keep_blank_values=True))
+    received_hash = pairs.pop("hash", None)
+    if not received_hash:
+        return None
+
+    data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(pairs.items()))
+    secret_key = hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
+    expected_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+
+    if not hmac.compare_digest(expected_hash, received_hash):
+        return None
+    return pairs
+```
+
+<Callout type="tip" title="Проверяйте свежесть auth_date">
+  Убедитесь, что `int(time.time()) - int(pairs["auth_date"])` не превышает разумное окно (например, 3600 секунд), чтобы исключить повторное использование старого `initData`.
+</Callout>

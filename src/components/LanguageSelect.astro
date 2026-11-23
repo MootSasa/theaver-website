@@ -1,0 +1,23 @@
+---
+import Icon from './Icon.astro';
+import { localizePath, type Locale } from '../lib/i18n';
+
+interface Props {
+  locale: Locale;
+  currentPath: string;
+}
+
+const { locale, currentPath } = Astro.props;
+const targetLocale: Locale = locale === 'en' ? 'ru' : 'en';
+const targetHref = localizePath(currentPath, targetLocale);
+---
+
+<a
+  href={targetHref}
+  class="inline-flex h-9 items-center gap-1.5 rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-card)] px-2.5 text-[13px] font-medium text-[var(--text-secondary)] transition-colors duration-150 hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
+  hreflang={targetLocale}
+  aria-label={targetLocale === 'ru' ? 'Переключить язык на русский' : 'Switch language to English'}
+>
+  <Icon name="globe" size={16} />
+  <span class="tabular">{targetLocale === 'ru' ? 'RU' : 'EN'}</span>
+</a>

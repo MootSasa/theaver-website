@@ -1,0 +1,28 @@
+---
+title: Wallet & Account Security
+description: Manage Two-Factor Authentication, active sessions, privacy exceptions, App Lock, and the built-in Walt wallet (THV).
+track: guide
+order: 5
+---
+
+## Two-Factor Authentication & App Lock
+
+- **Cloud Password (2FA):** Set an additional password with an optional hint and recovery email in **Settings → Privacy & Security**. Even if someone intercepts an email verification code, login cannot complete without your 2FA password.
+- **Local App Lock:** Protect the client locally with a PIN code or OS biometrics (Face ID, Touch ID, Windows Hello, Android Biometric).
+- **Session management:** Review every active device model, IP address, and last active time, terminate individual devices remotely, and set an automatic inactive session TTL.
+
+## Granular Privacy Controls
+
+Configure who can see your **Profile Photo**, **Bio**, **Last Seen / Online status**, **Birthday**, **Forwarded messages**, and who can **Call** or add you to **Groups & Channels** (`Everybody`, `Contacts`, or `Nobody`), with per-user `Always Share` and `Never Share` exceptions.
+
+<Callout type="info" title="Public web profile links">
+  When someone opens `https://theaver.app/u/<username>` in a browser without logging in, Theaver hides your profile photo and bio automatically unless their visibility is set to **Everybody**.
+</Callout>
+
+## Walt Wallet (`THV`)
+
+Theaver integrates the **`@walt`** wallet Mini App and ledger for fast ecosystem transfers:
+
+- **Checks:** Create shareable single-use or multi-claim `THV` checks inside chats.
+- **Direct transfers:** Send `THV` directly to any `@username`.
+- **Bot & Mini App payments:** Pay for digital items inside bots and Mini Apps with instant `successful_payment` settlement.

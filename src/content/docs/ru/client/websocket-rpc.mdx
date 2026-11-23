@@ -1,0 +1,59 @@
+---
+title: WebSocket API и RPC
+description: Двунаправленный WebSocket-протокол (/api/ws) для быстрых RPC-вызовов и событий в реальном времени.
+track: client
+order: 4
+---
+
+Подключение к WebSocket устанавливается по адресу:
+
+```text
+wss://api.theaver.app/api/ws?token=<jwt_token>
+```
+
+Нативные клиенты могут передавать токен в заголовке `Authorization: Bearer <jwt_token>`.
+
+## Клиентские RPC-вызовы (Client → Server)
+
+Если фрейм содержит строковый `req_id`, сервер гарантированно отвечает фреймом `rpc_result` или `rpc_error` с тем же `req_id`.
+
+```json
+{
+  "type": "send_message",
+  "req_id": "req-101",
+  "chat_id": 849201432,
+  "content": "Привет через WebSocket RPC",
+  "local_id": "client-uuid-991",
+  "reply_to_id": null
+}
+```
+
+### Поддерживаемые RPC-методы
+
+| `type` | Ключевые параметры | Описание |
+|---|---|---|
+| `send_message` | `chat_id`, `content`, `local_id`, `reply_to_id`, `thread_root_id`, `attachment_ids`, `entities`, `is_silent` | Идемпотентная отправка сообщения; возвращает созданный `Message` в `result` |
+| `read_history` / `mark_read` | `chat_id`, `max_id` | Обновляет High-Water Mark прочтения и возвращает `unread_count` |
+| `typing` | `chat_id`, `action` (`typing`, `record_voice`, `upload_photo`) | Рассылает статус активности в чат (не чаще 1 раза в 2 сек) |
+| `active_chat` | `chat_id` | Сообщает открытый чат для подавления лишних push-уведомлений |
+| `emoji_interaction` | `chat_id`, `message_id`, `emoji` | Синхронизирует полноэкранный эффект по нажатию на эмодзи |
+| `ping` | `req_id` (опционально) | Проверка соединения, отвечает событием `pong` |
+
+## Серверные события реального времени (Server → Client)
+
+| `type` | Содержимое payload | Когда отправляется |
+|---|---|---|
+| `new_message` | Полный объект `Message` | Новое сообщение в чате |
+| `new_chat` | Полный объект `Chat` | Добавление в новый диалог, группу или канал |
+| `message_edited` | Обновлённый объект `Message` | Изменение текста, entities или кнопок сообщения |
+| `message_deleted` | `{"message_id", "chat_id"}` | Удаление сообщения для всех участников |
+| `message_read` | `{"chat_id", "user_id", "max_id", "last_read_outbox_message_id"}` | Собеседник прочитал сообщения до `max_id` |
+| `unread_count_updated` | `{"chat_id", "unread_count", "last_read_inbox_message_id"}` | Синхронизация счётчика непрочитанных между своими устройствами |
+| `message_reaction_updated` | `{"chat_id", "message_id", "reactions", "emoji", "action"}` | Постановка или снятие реакции |
+| `poll_updated` | Объект `Poll` | Голосование или закрытие опроса |
+| `draft_updated` | `{"chat_id", "draft"}` | Синхронизация черновика с другого устройства |
+| `typing` | `{"chat_id", "user_id", "action"}` | Индикатор набора текста или загрузки |
+| `user_online` / `user_offline` / `user_status` | `{"user_id", "is_online", "last_seen"}` | События статуса с учётом настроек приватности |
+| `callback_query_answer` | `{"query_id", "text", "show_alert", "url"}` | Ответ бота на нажатие inline-кнопки |
+| `inline_query_results` | `{"query_id", "results", "next_offset"}` | Результаты inline-поиска от бота |
+| `session_terminated` | `{"session_id", "reason"}` | Текущая сессия была завершена удалённо |

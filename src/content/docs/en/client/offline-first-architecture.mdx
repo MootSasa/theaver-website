@@ -1,0 +1,23 @@
+---
+title: Offline-First Architecture
+description: How the client combines Drift/SQLite persistence, optimistic outbox queues, idempotent local_id keys, and pts delta synchronization.
+track: client
+order: 2
+---
+
+Theaver renders the UI directly from local **Drift/SQLite** tables rather than blocking on network round-trips. Network synchronization runs asynchronously in the background and streams updates into the UI.
+
+## Core principles
+
+1. **Local database as source of truth:** Chat lists, message timelines, drafts, and read cursors load immediately from local storage on app launch.
+2. **Optimistic outbox:** Outgoing messages appear immediately in the thread with a `sending` state and a client-generated `local_id` (UUID).
+3. **Idempotent delivery:** Sending via WebSocket RPC (`send_message`) or HTTP (`POST /api/chats/:chatId/messages`) passes `local_id`. The backend enforces `UNIQUE (chat_id, sender_id, client_message_id)`, so retries over flaky cellular connections never create duplicate messages.
+4. **Delta catch-up (`pts`):** On reconnect, the client queries `GET /api/updates?pts=<last_pts>` to fetch missed messages, edits, deletions, and chat changes without reloading entire histories.
+
+## High-Water Mark read synchronization
+
+Read markers use monotonic High-Water Marks (`GREATEST(...)` in PostgreSQL) for both inbox (`last_read_inbox_message_id`) and outbox (`last_read_outbox_message_id`). Concurrent read requests from multiple devices can never roll a read cursor backward.
+
+## Pagination strategy
+
+Message history uses cursor pagination (`before_id`, `after_id`, `around_id`, `limit` up to `100`) instead of `OFFSET`, keeping scroll jumps to pinned or replied messages constant-time regardless of chat age.

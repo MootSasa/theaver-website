@@ -1,0 +1,56 @@
+---
+title: Проверка подписей и SHA-256
+description: Как проверить контрольную сумму SHA-256, GPG-подпись архива Linux и сертификат установщика Windows перед запуском.
+track: guide
+order: 2
+---
+
+Каждая официальная сборка Theaver снабжается криптографическими данными для проверки подлинности перед установкой.
+
+## Публичные ключи проверки
+
+Ключи доступны напрямую с сайта и в открытом репозитории [`theaver-frontend`](https://github.com/MootSasa/theaver-frontend) в каталоге `signing/`:
+
+- Публичный GPG-ключ для Linux: [`/signing/theaver-release-public.asc`](/signing/theaver-release-public.asc)
+- Корневой сертификат подписи Windows: [`/signing/theaver-windows-root.cer`](/signing/theaver-windows-root.cer)
+
+## Сверка контрольной суммы SHA-256
+
+Хэш `SHA-256` отображается на странице [Загрузки](/ru/downloads) и в окне обновления внутри приложения. Сравните его с результатом локальной проверки:
+
+<CodeTabs tabs={['Linux / macOS', 'Windows (PowerShell)']}>
+```bash
+shasum -a 256 theaver-v1.20.3-beta-linux-x64.tar.gz
+# или в Linux:
+sha256sum theaver-v1.20.3-beta-linux-x64.tar.gz
+```
+
+```powershell
+Get-FileHash .\theaver-v1.20.3-beta-windows-x64-setup.exe -Algorithm SHA256
+```
+</CodeTabs>
+
+## Проверка архива Linux через GPG
+
+Рядом с архивами `.tar.gz` публикуется файл отсоединённой подписи `.tar.gz.asc`:
+
+```bash
+curl -fsSLO https://theaver.app/signing/theaver-release-public.asc
+gpg --import theaver-release-public.asc
+gpg --verify theaver-v1.20.3-beta-linux-x64.tar.gz.asc theaver-v1.20.3-beta-linux-x64.tar.gz
+```
+
+Убедитесь, что `gpg` сообщает о действительной подписи (`Good signature`) от ключа релиза Theaver.
+
+## Проверка установщика Windows
+
+Исполняемые файлы и установщик Windows подписываются сертификатом Authenticode:
+
+```powershell
+curl -fsSLO https://theaver.app/signing/theaver-windows-root.cer
+Get-AuthenticodeSignature .\theaver-v1.20.3-beta-windows-x64-setup.exe
+```
+
+<Callout type="warning" title="Загружайте сборки только из доверенных источников">
+  Скачивайте установщики исключительно с `theaver.app`, `storage.theaver.app` или официальной страницы GitHub Releases (`MootSasa/theaver-frontend`).
+</Callout>

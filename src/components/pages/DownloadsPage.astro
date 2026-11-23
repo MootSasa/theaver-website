@@ -1,0 +1,403 @@
+---
+import MarketingLayout from '../../layouts/MarketingLayout.astro';
+import Icon from '../Icon.astro';
+import { localizePath, type Locale } from '../../lib/i18n';
+import {
+  fetchPublicReleases,
+  GITHUB_RELEASES_URL,
+  PLATFORM_LABELS,
+  PUBLIC_API_URL,
+  WEB_APP_URL,
+} from '../../lib/releases';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const initialReleases = await fetchPublicReleases();
+const platformOrder = ['windows', 'macos', 'linux', 'android', 'ios', 'web'];
+
+const copy = locale === 'ru'
+  ? {
+      title: 'Скачать Theaver',
+      description: 'Установщики и архивы Theaver для Windows, macOS, Linux, Android, iOS и веб-версии с SHA-256 и ключами проверки.',
+      heading: 'Загрузки для всех платформ',
+      sub: 'Выберите канал обновлений и скачайте установочный пакет для вашего устройства или запустите клиент прямо в браузере.',
+      channelLabel: 'Канал релизов:',
+      stable: 'Stable',
+      beta: 'Beta',
+      alpha: 'Alpha',
+      downloadBtn: 'Скачать',
+      openWebBtn: 'Открыть app.theaver.app',
+      shaLabel: 'SHA-256',
+      copyDone: 'Скопировано',
+      noChannelBuilds: 'В этом канале пока нет опубликованных артефактов на сервере обновлений. Посмотрите доступные сборки на GitHub Releases или выберите канал Beta.',
+      githubFallback: 'Открыть GitHub Releases',
+      verifyHeading: 'Проверка подлинности сборок',
+      verifySummary: 'Публичные ключи и команды проверки (Windows CA, Linux GPG, SHA-256)',
+      verifyDocsLink: 'Подробная инструкция в документации',
+      gpgDesc: 'Linux-архивы сопровождаются отсоединенной подписью .asc. Импортируйте публичный ключ перед проверкой:',
+      winDesc: 'Установщики Windows подписаны корневым сертификатом Theaver Root CA:',
+      shaDesc: 'Проверка контрольной суммы SHA-256 в терминале:',
+    }
+  : {
+      title: 'Download Theaver',
+      description: 'Official Theaver installers and archives for Windows, macOS, Linux, Android, iOS, and Web with SHA-256 checksums and signing keys.',
+      heading: 'Downloads for every platform',
+      sub: 'Pick a release channel and download the native build for your device, or launch the Web client directly in your browser.',
+      channelLabel: 'Release channel:',
+      stable: 'Stable',
+      beta: 'Beta',
+      alpha: 'Alpha',
+      downloadBtn: 'Download',
+      openWebBtn: 'Open app.theaver.app',
+      shaLabel: 'SHA-256',
+      copyDone: 'Copied',
+      noChannelBuilds: 'No builds are registered for this channel yet on the update server. Check GitHub Releases or switch to the Beta channel.',
+      githubFallback: 'Browse GitHub Releases',
+      verifyHeading: 'Verify installer authenticity',
+      verifySummary: 'Public signing keys and verification commands (Windows CA, Linux GPG, SHA-256)',
+      verifyDocsLink: 'Read full verification guide',
+      gpgDesc: 'Linux archives ship with detached .asc signatures. Import the public release key before verifying:',
+      winDesc: 'Windows builds are signed with the Theaver Root certificate:',
+      shaDesc: 'Verify the SHA-256 checksum locally:',
+    };
+
+const activeChannel =
+  initialReleases.channels.stable?.artifacts?.length
+    ? 'stable'
+    : initialReleases.channels.beta?.artifacts?.length
+      ? 'beta'
+      : 'stable';
+---
+
+<MarketingLayout title={`${copy.title} — Theaver`} description={copy.description}>
+  <section class="py-12 sm:py-16">
+    <div class="container-page">
+      <div class="max-w-2xl">
+        <h1 class="text-[32px] font-medium leading-[1.1] text-[var(--text-primary)] sm:text-[42px]">
+          {copy.heading}
+        </h1>
+        <p class="mt-3 text-[16px] leading-relaxed text-[var(--text-secondary)]">
+          {copy.sub}
+        </p>
+      </div>
+
+      <!-- Channel Switcher -->
+      <div class="mt-8 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <span class="text-[13.5px] text-[var(--text-muted)]">{copy.channelLabel}</span>
+          <div class="inline-flex rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] p-1" role="tablist">
+            {(['stable', 'beta', 'alpha'] as const).map((ch) => (
+              <button
+                type="button"
+                role="tab"
+                data-channel-tab={ch}
+                aria-selected={activeChannel === ch ? 'true' : 'false'}
+                class:list={[
+                  'rounded-[var(--radius-chip)] px-3.5 py-1.5 text-[13px] font-medium transition-colors duration-150',
+                  activeChannel === ch
+                    ? 'bg-[var(--bg-card)] text-[var(--text-primary)] shadow-[var(--card-highlight)]'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
+                ]}
+              >
+                {copy[ch]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <a
+          href={GITHUB_RELEASES_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1.5 text-[13.5px] text-[var(--text-secondary)] hover:text-[var(--accent)]"
+        >
+          <Icon name="github" size={16} />
+          <span>{copy.githubFallback}</span>
+          <Icon name="arrow-up-right" size={14} />
+        </a>
+      </div>
+
+      <!-- Release Matrix Grid -->
+      <div
+        id="downloads-matrix"
+        data-api-base={PUBLIC_API_URL}
+        data-locale={locale}
+        data-active-channel={activeChannel}
+        data-download-label={copy.downloadBtn}
+        data-copied-label={copy.copyDone}
+        data-empty-msg={copy.noChannelBuilds}
+        data-github-url={GITHUB_RELEASES_URL}
+        data-github-label={copy.githubFallback}
+        data-web-url={WEB_APP_URL}
+        data-web-label={copy.openWebBtn}
+        data-platform-labels={JSON.stringify(PLATFORM_LABELS[locale])}
+        data-platform-order={JSON.stringify(platformOrder)}
+        data-initial-releases={JSON.stringify(initialReleases)}
+        class="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3"
+      >
+        <div class="ink-card flex flex-col justify-between p-6">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[17px] font-medium text-[var(--text-primary)]">
+                {PLATFORM_LABELS[locale].web.title}
+              </span>
+              <span class="font-mono text-[12px] text-[var(--accent)]">PWA</span>
+            </div>
+            <p class="mt-2 text-[14px] text-[var(--text-secondary)]">
+              {PLATFORM_LABELS[locale].web.archLabel.universal}
+            </p>
+          </div>
+          <div class="mt-6">
+            <a href={WEB_APP_URL} target="_blank" rel="noopener noreferrer" class="btn-secondary w-full">
+              <span>{copy.openWebBtn}</span>
+              <Icon name="arrow-up-right" size={15} />
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty fallback message container -->
+      <div id="downloads-empty" class="ink-card mt-6 hidden p-6">
+        <p class="text-[14.5px] text-[var(--text-secondary)]">{copy.noChannelBuilds}</p>
+        <div class="mt-4">
+          <a href={GITHUB_RELEASES_URL} target="_blank" rel="noopener noreferrer" class="btn-secondary">
+            <Icon name="github" size={16} />
+            <span>{copy.githubFallback}</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Verification Accordion -->
+      <details class="ink-card mt-12 p-6">
+        <summary class="flex items-center justify-between gap-4 text-[16px] font-medium text-[var(--text-primary)]">
+          <span class="inline-flex items-center gap-2.5">
+            <Icon name="shield" size={19} class="text-[var(--positive)]" />
+            <span>{copy.verifySummary}</span>
+          </span>
+          <Icon name="chevron-right" size={18} class="text-[var(--text-muted)]" />
+        </summary>
+
+        <div class="mt-5 grid gap-6 border-t border-[var(--border-hairline)] pt-5 md:grid-cols-3">
+          <div>
+            <h2 class="text-[14px] font-medium text-[var(--text-primary)]">Linux GPG</h2>
+            <p class="mt-1.5 text-[13px] text-[var(--text-secondary)]">{copy.gpgDesc}</p>
+            <pre class="mt-3 overflow-x-auto rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] p-3 font-mono text-[12px] text-[var(--text-primary)]">curl -fsSLO https://theaver.app/signing/theaver-release-public.asc
+gpg --import theaver-release-public.asc
+gpg --verify theaver-*.tar.gz.asc</pre>
+          </div>
+
+          <div>
+            <h2 class="text-[14px] font-medium text-[var(--text-primary)]">Windows Root CA</h2>
+            <p class="mt-1.5 text-[13px] text-[var(--text-secondary)]">{copy.winDesc}</p>
+            <pre class="mt-3 overflow-x-auto rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] p-3 font-mono text-[12px] text-[var(--text-primary)]">curl -fsSLO https://theaver.app/signing/theaver-windows-root.cer
+certutil -verify theaver-*-setup.exe</pre>
+          </div>
+
+          <div>
+            <h2 class="text-[14px] font-medium text-[var(--text-primary)]">SHA-256</h2>
+            <p class="mt-1.5 text-[13px] text-[var(--text-secondary)]">{copy.shaDesc}</p>
+            <pre class="mt-3 overflow-x-auto rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] p-3 font-mono text-[12px] text-[var(--text-primary)]"># Linux / macOS
+shasum -a 256 theaver-*
+
+# Windows PowerShell
+Get-FileHash .\theaver-*.exe -Algorithm SHA256</pre>
+          </div>
+        </div>
+
+        <div class="mt-5">
+          <a
+            href={localizePath('/docs/guide/verify-downloads', locale)}
+            class="inline-flex items-center gap-1.5 text-[13.5px] font-medium text-[var(--accent)] hover:underline"
+          >
+            <span>{copy.verifyDocsLink}</span>
+            <Icon name="arrow-right" size={15} />
+          </a>
+        </div>
+      </details>
+    </div>
+  </section>
+</MarketingLayout>
+
+<script is:inline>
+  (() => {
+    const matrixEl = document.getElementById('downloads-matrix');
+    const emptyEl = document.getElementById('downloads-empty');
+    if (!matrixEl) return;
+
+    const apiBase = (matrixEl.getAttribute('data-api-base') || '').replace(/\/+$/, '');
+    const downloadLabel = matrixEl.getAttribute('data-download-label') || 'Download';
+    const copiedLabel = matrixEl.getAttribute('data-copied-label') || 'Copied';
+    const webUrl = matrixEl.getAttribute('data-web-url') || 'https://app.theaver.app';
+    const webLabel = matrixEl.getAttribute('data-web-label') || 'Open app.theaver.app';
+    const labels = JSON.parse(matrixEl.getAttribute('data-platform-labels') || '{}');
+    const platformOrder = JSON.parse(matrixEl.getAttribute('data-platform-order') || '[]');
+    let releasesData = JSON.parse(matrixEl.getAttribute('data-initial-releases') || '{"channels":{}}');
+    let activeChannel = matrixEl.getAttribute('data-active-channel') || 'stable';
+
+    function formatSize(bytes) {
+      if (!bytes || bytes <= 0) return '—';
+      const mb = bytes / (1024 * 1024);
+      return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
+    }
+
+    function createEl(tag, className, text) {
+      const el = document.createElement(tag);
+      if (className) el.className = className;
+      if (text !== undefined) el.textContent = text;
+      return el;
+    }
+
+    function render() {
+      const channelObj = releasesData?.channels?.[activeChannel];
+      const artifacts = Array.isArray(channelObj?.artifacts) ? channelObj.artifacts : [];
+      const byPlatform = {};
+
+      for (const item of artifacts) {
+        if (!byPlatform[item.platform]) byPlatform[item.platform] = [];
+        byPlatform[item.platform].push(item);
+      }
+
+      const cards = [];
+
+      for (const plat of platformOrder) {
+        if (plat === 'web') continue;
+        const list = byPlatform[plat];
+        if (!list || list.length === 0) continue;
+
+        const platInfo = labels[plat] || { title: plat, archLabel: {} };
+        const card = createEl('div', 'ink-card flex flex-col justify-between p-6');
+
+        const top = createEl('div');
+        const head = createEl('div', 'flex items-center justify-between gap-2');
+        head.appendChild(createEl('h2', 'text-[18px] font-medium text-[var(--text-primary)]', platInfo.title));
+        head.appendChild(
+          createEl(
+            'span',
+            'tabular rounded-[var(--radius-chip)] border border-[var(--border-hairline)] bg-[var(--bg-raised)] px-2 py-0.5 font-mono text-[11.5px] text-[var(--accent)]',
+            `v${list[0].latest_version}`,
+          ),
+        );
+        top.appendChild(head);
+
+        const rows = createEl('div', 'mt-4 flex flex-col gap-2.5');
+        for (const art of list) {
+          const row = createEl(
+            'div',
+            'rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] p-3',
+          );
+          const rowTop = createEl('div', 'flex items-center justify-between gap-2');
+          const archText = platInfo.archLabel?.[art.architecture] || art.architecture;
+          rowTop.appendChild(createEl('span', 'text-[13.5px] font-medium text-[var(--text-primary)]', archText));
+          rowTop.appendChild(createEl('span', 'tabular font-mono text-[12px] text-[var(--text-muted)]', formatSize(art.size_bytes)));
+          row.appendChild(rowTop);
+
+          const actions = createEl('div', 'mt-2.5 flex flex-wrap items-center justify-between gap-2');
+          const dlLink = createEl(
+            'a',
+            'inline-flex h-8 items-center gap-1.5 rounded-[var(--radius-chip)] bg-[var(--accent-fill)] px-3 text-[12.5px] font-medium text-[var(--accent-on-fill)] hover:bg-[var(--accent-fill-hover)]',
+            downloadLabel,
+          );
+          dlLink.href = art.download_url;
+          dlLink.rel = 'noopener noreferrer';
+          actions.appendChild(dlLink);
+
+          if (art.sha256) {
+            const copyBtn = createEl(
+              'button',
+              'tabular inline-flex h-8 items-center rounded-[var(--radius-chip)] border border-[var(--border-hairline)] bg-[var(--bg-card)] px-2.5 font-mono text-[11.5px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]',
+              `SHA ${art.sha256.slice(0, 8)}`,
+            );
+            copyBtn.type = 'button';
+            copyBtn.title = art.sha256;
+            copyBtn.addEventListener('click', () => {
+              navigator.clipboard?.writeText(art.sha256).then(() => {
+                const orig = copyBtn.textContent;
+                copyBtn.textContent = copiedLabel;
+                setTimeout(() => {
+                  copyBtn.textContent = orig;
+                }, 1400);
+              });
+            });
+            actions.appendChild(copyBtn);
+          }
+
+          row.appendChild(actions);
+          rows.appendChild(row);
+        }
+        top.appendChild(rows);
+        card.appendChild(top);
+        cards.push(card);
+      }
+
+      // Always keep Web client card visible
+      const webInfo = labels.web || { title: 'Web', archLabel: {} };
+      const webCard = createEl('div', 'ink-card flex flex-col justify-between p-6');
+      const webTop = createEl('div');
+      const webHead = createEl('div', 'flex items-center justify-between gap-2');
+      webHead.appendChild(createEl('h2', 'text-[18px] font-medium text-[var(--text-primary)]', webInfo.title));
+      webHead.appendChild(
+        createEl(
+          'span',
+          'rounded-[var(--radius-chip)] border border-[var(--border-hairline)] bg-[var(--bg-raised)] px-2 py-0.5 font-mono text-[11.5px] text-[var(--accent)]',
+          'Browser',
+        ),
+      );
+      webTop.appendChild(webHead);
+      webTop.appendChild(
+        createEl('p', 'mt-2 text-[14px] text-[var(--text-secondary)]', webInfo.archLabel?.universal || 'Web App'),
+      );
+      webCard.appendChild(webTop);
+      const webBtnWrap = createEl('div', 'mt-6');
+      const webBtn = createEl('a', 'btn-secondary w-full', webLabel);
+      webBtn.href = webUrl;
+      webBtn.target = '_blank';
+      webBtn.rel = 'noopener noreferrer';
+      webBtnWrap.appendChild(webBtn);
+      webCard.appendChild(webBtnWrap);
+      cards.push(webCard);
+
+      matrixEl.replaceChildren(...cards);
+      if (emptyEl) {
+        emptyEl.classList.toggle('hidden', artifacts.length > 0);
+      }
+    }
+
+    document.querySelectorAll('[data-channel-tab]').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        activeChannel = tab.getAttribute('data-channel-tab') || 'stable';
+        document.querySelectorAll('[data-channel-tab]').forEach((t) => {
+          const on = t.getAttribute('data-channel-tab') === activeChannel;
+          t.setAttribute('aria-selected', on ? 'true' : 'false');
+          t.classList.toggle('bg-[var(--bg-card)]', on);
+          t.classList.toggle('text-[var(--text-primary)]', on);
+          t.classList.toggle('shadow-[var(--card-highlight)]', on);
+          t.classList.toggle('text-[var(--text-muted)]', !on);
+        });
+        render();
+      });
+    });
+
+    render();
+
+    if (apiBase) {
+      fetch(`${apiBase}/api/public/releases`, { headers: { Accept: 'application/json' } })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (data && data.ok && data.channels) {
+            releasesData = data;
+            if (!releasesData.channels[activeChannel] && releasesData.channels.beta) {
+              const betaBtn = document.querySelector('[data-channel-tab="beta"]');
+              if (betaBtn instanceof HTMLElement) betaBtn.click();
+              else render();
+            } else {
+              render();
+            }
+          }
+        })
+        .catch(() => {});
+    }
+  })();
+</script>

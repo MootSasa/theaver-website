@@ -1,0 +1,48 @@
+---
+import MarketingLayout from './MarketingLayout.astro';
+import { getLocaleFromPath, localizePath } from '../lib/i18n';
+
+interface Props {
+  title: string;
+  description: string;
+  updatedAt: string;
+}
+
+const { title, description, updatedAt } = Astro.props;
+const locale = getLocaleFromPath(Astro.url.pathname);
+const updatedLabel = locale === 'ru' ? 'Обновлено:' : 'Last updated:';
+---
+
+<MarketingLayout title={`${title} — Theaver`} description={description}>
+  <section class="py-12 sm:py-16">
+    <div class="container-page">
+      <div class="mx-auto max-w-3xl">
+        <div class="mb-8 border-b border-[var(--border-hairline)] pb-6">
+          <p class="font-mono text-[12px] text-[var(--text-muted)]">
+            {updatedLabel} {updatedAt}
+          </p>
+          <h1 class="mt-2 text-[32px] font-medium leading-[1.15] text-[var(--text-primary)] sm:text-[36px]">
+            {title}
+          </h1>
+          <div class="mt-4 flex flex-wrap gap-3 text-[13px] text-[var(--text-secondary)]">
+            <a href={localizePath('/privacy', locale)} class="hover:text-[var(--accent)]">
+              {locale === 'ru' ? 'Конфиденциальность' : 'Privacy Policy'}
+            </a>
+            <span>·</span>
+            <a href={localizePath('/terms', locale)} class="hover:text-[var(--accent)]">
+              {locale === 'ru' ? 'Условия использования' : 'Terms of Service'}
+            </a>
+            <span>·</span>
+            <a href={localizePath('/security', locale)} class="hover:text-[var(--accent)]">
+              {locale === 'ru' ? 'Безопасность' : 'Security'}
+            </a>
+          </div>
+        </div>
+
+        <article class="docs-prose">
+          <slot />
+        </article>
+      </div>
+    </div>
+  </section>
+</MarketingLayout>

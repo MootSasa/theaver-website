@@ -1,0 +1,68 @@
+---
+title: Client REST API Reference
+description: Authentication, QR login, chats, messages, delta sync, file uploads, and standardized error contracts for the Theaver Client API.
+track: client
+order: 3
+---
+
+All authenticated client routes require a JWT tied to a device session (`session_id`):
+
+- Recommended header: `Authorization: Bearer <jwt_token>`
+- WebSocket / direct media links: `?token=<jwt_token>`
+
+## Entity IDs & error contract
+
+Users, chats, folders, sessions, attachments, and polls use 30-bit Feistel cipher IDs (`100 000 000` – `2 147 483 647`) fitting signed 32-bit integers.
+
+Errors return a consistent JSON contract:
+
+```json
+{
+  "ok": false,
+  "success": false,
+  "error": "BAD_REQUEST",
+  "error_code": 400,
+  "description": "Validation details"
+}
+```
+
+| HTTP Status | `error` Code | Meaning |
+|---|---|---|
+| `400` | `BAD_REQUEST` | Invalid input parameters or payload |
+| `401` | `UNAUTHORIZED` / `SESSION_REVOKED` / `TWO_FACTOR_REQUIRED` | Missing/expired token, terminated session, or 2FA challenge |
+| `403` | `FORBIDDEN` / `USER_PRIVACY_RESTRICTED` / `USER_IS_BLOCKED` | Insufficient permissions or privacy restriction |
+| `404` | `NOT_FOUND` | Requested entity does not exist |
+| `409` | `CONFLICT` / `USERNAME_OCCUPIED` | State or uniqueness conflict |
+| `429` | `FLOOD_WAIT` / `SLOWMODE_WAIT` | Rate limit or chat slow mode active |
+
+## Authentication & sessions
+
+<ApiEndpoint method="POST" path="/api/auth/login" auth="Public" />
+<ApiEndpoint method="POST" path="/api/auth/register" auth="Public" />
+<ApiEndpoint method="POST" path="/api/auth/qr/create" auth="Public" />
+<ApiEndpoint method="GET" path="/api/auth/qr/status/:token" auth="Public" />
+<ApiEndpoint method="POST" path="/api/auth/qr/confirm" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/auth/sessions" auth="JWT" />
+
+- **Login & 2FA:** If cloud 2FA is active, `/api/auth/login` returns `requires_2fa: true` with a temporary token; complete sign-in via `POST /api/auth/qr/verify-2fa` or by supplying `two_factor_password`.
+- **Session management:** List active sessions with `GET /api/auth/sessions` and revoke remote devices via `POST /api/auth/logout-device` or `POST /api/auth/terminate-others`.
+
+## Chats, messages & delta updates
+
+<ApiEndpoint method="GET" path="/api/chats" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/chats/:id/messages?limit=50&before_id=..." auth="JWT" />
+<ApiEndpoint method="POST" path="/api/chats/:id/messages" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/updates?pts=0&limit=200" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/search?q=query&type=all" auth="JWT" />
+
+- Pass `local_id` (`client_message_id`) when calling `POST /api/chats/:id/messages` to guarantee idempotent retries.
+- `GET /api/updates` returns `new_messages`, `edited_messages`, `deleted_messages`, `chats`, `next_pts`, and `has_more`.
+
+## Chunked file uploads & public release API
+
+<ApiEndpoint method="POST" path="/api/files/upload" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/files/upload/init" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/app/check-update" auth="Public" />
+<ApiEndpoint method="GET" path="/api/public/releases" auth="Public" />
+
+Large files support resumable chunked uploads (`upload/init` → chunk parts → `complete`) with `SHA-256` deduplication. Public download clients can query `/api/public/releases` for the release matrix by channel and architecture.

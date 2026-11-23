@@ -1,0 +1,53 @@
+---
+title: Обновления, сообщения и Inline
+description: Справочник getUpdates, вебхуков, методов отправки сообщений, клавиатур, модерации чатов и inline-запросов.
+track: bots
+order: 3
+---
+
+## Получение обновлений: Long Polling и Webhooks
+
+### `getUpdates` (Long Polling)
+
+<ApiEndpoint method="POST" path="/bot<token>/getUpdates" auth="Bot Token" />
+
+| Параметр | Тип | Описание |
+|---|---|---|
+| `offset` | Integer | Идентификатор первого ожидаемого обновления (`last_update_id + 1` подтверждает предыдущие) |
+| `limit` | Integer | Максимум обновлений за запрос (`1`–`100`, по умолчанию `100`) |
+| `timeout` | Integer | Таймаут Long Polling в секундах (до `50`) |
+| `allowed_updates` | Array of String | Фильтр типов событий (`message`, `edited_message`, `channel_post`, `callback_query`, `inline_query`) |
+
+### `setWebhook` / `deleteWebhook` / `getWebhookInfo`
+
+<ApiEndpoint method="POST" path="/bot<token>/setWebhook" auth="Bot Token" />
+
+Укажите HTTPS-адрес вашего сервера и опциональный `secret_token`. Theaver будет передавать `secret_token` в заголовке `X-Telegram-Bot-Api-Secret-Token` на каждый запрос.
+
+## Отправка и редактирование сообщений
+
+| Метод | Ключевые параметры | Описание |
+|---|---|---|
+| `getMe` | — | Возвращает объект `User` бота (`is_bot`, `can_join_groups`, `supports_inline_queries`, `has_main_web_app`) |
+| `sendMessage` | `chat_id`, `text`, `parse_mode`, `entities`, `reply_parameters`, `reply_markup`, `disable_notification`, `message_thread_id` | Отправка текстового сообщения |
+| `sendMediaGroup` | `chat_id`, `media` | Отправка альбома фото/видео/файлов |
+| `sendPhoto`, `sendDocument`, `sendVideo`, `sendAudio`, `sendVoice`, `sendVideoNote`, `sendAnimation`, `sendSticker` | `chat_id`, поле медиа или файл, `caption`, `reply_markup` | Отправка медиа-вложений |
+| `sendLocation`, `sendVenue`, `sendContact` | `chat_id`, координаты или контакт | Отправка геолокации, места или контакта |
+| `sendDice` | `chat_id`, `emoji` | Отправка сообщения со случайным броском (`dice.value`) |
+| `sendPoll`, `stopPoll` | `chat_id`, `question`, `options`, `type` (`regular` \| `quiz`) | Создание и закрытие опроса или викторины |
+| `editMessageText`, `editMessageCaption`, `editMessageReplyMarkup` | `chat_id`, `message_id` | Редактирование текста или кнопок сообщения |
+| `deleteMessage`, `deleteMessages` | `chat_id`, `message_id` / `message_ids` | Удаление одного или нескольких сообщений |
+| `forwardMessage`, `forwardMessages`, `copyMessage`, `copyMessages` | `chat_id`, `from_chat_id` | Пересылка или копирование сообщений |
+| `setMessageReaction` | `chat_id`, `message_id`, `reaction` | Постановка реакции ботом |
+| `sendChatAction` | `chat_id`, `action` | Трансляция статуса набора текста или загрузки |
+
+## Клавиатуры, callback и inline-режим
+
+- **Типы `reply_markup`:** `InlineKeyboardMarkup`, `ReplyKeyboardMarkup`, `ReplyKeyboardRemove`, `ForceReply`.
+- **`answerCallbackQuery`:** ответ на нажатие inline-кнопки (`callback_query_id`, `text`, `show_alert`, `url`, `cache_time`).
+- **`answerInlineQuery`:** возврат результатов для `@bot запрос` (`inline_query_id`, `results`, `next_offset`, `switch_pm_text`, `switch_pm_parameter`).
+- **`answerWebAppQuery` и `savePreparedInlineMessage`:** отправка подготовленных сообщений из Mini App.
+
+## Администрирование групп и каналов
+
+Боты с правами администратора поддерживают `getChat`, `getChatMember`, `getChatMemberCount`, `getChatAdministrators`, `banChatMember`, `unbanChatMember`, `restrictChatMember`, `promoteChatMember`, `approveChatJoinRequest`, `declineChatJoinRequest`, `pinChatMessage`, `unpinChatMessage`, `createChatInviteLink`, `exportChatInviteLink` и `leaveChat`.

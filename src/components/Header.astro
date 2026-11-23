@@ -1,0 +1,236 @@
+---
+import Icon from './Icon.astro';
+import ThemeToggle from './ThemeToggle.astro';
+import LanguageSelect from './LanguageSelect.astro';
+import SearchDialog from './SearchDialog.astro';
+import { UI_STRINGS, localizePath, type Locale } from '../lib/i18n';
+import { GITHUB_REPO_URL, WEB_APP_URL } from '../lib/releases';
+
+interface Props {
+  locale: Locale;
+  currentPath: string;
+}
+
+const { locale, currentPath } = Astro.props;
+const t = UI_STRINGS[locale].nav;
+const homeHref = localizePath('/', locale);
+const downloadsHref = localizePath('/downloads', locale);
+const docsHref = localizePath('/docs/guide/getting-started', locale);
+const changelogHref = localizePath('/changelog', locale);
+const ruEquivalent = localizePath(currentPath, 'ru');
+---
+
+{locale === 'en' && (
+  <div
+    id="lang-suggest-banner"
+    class="hidden border-b border-[var(--border-hairline)] bg-[var(--bg-deep)] px-4 py-2 text-[13px] text-[var(--text-secondary)]"
+  >
+    <div class="container-page flex flex-wrap items-center justify-between gap-3 px-0">
+      <span>{t.langBannerText}</span>
+      <div class="flex items-center gap-3">
+        <a
+          href={ruEquivalent}
+          class="font-medium text-[var(--accent)] hover:underline"
+        >
+          {t.langBannerAction}
+        </a>
+        <button
+          type="button"
+          id="lang-suggest-dismiss"
+          class="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+        >
+          {t.langBannerDismiss}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+<header class="sticky top-0 z-40 border-b border-[var(--border-hairline)] bg-[var(--bg-page)]/90 backdrop-blur-md">
+  <div class="container-page flex h-16 items-center justify-between gap-4">
+    <div class="flex items-center gap-6">
+      <a href={homeHref} class="inline-flex items-center gap-2.5 text-[var(--text-primary)]">
+        <img
+          src="/app-icon.png"
+          alt="Theaver"
+          width="28"
+          height="28"
+          class="h-7 w-7 rounded-[7px]"
+        />
+        <span class="text-[16px] font-semibold tracking-tight">Theaver</span>
+      </a>
+
+      <nav aria-label="Main navigation" class="hidden items-center gap-1 whitespace-nowrap md:flex">
+        <a
+          href={`${homeHref}#features`}
+          class="rounded-[var(--radius-control)] px-3 py-1.5 text-[14px] text-[var(--text-secondary)] transition-colors duration-150 hover:bg-[var(--bg-raised)] hover:text-[var(--text-primary)]"
+        >
+          {t.features}
+        </a>
+        <a
+          href={downloadsHref}
+          class="rounded-[var(--radius-control)] px-3 py-1.5 text-[14px] text-[var(--text-secondary)] transition-colors duration-150 hover:bg-[var(--bg-raised)] hover:text-[var(--text-primary)]"
+        >
+          {t.downloads}
+        </a>
+        <a
+          href={docsHref}
+          class="rounded-[var(--radius-control)] px-3 py-1.5 text-[14px] text-[var(--text-secondary)] transition-colors duration-150 hover:bg-[var(--bg-raised)] hover:text-[var(--text-primary)]"
+        >
+          {t.docs}
+        </a>
+        <a
+          href={changelogHref}
+          class="rounded-[var(--radius-control)] px-3 py-1.5 text-[14px] text-[var(--text-secondary)] transition-colors duration-150 hover:bg-[var(--bg-raised)] hover:text-[var(--text-primary)]"
+        >
+          {t.changelog}
+        </a>
+        <a
+          href={GITHUB_REPO_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1.5 rounded-[var(--radius-control)] px-3 py-1.5 text-[14px] text-[var(--text-secondary)] transition-colors duration-150 hover:bg-[var(--bg-raised)] hover:text-[var(--text-primary)]"
+        >
+          <Icon name="github" size={16} />
+          <span>{t.github}</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="flex shrink-0 items-center gap-2 whitespace-nowrap">
+      <button
+        type="button"
+        data-open-search
+        aria-label={t.searchButton}
+        class="inline-flex h-9 w-9 items-center justify-center gap-2 rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-card)] text-[13px] text-[var(--text-secondary)] transition-colors duration-150 hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] sm:w-auto sm:px-2.5"
+      >
+        <Icon name="search" size={16} />
+        <span class="hidden lg:inline">{t.searchButton}</span>
+        <kbd class="keycap hidden lg:inline-flex">⌘K</kbd>
+      </button>
+
+      <LanguageSelect locale={locale} currentPath={currentPath} />
+      <ThemeToggle locale={locale} />
+
+      <a
+        href={WEB_APP_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="hidden whitespace-nowrap px-2.5 text-[13.5px] font-medium text-[var(--text-secondary)] transition-colors duration-150 hover:text-[var(--text-primary)] sm:inline-flex"
+      >
+        {t.openWeb}
+      </a>
+
+      <a
+        href={downloadsHref}
+        class="hidden h-9 items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-control)] bg-[var(--accent-fill)] px-3.5 text-[13.5px] font-medium text-[var(--accent-on-fill)] shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] transition-colors duration-150 hover:bg-[var(--accent-fill-hover)] sm:inline-flex"
+      >
+        <Icon name="download" size={15} />
+        <span>{t.download}</span>
+      </a>
+
+      <button
+        type="button"
+        id="mobile-menu-open"
+        aria-label="Open menu"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-card)] text-[var(--text-primary)] md:hidden"
+      >
+        <Icon name="menu" size={18} />
+      </button>
+    </div>
+  </div>
+</header>
+
+<dialog
+  id="mobile-nav-dialog"
+  closedby="any"
+  aria-label="Mobile navigation"
+  class="m-0 ml-auto h-full max-h-none w-[min(320px,86vw)] border-l border-[var(--border-hairline)] bg-[var(--bg-page)] p-5 text-[var(--text-primary)] backdrop:bg-black/60"
+>
+  <div class="flex h-full flex-col justify-between">
+    <div>
+      <div class="flex items-center justify-between border-b border-[var(--border-hairline)] pb-4">
+        <span class="text-[16px] font-semibold">Theaver</span>
+        <button
+          type="button"
+          id="mobile-menu-close"
+          aria-label="Close menu"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-card)] text-[var(--text-secondary)]"
+        >
+          <Icon name="close" size={16} />
+        </button>
+      </div>
+      <nav class="mt-4 flex flex-col gap-1">
+        <a href={`${homeHref}#features`} data-mobile-nav-link class="rounded-[var(--radius-control)] px-3 py-2.5 text-[15px] text-[var(--text-primary)] hover:bg-[var(--bg-raised)]">
+          {t.features}
+        </a>
+        <a href={downloadsHref} data-mobile-nav-link class="rounded-[var(--radius-control)] px-3 py-2.5 text-[15px] text-[var(--text-primary)] hover:bg-[var(--bg-raised)]">
+          {t.downloads}
+        </a>
+        <a href={docsHref} data-mobile-nav-link class="rounded-[var(--radius-control)] px-3 py-2.5 text-[15px] text-[var(--text-primary)] hover:bg-[var(--bg-raised)]">
+          {t.docs}
+        </a>
+        <a href={changelogHref} data-mobile-nav-link class="rounded-[var(--radius-control)] px-3 py-2.5 text-[15px] text-[var(--text-primary)] hover:bg-[var(--bg-raised)]">
+          {t.changelog}
+        </a>
+        <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" class="rounded-[var(--radius-control)] px-3 py-2.5 text-[15px] text-[var(--text-secondary)] hover:bg-[var(--bg-raised)]">
+          {t.github}
+        </a>
+      </nav>
+    </div>
+
+    <div class="flex flex-col gap-2 border-t border-[var(--border-hairline)] pt-4">
+      <a href={downloadsHref} class="btn-primary w-full">
+        <Icon name="download" size={16} />
+        <span>{t.download}</span>
+      </a>
+      <a href={WEB_APP_URL} target="_blank" rel="noopener noreferrer" class="btn-secondary w-full">
+        {t.openWeb}
+      </a>
+    </div>
+  </div>
+</dialog>
+
+<SearchDialog locale={locale} />
+
+<script is:inline>
+  (() => {
+    // Language suggestion banner on EN pages for Russian browser locales
+    const banner = document.getElementById('lang-suggest-banner');
+    const dismiss = document.getElementById('lang-suggest-dismiss');
+    if (banner && dismiss) {
+      const dismissed = localStorage.getItem('theaver-lang-banner-dismissed') === '1';
+      const lang = (navigator.language || '').toLowerCase();
+      if (!dismissed && lang.startsWith('ru')) {
+        banner.classList.remove('hidden');
+      }
+      dismiss.addEventListener('click', () => {
+        localStorage.setItem('theaver-lang-banner-dismissed', '1');
+        banner.classList.add('hidden');
+      });
+    }
+
+    const mobileDialog = document.getElementById('mobile-nav-dialog');
+    const openBtn = document.getElementById('mobile-menu-open');
+    const closeBtn = document.getElementById('mobile-menu-close');
+    if (mobileDialog instanceof HTMLDialogElement && openBtn && closeBtn) {
+      openBtn.addEventListener('click', () => mobileDialog.showModal());
+      closeBtn.addEventListener('click', () => mobileDialog.close());
+      mobileDialog.querySelectorAll('[data-mobile-nav-link]').forEach((el) => {
+        el.addEventListener('click', () => mobileDialog.close());
+      });
+      if (!('closedBy' in HTMLDialogElement.prototype)) {
+        mobileDialog.addEventListener('click', (event) => {
+          if (event.target !== mobileDialog) return;
+          const rect = mobileDialog.getBoundingClientRect();
+          const inside =
+            rect.top <= event.clientY &&
+            event.clientY <= rect.top + rect.height &&
+            rect.left <= event.clientX &&
+            event.clientX <= rect.left + rect.width;
+          if (!inside) mobileDialog.close();
+        });
+      }
+    }
+  })();
+</script>

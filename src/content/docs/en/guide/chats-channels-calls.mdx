@@ -1,0 +1,30 @@
+---
+title: Chats, Channels & Calls
+description: Organize conversations with folders, forum topics, channel comment threads, polls, and LiveKit voice or screen-sharing calls.
+track: guide
+order: 3
+---
+
+Theaver supports direct messages, groups with forum topics, broadcast channels with comments, Discord-style communities, and real-time voice/video calls.
+
+## Direct chats, replies & formatting
+
+- **Rich text & entities:** Supports bold, italic, underline, strikethrough, inline code, preformatted blocks, spoilers, and custom inline emojis.
+- **Cloud drafts:** Draft messages and reply targets synchronize automatically across your devices.
+- **Message reactions & pins:** Add up to 3 distinct emoji reactions per message and pin important announcements per chat.
+- **High-Water Mark read sync:** Unread counters and read positions synchronize atomically across every active session.
+
+## Groups, channels & communities
+
+- **Public channels (`/c/<slug>`):** Broadcast posts with view counters, linked discussion groups, comments, and scheduled messages.
+- **Forum topics:** Split large groups into organized topic threads while keeping unread badges accurate per topic.
+- **Polls & quizzes:** Create single-choice, multiple-choice, anonymous, or quiz polls with explanations.
+- **Communities:** Combine text, voice, and stage channels under categories with role-based permissions, soundboards, and invite links.
+
+## Voice, video & screen sharing
+
+1:1 calls and group voice rooms run on **LiveKit SFU** with **Coturn** over TLS port 443 (`turn.theaver.app`), ensuring calls connect reliably behind restrictive NATs and firewalls.
+
+- **Screen sharing:** Share individual windows or full displays at up to `1080p60`.
+- **Voice & round video notes:** Recorded in Opus / MP4 with synchronized `listened` state.
+- **OBS / external streams:** Communities support RTMP and WHIP ingress streams alongside server-side recording.

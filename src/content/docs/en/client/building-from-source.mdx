@@ -1,0 +1,70 @@
+---
+title: Building the Client from Source
+description: Clone theaver-frontend, configure Flutter 3.41+, supply placeholder service configs, and run or compile for desktop, mobile, and web.
+track: client
+order: 1
+---
+
+Theaver's multi-platform client is open source at [`MootSasa/theaver-frontend`](https://github.com/MootSasa/theaver-frontend) and built with **Flutter** (`3.41.9`, Dart SDK `>=3.0.0 <4.0.0`).
+
+## Prerequisites
+
+- **Flutter SDK 3.41.x** (`flutter doctor` clean for your target platform)
+- **Android builds:** Java 17, Android SDK CMake `3.22.1`, NDK `25.1.8937393`
+- **Linux desktop builds:** `clang`, `cmake`, `ninja-build`, `pkg-config`, `libgtk-3-dev`, `libsecret-1-dev`, `libsqlite3-dev`, `libnotify-dev`, `libayatana-appindicator3-dev`
+- **Windows desktop builds:** Visual Studio 2022 with C++ Desktop workload
+
+## Clone & setup
+
+```bash
+git clone https://github.com/MootSasa/theaver-frontend.git
+cd theaver-frontend
+
+# Copy example push service configs for local Android builds
+cp android/app/google-services.json.example android/app/google-services.json
+cp android/app/agconnect-services.json.example android/app/agconnect-services.json
+
+flutter pub get
+```
+
+## Runtime endpoint configuration (`--dart-define`)
+
+`AppConfig` in `lib/config/app_config.dart` resolves API, WebSocket, Storage, and Web base URLs dynamically via `--dart-define`:
+
+```bash
+flutter run \
+  --dart-define=API_BASE_URL=https://api.theaver.app \
+  --dart-define=WS_BASE_URL=wss://api.theaver.app/api/ws \
+  --dart-define=STORAGE_BASE_URL=https://storage.theaver.app \
+  --dart-define=WEB_BASE_URL=https://theaver.app
+```
+
+For local LAN testing against a custom server, you can also change server URLs inside the in-app Service Menu (unlocked by tapping the version info card 5 times on **About Theaver**).
+
+## Compiling release targets
+
+<CodeTabs tabs={['Android Split APK', 'Linux x64', 'Windows x64', 'Flutter Web']}>
+```bash
+flutter build apk --release --split-per-abi \
+  --dart-define=APP_VERSION=1.20.3 \
+  --dart-define=APP_BUILD_NUMBER=429
+```
+
+```bash
+flutter build linux --release \
+  --dart-define=APP_VERSION=1.20.3 \
+  --dart-define=APP_BUILD_NUMBER=429
+```
+
+```powershell
+flutter build windows --release `
+  --dart-define="APP_VERSION=1.20.3" `
+  --dart-define="APP_BUILD_NUMBER=429"
+```
+
+```bash
+flutter build web --release --no-web-resources-cdn \
+  --dart-define=APP_VERSION=1.20.3 \
+  --dart-define=APP_BUILD_NUMBER=429
+```
+</CodeTabs>

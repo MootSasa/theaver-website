@@ -1,0 +1,60 @@
+---
+title: Payments & Walt Wallet (THV)
+description: Accept THV payments in bots and Mini Apps with sendInvoice, createInvoiceLink, and successful_payment updates.
+track: bots
+order: 5
+---
+
+Theaver includes the **Walt** (`@walt`) ledger for fast in-ecosystem transfers and bot/Mini App payments denominated in **`THV`** (and accepts the `XTR` currency code alias for Telegram Stars compatibility).
+
+## Creating invoices via Bot API
+
+Use either `sendInvoice` (posts a payment card directly into a chat) or `createInvoiceLink` (returns a reusable `invoice_url` that can be opened with `Telegram.WebApp.openInvoice(url)`).
+
+<ApiEndpoint method="POST" path="/bot<token>/sendInvoice" auth="Bot Token" />
+
+```json
+{
+  "chat_id": 849201432,
+  "title": "Pro Plan (1 Month)",
+  "description": "Unlocks extended workspace templates inside the bot.",
+  "payload": "order_pro_30d_user42",
+  "currency": "THV",
+  "prices": [
+    { "label": "Monthly access", "amount": 50 }
+  ]
+}
+```
+
+If you provide a custom `reply_markup` without a `pay: true` button, Theaver automatically prepends an inline payment button (`Pay 50 THV`) linked to the generated invoice.
+
+## Receiving `successful_payment` updates
+
+When the user completes the payment in Walt:
+
+1. The ledger settles the `THV` transfer atomically into the bot's balance.
+2. Your bot receives a `message` update containing a `successful_payment` object via `getUpdates` or your configured webhook:
+
+```json
+{
+  "update_id": 1094,
+  "message": {
+    "chat": { "id": 849201432, "type": "private" },
+    "from": { "id": 491827364, "username": "alex" },
+    "successful_payment": {
+      "currency": "THV",
+      "total_amount": 50,
+      "invoice_payload": "order_pro_30d_user42",
+      "provider_payment_charge_id": "walt_tx_..."
+    }
+  }
+}
+```
+
+## Withdrawing earned `THV`
+
+Bot owners can inspect bot balances and withdraw earned `THV` directly inside the **`@BotMother`** Studio Mini App or transfer funds through `@walt`.
+
+<Callout type="info" title="Verify invoice payload before fulfillment">
+  Always match `successful_payment.invoice_payload` and `total_amount` against your own database order record before granting digital goods or subscriptions.
+</Callout>

@@ -1,0 +1,325 @@
+---
+import MarketingLayout from '../../layouts/MarketingLayout.astro';
+import Icon from '../Icon.astro';
+import type { Locale } from '../../lib/i18n';
+import { GITHUB_RELEASES_URL } from '../../lib/releases';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+interface ReleaseEntry {
+  version: string;
+  date: string;
+  channel: 'stable' | 'beta';
+  title: string;
+  sections: Array<{
+    kind: 'added' | 'improved' | 'fixed';
+    items: string[];
+  }>;
+}
+
+const entries: ReleaseEntry[] = locale === 'ru'
+  ? [
+      {
+        version: 'v1.20.3-beta.429',
+        date: '2026-11-09',
+        channel: 'beta',
+        title: 'Сглаженная навигация, превью ссылок и стикеры',
+        sections: [
+          {
+            kind: 'fixed',
+            items: [
+              'Кастомные эмодзи и внутренние ссылки хранилища больше не вызывают лишнее превью веб-страниц в пузыре сообщения.',
+              'Исправлена стабильность анимаций стикеров и GIF при быстром пролистывании ленты чата.',
+            ],
+          },
+          {
+            kind: 'improved',
+            items: [
+              'Оптимизирован переход между списком чатов, диалогом и экраном профиля без пропусков кадров.',
+            ],
+          },
+        ],
+      },
+      {
+        version: 'v1.20.0-beta.423',
+        date: '2026-11-09',
+        channel: 'beta',
+        title: 'Mini Apps v8, безопасность кошелька Walt и подписи сборок',
+        sections: [
+          {
+            kind: 'added',
+            items: [
+              'Обновлена платформа Mini Apps до версии v8.0 с кэшированием ETag, безопасными отступами HUD и событийной загрузкой.',
+              'Добавлена автоматическая подпись релизных сборок для Windows и GPG-подписи для Linux.',
+            ],
+          },
+          {
+            kind: 'improved',
+            items: [
+              'Усилена проверка входных данных в Bot API и транзакциях кошелька Walt (THV).',
+            ],
+          },
+        ],
+      },
+      {
+        version: 'v1.19.0-beta.421',
+        date: '2026-11-08',
+        channel: 'beta',
+        title: 'Панель стикеров, GIF-сетка и импорт из Telegram',
+        sections: [
+          {
+            kind: 'added',
+            items: [
+              'Боковая панель эмодзи и стикеров (Sidecar) для тайлингового режима на десктопе.',
+              'Адаптивная сетка GIF, предпросмотр по удержанию и отправка в полном качестве.',
+              'Импорт наборов стикеров из Telegram с отображением прогресса в реальном времени.',
+            ],
+          },
+          {
+            kind: 'improved',
+            items: [
+              'Приостановка анимаций стикеров и GIF вне видимой области экрана и фиксация высокой частоты кадров.',
+            ],
+          },
+        ],
+      },
+      {
+        version: 'v1.18.0-beta.400',
+        date: '2026-11-07',
+        channel: 'beta',
+        title: 'Групповые звонки, стримы и сообщества',
+        sections: [
+          {
+            kind: 'added',
+            items: [
+              'Аудио- и видеозвонки, демонстрация экрана и комнаты сообществ на базе LiveKit SFU.',
+              'Карточки итогов звонков в истории чата и гибкие настройки уведомлений.',
+            ],
+          },
+        ],
+      },
+    ]
+  : [
+      {
+        version: 'v1.20.3-beta.429',
+        date: '2026-11-09',
+        channel: 'beta',
+        title: 'Smoother navigation transitions, link previews, and sticker stability',
+        sections: [
+          {
+            kind: 'fixed',
+            items: [
+              'Custom emojis and internal storage media URLs no longer trigger unintended web link preview cards.',
+              'Eliminated animation frame jitter across animated stickers and GIFs during fast scroll.',
+            ],
+          },
+          {
+            kind: 'improved',
+            items: [
+              'Refined transitions between chat list, active thread, and profile info panels.',
+            ],
+          },
+        ],
+      },
+      {
+        version: 'v1.20.0-beta.423',
+        date: '2026-11-09',
+        channel: 'beta',
+        title: 'Mini Apps v8, Walt wallet hardening, and signed installers',
+        sections: [
+          {
+            kind: 'added',
+            items: [
+              'Upgraded Mini Apps platform to v8.0 with ETag caching, safe HUD insets, and event-driven boot.',
+              'Enabled automated Authenticode signing on Windows and GPG signatures on Linux release archives.',
+            ],
+          },
+          {
+            kind: 'improved',
+            items: [
+              'Hardened Bot API validation and Walt (THV) ledger checks.',
+            ],
+          },
+        ],
+      },
+      {
+        version: 'v1.19.0-beta.421',
+        date: '2026-11-08',
+        channel: 'beta',
+        title: 'Emoji & sticker sidecar, GIF grid, and Telegram pack import',
+        sections: [
+          {
+            kind: 'added',
+            items: [
+              'Dedicated Emoji & Sticker Sidecar panel for desktop tiling workspaces.',
+              'Justified GIF grid with press-and-hold peek preview and full-resolution sending.',
+              'Real-time progress reporting when importing sticker packs from Telegram.',
+            ],
+          },
+          {
+            kind: 'improved',
+            items: [
+              'Paused off-screen animated stickers/GIFs and locked high refresh rate during touch interactions.',
+            ],
+          },
+        ],
+      },
+      {
+        version: 'v1.18.0-beta.400',
+        date: '2026-11-07',
+        channel: 'beta',
+        title: 'Calls, streams, and communities',
+        sections: [
+          {
+            kind: 'added',
+            items: [
+              'Voice calls, 1080p60 screen sharing, and community voice channels powered by LiveKit SFU.',
+              'Call summary cards in chat history and per-chat notification controls.',
+            ],
+          },
+        ],
+      },
+    ];
+
+const labels = locale === 'ru'
+  ? {
+      title: 'История обновлений',
+      description: 'Хронология релизов клиента и платформы Theaver по каналам Stable и Beta.',
+      all: 'Все',
+      stable: 'Stable',
+      beta: 'Beta',
+      added: 'Новое',
+      improved: 'Улучшения',
+      fixed: 'Исправления',
+      tagLink: 'Открыть релиз на GitHub',
+    }
+  : {
+      title: 'Changelog',
+      description: 'Release history for Theaver client builds and platform updates across Stable and Beta channels.',
+      all: 'All',
+      stable: 'Stable',
+      beta: 'Beta',
+      added: 'Added',
+      improved: 'Improved',
+      fixed: 'Fixed',
+      tagLink: 'View release on GitHub',
+    };
+---
+
+<MarketingLayout title={`${labels.title} — Theaver`} description={labels.description}>
+  <section class="py-12 sm:py-16">
+    <div class="container-page">
+      <div class="mx-auto max-w-3xl">
+        <div class="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--border-hairline)] pb-6">
+          <div>
+            <h1 class="text-[32px] font-medium leading-[1.15] text-[var(--text-primary)] sm:text-[38px]">
+              {labels.title}
+            </h1>
+            <p class="mt-2 text-[15.5px] text-[var(--text-secondary)]">
+              {labels.description}
+            </p>
+          </div>
+
+          <div class="inline-flex rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] p-1">
+            {(['all', 'stable', 'beta'] as const).map((filter, idx) => (
+              <button
+                type="button"
+                data-cl-filter={filter}
+                class:list={[
+                  'rounded-[var(--radius-chip)] px-3 py-1 text-[13px] font-medium transition-colors duration-150',
+                  idx === 0
+                    ? 'bg-[var(--bg-card)] text-[var(--text-primary)] shadow-[var(--card-highlight)]'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
+                ]}
+              >
+                {labels[filter]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div class="mt-8 flex flex-col gap-6" id="changelog-list">
+          {entries.map((entry) => (
+            <article class="ink-card p-6" data-cl-channel={entry.channel}>
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-3">
+                  <span class="tabular font-mono text-[14px] font-medium text-[var(--accent)]">
+                    {entry.version}
+                  </span>
+                  <span class="rounded-[var(--radius-chip)] border border-[var(--border-hairline)] bg-[var(--bg-raised)] px-2 py-0.5 text-[12px] text-[var(--text-secondary)]">
+                    {entry.channel === 'beta' ? labels.beta : labels.stable}
+                  </span>
+                </div>
+                <time class="tabular font-mono text-[12.5px] text-[var(--text-muted)]">
+                  {entry.date}
+                </time>
+              </div>
+
+              <h2 class="mt-3 text-[20px] font-medium text-[var(--text-primary)]">
+                {entry.title}
+              </h2>
+
+              <div class="mt-4 flex flex-col gap-4">
+                {entry.sections.map((sec) => (
+                  <div>
+                    <div class="text-[12.5px] font-medium text-[var(--text-muted)]">
+                      {labels[sec.kind]}
+                    </div>
+                    <ul class="mt-1.5 flex flex-col gap-1.5 text-[14.5px] leading-relaxed text-[var(--text-secondary)]">
+                      {sec.items.map((item) => (
+                        <li class="flex items-start gap-2">
+                          <span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+
+              <div class="mt-5 border-t border-[var(--border-hairline)] pt-4">
+                <a
+                  href={`${GITHUB_RELEASES_URL}/tag/${entry.version}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1.5 text-[13px] text-[var(--text-secondary)] hover:text-[var(--accent)]"
+                >
+                  <Icon name="github" size={14} />
+                  <span>{labels.tagLink}</span>
+                  <Icon name="arrow-up-right" size={13} />
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+</MarketingLayout>
+
+<script is:inline>
+  (() => {
+    const buttons = document.querySelectorAll('[data-cl-filter]');
+    const cards = document.querySelectorAll('[data-cl-channel]');
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const target = btn.getAttribute('data-cl-filter') || 'all';
+        buttons.forEach((b) => {
+          const on = b === btn;
+          b.classList.toggle('bg-[var(--bg-card)]', on);
+          b.classList.toggle('text-[var(--text-primary)]', on);
+          b.classList.toggle('shadow-[var(--card-highlight)]', on);
+          b.classList.toggle('text-[var(--text-muted)]', !on);
+        });
+        cards.forEach((card) => {
+          const ch = card.getAttribute('data-cl-channel');
+          card.classList.toggle('hidden', target !== 'all' && ch !== target);
+        });
+      });
+    });
+  })();
+</script>

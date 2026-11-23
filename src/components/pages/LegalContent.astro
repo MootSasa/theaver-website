@@ -1,0 +1,193 @@
+---
+import LegalLayout from '../../layouts/LegalLayout.astro';
+import type { Locale } from '../../lib/i18n';
+
+interface Props {
+  locale: Locale;
+  doc: 'privacy' | 'terms' | 'security';
+}
+
+const { locale, doc } = Astro.props;
+const updatedAt = '2026-11-24';
+
+const titles = {
+  en: {
+    privacy: {
+      title: 'Privacy Policy',
+      desc: 'How Theaver collects, stores, protects, and deletes account and messaging data.',
+    },
+    terms: {
+      title: 'Terms of Service',
+      desc: 'Rules for using the Theaver messenger, public channels, Bot API, and Mini Apps.',
+    },
+    security: {
+      title: 'Security & Vulnerability Disclosure',
+      desc: 'Release signature verification and responsible vulnerability reporting for Theaver.',
+    },
+  },
+  ru: {
+    privacy: {
+      title: 'Политика конфиденциальности',
+      desc: 'Какие данные обрабатывает мессенджер Theaver, как они защищаются и как управляются пользователем.',
+    },
+    terms: {
+      title: 'Условия использования',
+      desc: 'Правила работы с мессенджером Theaver, публичными каналами, Bot API и Mini Apps.',
+    },
+    security: {
+      title: 'Безопасность и сообщение об уязвимостях',
+      desc: 'Проверка цифровых подписей сборок и порядок ответственного раскрытия уязвимостей Theaver.',
+    },
+  },
+}[locale][doc];
+---
+
+<LegalLayout title={titles.title} description={titles.desc} updatedAt={updatedAt}>
+  {doc === 'privacy' && locale === 'en' && (
+    <>
+      <h2>1. Data We Process</h2>
+      <p>
+        Theaver stores the information necessary to deliver messages, maintain your sessions, and synchronize your chats across devices: account email and username, profile display name and avatar, chat memberships, messages, media attachments, and active device session metadata (platform, app version, and push tokens when notifications are enabled).
+      </p>
+
+      <h2>2. Privacy Controls</h2>
+      <p>
+        Inside Settings → Privacy, you control who can view your profile photo, bio, online status, and last seen timestamp, or who can call and invite you to groups. Anonymous public link previews on <code>theaver.app/u/&lt;username&gt;</code> strictly hide your avatar and bio unless visibility is set to Everybody.
+      </p>
+
+      <h2>3. Device Sessions & Retention</h2>
+      <p>
+        Each client sign-in creates a tracked device session. You can inspect active sessions, terminate individual devices, or configure automatic inactive session expiration (TTL) and account inactivity TTL directly in the app.
+      </p>
+
+      <h2>4. Local Storage & Open Client</h2>
+      <p>
+        The open-source Theaver client stores cached messages and drafts locally in SQLite/Drift on your device for instant startup and offline queueing. Authentication secrets are stored via platform secure storage APIs where available.
+      </p>
+
+      <h2>5. Contact</h2>
+      <p>
+        For privacy inquiries or data removal requests, open a security advisory or issue on{' '}
+        <a href="https://github.com/MootSasa/theaver-frontend">GitHub</a>.
+      </p>
+    </>
+  )}
+
+  {doc === 'privacy' && locale === 'ru' && (
+    <>
+      <h2>1. Какие данные обрабатываются</h2>
+      <p>
+        Theaver хранит только данные, необходимые для доставки сообщений, работы звонков и синхронизации истории между устройствами: email и имя пользователя, отображаемое имя и аватар, состав чатов, сообщения, вложения и метаданные активных сессий устройств (платформа, версия клиента и push-токен при включённых уведомлениях).
+      </p>
+
+      <h2>2. Настройки приватности</h2>
+      <p>
+        В разделе Настройки → Конфиденциальность вы определяете, кому видны фото профиля, раздел «О себе», время последнего захода и кто может звонить вам или добавлять в группы. Публичные карточки предпросмотра на <code>theaver.app/u/&lt;username&gt;</code> скрывают аватар и описание, если доступ ограничен параметром «Контакты» или «Никто».
+      </p>
+
+      <h2>3. Сессии устройств и сроки хранения</h2>
+      <p>
+        Каждый вход создаёт отдельную сессию. Вы можете завершить любое устройство удалённо, а также настроить автоматическое завершение неактивных сессий и срок жизни неактивного аккаунта.
+      </p>
+
+      <h2>4. Локальное хранилище и открытый клиент</h2>
+      <p>
+        Открытый клиент Theaver кэширует сообщения и черновики локально в базе SQLite/Drift на вашем устройстве для мгновенного запуска и работы без сети. Токены авторизации сохраняются через защищённое системное хранилище операционной системы.
+      </p>
+
+      <h2>5. Обратная связь</h2>
+      <p>
+        По вопросам конфиденциальности и удаления данных обращайтесь через репозиторий клиента на{' '}
+        <a href="https://github.com/MootSasa/theaver-frontend">GitHub</a>.
+      </p>
+    </>
+  )}
+
+  {doc === 'terms' && locale === 'en' && (
+    <>
+      <h2>1. Acceptance of Terms</h2>
+      <p>
+        By creating an account or accessing Theaver via native clients or <code>app.theaver.app</code>, you agree to use the service lawfully and respectfully without disrupting network infrastructure or other users.
+      </p>
+
+      <h2>2. Accounts, Channels & Bots</h2>
+      <p>
+        You are responsible for keeping your password, two-factor recovery codes, and Bot API tokens confidential. Bots created via <code>@BotMother</code> must not distribute malware, perform unsolicited bulk messaging, or impersonate official system accounts.
+      </p>
+
+      <h2>3. Open-Source Client License</h2>
+      <p>
+        Client builds are provided from the public repository{' '}
+        <a href="https://github.com/MootSasa/theaver-frontend">theaver-frontend</a>. Official installers carry verifiable SHA-256 hashes and signing keys published on <a href="/downloads">Downloads</a>.
+      </p>
+    </>
+  )}
+
+  {doc === 'terms' && locale === 'ru' && (
+    <>
+      <h2>1. Принятие условий</h2>
+      <p>
+        Регистрируя аккаунт или используя клиенты Theaver и веб-версию на <code>app.theaver.app</code>, вы соглашаетесь соблюдать законодательство и не нарушать работу инфраструктуры и других пользователей сервиса.
+      </p>
+
+      <h2>2. Аккаунты, каналы и боты</h2>
+      <p>
+        Пользователь несёт ответственность за сохранность пароля, кодов 2FA и токенов ботов, выданных через <code>@BotMother</code>. Ботам и Mini Apps запрещена массовая спам-рассылка, распространение вредоносного кода и выдача себя за системные аккаунты.
+      </p>
+
+      <h2>3. Открытый клиент и подлинность сборок</h2>
+      <p>
+        Клиентские сборки собираются из открытого репозитория{' '}
+        <a href="https://github.com/MootSasa/theaver-frontend">theaver-frontend</a>. Проверить подлинность установщика можно по SHA-256 и публичным ключам на странице <a href="/ru/downloads">Загрузки</a>.
+      </p>
+    </>
+  )}
+
+  {doc === 'security' && locale === 'en' && (
+    <>
+      <h2>1. Reporting a Vulnerability</h2>
+      <p>
+        Do not disclose suspected security vulnerabilities in public issues or community chats before a fix is released. Please submit a private advisory via{' '}
+        <a href="https://github.com/MootSasa/theaver-frontend/security/advisories/new">
+          GitHub Security Advisories
+        </a>.
+      </p>
+
+      <h2>2. Signed Releases & Public Keys</h2>
+      <ul>
+        <li>Linux GPG public key: <a href="/signing/theaver-release-public.asc">theaver-release-public.asc</a></li>
+        <li>Windows Root CA certificate: <a href="/signing/theaver-windows-root.cer">theaver-windows-root.cer</a></li>
+        <li>Machine-readable policy: <a href="/.well-known/security.txt">/.well-known/security.txt</a></li>
+      </ul>
+
+      <h2>3. Two-Factor Authentication</h2>
+      <p>
+        We recommend enabling Two-Factor Authentication (2FA) and App Lock inside Settings → Privacy &amp; Security on all devices.
+      </p>
+    </>
+  )}
+
+  {doc === 'security' && locale === 'ru' && (
+    <>
+      <h2>1. Порядок сообщения об уязвимостях</h2>
+      <p>
+        Пожалуйста, не публикуйте детали найденных уязвимостей в открытых чатах и публичных Issue до выхода исправления. Передайте отчёт конфиденциально через{' '}
+        <a href="https://github.com/MootSasa/theaver-frontend/security/advisories/new">
+          GitHub Security Advisories
+        </a>.
+      </p>
+
+      <h2>2. Проверка подписей сборок</h2>
+      <ul>
+        <li>Публичный GPG-ключ для Linux: <a href="/signing/theaver-release-public.asc">theaver-release-public.asc</a></li>
+        <li>Корневой сертификат Windows: <a href="/signing/theaver-windows-root.cer">theaver-windows-root.cer</a></li>
+        <li>Файл стандарта RFC 9116: <a href="/.well-known/security.txt">/.well-known/security.txt</a></li>
+      </ul>
+
+      <h2>3. Рекомендации по защите аккаунта</h2>
+      <p>
+        Включите двухфакторную аутентификацию (2FA) и локальный код-пароль приложения в настройках безопасности, а также периодически проверяйте список активных устройств.
+      </p>
+    </>
+  )}
+</LegalLayout>

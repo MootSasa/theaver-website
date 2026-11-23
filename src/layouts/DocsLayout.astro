@@ -1,0 +1,236 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import type { MarkdownHeading } from 'astro';
+import BaseLayout from './BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Icon from '../components/Icon.astro';
+import { UI_STRINGS, localizePath, type Locale } from '../lib/i18n';
+
+interface Props {
+  entry: CollectionEntry<'docs'>;
+  allEntries: CollectionEntry<'docs'>[];
+  headings: MarkdownHeading[];
+  locale: Locale;
+  slug: string;
+}
+
+const { entry, allEntries, headings, locale, slug } = Astro.props;
+const t = UI_STRINGS[locale];
+const currentPath = Astro.url.pathname;
+
+const tracksOrder: Array<'guide' | 'bots' | 'client'> = ['guide', 'bots', 'client'];
+
+const localeEntries = allEntries
+  .filter((item) => item.id.startsWith(`${locale}/`))
+  .map((item) => ({
+    entry: item,
+    cleanSlug: item.id.replace(new RegExp(`^${locale}/`), '').replace(/\.(md|mdx)$/, ''),
+  }));
+
+const grouped = tracksOrder.map((trackKey) => ({
+  key: trackKey,
+  label: t.tracks[trackKey],
+  items: localeEntries
+    .filter((i) => i.entry.data.track === trackKey)
+    .sort((a, b) => a.entry.data.order - b.entry.data.order),
+}));
+
+const flatOrdered = grouped.flatMap((g) => g.items);
+const currentIndex = flatOrdered.findIndex((i) => i.cleanSlug === slug);
+const prevItem = currentIndex > 0 ? flatOrdered[currentIndex - 1] : null;
+const nextItem =
+  currentIndex >= 0 && currentIndex < flatOrdered.length - 1
+    ? flatOrdered[currentIndex + 1]
+    : null;
+
+const tocHeadings = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+const docRelPath = entry.filePath
+  ? entry.filePath.replace(/^src\/content\/docs\//, '')
+  : `${entry.id}${entry.id.endsWith('.md') || entry.id.endsWith('.mdx') ? '' : '.mdx'}`;
+const editUrl = `https://github.com/MootSasa/theaver-website/edit/main/src/content/docs/${docRelPath}`;
+---
+
+<BaseLayout
+  title={`${entry.data.title} — Theaver Docs`}
+  description={entry.data.description}
+  canonicalPath={currentPath}
+>
+  <div class="flex min-h-screen flex-col">
+    <Header locale={locale} currentPath={currentPath} />
+
+    <div class="container-page flex-1 py-8 lg:py-10">
+      <!-- Mobile docs navigation drawer -->
+      <details class="ink-card mb-6 lg:hidden">
+        <summary class="flex items-center justify-between px-4 py-3 text-[14px] font-medium text-[var(--text-primary)]">
+          <span class="inline-flex items-center gap-2">
+            <Icon name="book" size={16} class="text-[var(--accent)]" />
+            <span>{t.tracks[entry.data.track]} — {entry.data.title}</span>
+          </span>
+          <Icon name="chevron-right" size={16} class="text-[var(--text-muted)]" />
+        </summary>
+        <nav aria-label="Documentation sections" class="border-t border-[var(--border-hairline)] p-3">
+          {grouped.map((group) => (
+            <div class="mb-4 last:mb-0">
+              <div class="px-2 pb-1.5 text-[12px] font-medium text-[var(--text-muted)]">
+                {group.label}
+              </div>
+              <ul class="flex flex-col gap-0.5">
+                {group.items.map((item) => {
+                  const href = localizePath(`/docs/${item.cleanSlug}`, locale);
+                  const active = item.cleanSlug === slug;
+                  return (
+                    <li>
+                      <a
+                        href={href}
+                        class:list={[
+                          'block rounded-[var(--radius-control)] px-2.5 py-1.5 text-[13.5px]',
+                          active
+                            ? 'bg-[var(--bg-raised)] font-medium text-[var(--text-primary)]'
+                            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]',
+                        ]}
+                      >
+                        {item.entry.data.title}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </nav>
+      </details>
+
+      <div class="grid gap-10 lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)_210px]">
+        <!-- Left Sidebar -->
+        <aside class="hidden lg:block">
+          <div class="sticky top-24 max-h-[calc(100vh-112px)] overflow-y-auto pr-2">
+            <nav aria-label="Documentation sidebar" class="flex flex-col gap-6">
+              {grouped.map((group) => (
+                <div>
+                  <div class="px-2.5 pb-2 text-[12px] font-medium text-[var(--text-muted)]">
+                    {group.label}
+                  </div>
+                  <ul class="flex flex-col gap-1">
+                    {group.items.map((item) => {
+                      const href = localizePath(`/docs/${item.cleanSlug}`, locale);
+                      const active = item.cleanSlug === slug;
+                      return (
+                        <li>
+                          <a
+                            href={href}
+                            aria-current={active ? 'page' : undefined}
+                            class:list={[
+                              'flex min-h-[34px] items-center justify-between rounded-[var(--radius-control)] px-2.5 py-1.5 text-[13.5px] transition-colors duration-150',
+                              active
+                                ? 'border border-[var(--border-hairline)] bg-[var(--bg-card)] font-medium text-[var(--text-primary)] shadow-[var(--card-highlight)]'
+                                : 'text-[var(--text-secondary)] hover:bg-[var(--bg-raised)] hover:text-[var(--text-primary)]',
+                            ]}
+                          >
+                            <span>{item.entry.data.title}</span>
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </nav>
+          </div>
+        </aside>
+
+        <!-- Main Article -->
+        <main class="min-w-0">
+          <div class="mb-4 flex items-center gap-2 text-[13px] text-[var(--text-muted)]">
+            <span>{t.tracks[entry.data.track]}</span>
+            <Icon name="chevron-right" size={14} />
+            <span class="text-[var(--text-secondary)]">{entry.data.title}</span>
+          </div>
+
+          <article class="docs-prose" data-pagefind-body>
+            <h1 data-pagefind-meta="title">{entry.data.title}</h1>
+            <p class="mb-8 text-[16px] leading-relaxed text-[var(--text-secondary)]">
+              {entry.data.description}
+            </p>
+            <slot />
+          </article>
+
+          <div class="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-[var(--border-hairline)] pt-6">
+            <a
+              href={editUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 text-[13px] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            >
+              <Icon name="github" size={15} />
+              <span>{t.docsUi.editOnGithub}</span>
+            </a>
+          </div>
+
+          <nav
+            aria-label="Article pagination"
+            class="mt-6 grid gap-4 sm:grid-cols-2"
+            data-pagefind-ignore
+          >
+            {prevItem ? (
+              <a
+                href={localizePath(`/docs/${prevItem.cleanSlug}`, locale)}
+                class="ink-card flex flex-col gap-1 p-4 transition-colors duration-150 hover:border-[var(--border-strong)]"
+              >
+                <span class="inline-flex items-center gap-1 text-[12px] text-[var(--text-muted)]">
+                  <Icon name="chevron-left" size={14} />
+                  <span>{t.docsUi.previous}</span>
+                </span>
+                <span class="text-[14.5px] font-medium text-[var(--text-primary)]">
+                  {prevItem.entry.data.title}
+                </span>
+              </a>
+            ) : (
+              <div />
+            )}
+
+            {nextItem && (
+              <a
+                href={localizePath(`/docs/${nextItem.cleanSlug}`, locale)}
+                class="ink-card flex flex-col items-end gap-1 p-4 text-right transition-colors duration-150 hover:border-[var(--border-strong)]"
+              >
+                <span class="inline-flex items-center gap-1 text-[12px] text-[var(--text-muted)]">
+                  <span>{t.docsUi.next}</span>
+                  <Icon name="chevron-right" size={14} />
+                </span>
+                <span class="text-[14.5px] font-medium text-[var(--text-primary)]">
+                  {nextItem.entry.data.title}
+                </span>
+              </a>
+            )}
+          </nav>
+        </main>
+
+        <!-- Right Table of Contents -->
+        <aside class="hidden xl:block" data-pagefind-ignore>
+          {tocHeadings.length > 0 && (
+            <div class="sticky top-24">
+              <div class="mb-3 text-[12px] font-medium text-[var(--text-muted)]">
+                {t.docsUi.onThisPage}
+              </div>
+              <ul class="flex flex-col gap-2 border-l border-[var(--border-hairline)] pl-3 text-[13px]">
+                {tocHeadings.map((h) => (
+                  <li class:list={[h.depth === 3 ? 'pl-3' : '']}>
+                    <a
+                      href={`#${h.slug}`}
+                      class="block leading-snug text-[var(--text-secondary)] transition-colors duration-150 hover:text-[var(--text-primary)]"
+                    >
+                      {h.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </aside>
+      </div>
+    </div>
+
+    <Footer locale={locale} />
+  </div>
+</BaseLayout>

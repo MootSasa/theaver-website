@@ -1,0 +1,206 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../Header.astro';
+import Footer from '../Footer.astro';
+import Icon from '../Icon.astro';
+import type { Locale } from '../../lib/i18n';
+import { localizePath } from '../../lib/i18n';
+import type { PreviewFetchResult, PreviewKind } from '../../lib/preview';
+
+interface Props {
+  kind: PreviewKind;
+  target: string;
+  locale: Locale;
+  result: PreviewFetchResult;
+}
+
+const { kind, target, locale, result } = Astro.props;
+const currentPath = Astro.url.pathname;
+
+const copy = locale === 'ru'
+  ? {
+      openInApp: 'Открыть в Theaver',
+      openInWeb: 'Открыть в браузере',
+      downloadApp: 'Скачать Theaver',
+      botBadge: 'Бот',
+      channelBadge: 'Канал',
+      groupBadge: 'Группа',
+      communityBadge: 'Сообщество',
+      userBadge: 'Профиль',
+      members: (n: number) => `${n.toLocaleString('ru-RU')} участников`,
+      subscribers: (n: number) => `${n.toLocaleString('ru-RU')} подписчиков`,
+      approvalNote: 'Присоединение требует одобрения администратора',
+      notFoundTitle: 'Ссылка не найдена',
+      notFoundBody: 'Пользователь, публичный канал или приглашение не существуют либо были удалены.',
+      expiredTitle: 'Срок действия приглашения истёк',
+      expiredBody: 'Эта ссылка-приглашение была отозвана или достигла лимита использований.',
+      backHome: 'На главную theaver.app',
+    }
+  : {
+      openInApp: 'Open in Theaver',
+      openInWeb: 'Open in Browser',
+      downloadApp: 'Download Theaver',
+      botBadge: 'Bot',
+      channelBadge: 'Channel',
+      groupBadge: 'Group',
+      communityBadge: 'Community',
+      userBadge: 'Profile',
+      members: (n: number) => `${n.toLocaleString('en-US')} members`,
+      subscribers: (n: number) => `${n.toLocaleString('en-US')} subscribers`,
+      approvalNote: 'Join request requires admin approval',
+      notFoundTitle: 'Link not found',
+      notFoundBody: 'This user, public channel, or invite does not exist or is no longer available.',
+      expiredTitle: 'Invite link expired',
+      expiredBody: 'This invite link has expired, reached its usage limit, or was revoked.',
+      backHome: 'Back to theaver.app',
+    };
+
+const isOk = result.status === 'ok';
+const data = isOk ? result.data : null;
+
+const pageTitle = data
+  ? `${data.title} — Theaver`
+  : result.status === 'gone'
+    ? `${copy.expiredTitle} — Theaver`
+    : `${copy.notFoundTitle} — Theaver`;
+
+const pageDesc = data
+  ? data.description || (data.username ? `@${data.username} on Theaver` : 'Open in Theaver Messenger')
+  : result.status === 'gone'
+    ? copy.expiredBody
+    : copy.notFoundBody;
+
+const ogImage = data?.avatar_url || 'https://theaver.app/app-icon.png';
+
+function badgeFor(entityType: string): string {
+  switch (entityType) {
+    case 'bot':
+      return copy.botBadge;
+    case 'channel':
+      return copy.channelBadge;
+    case 'community':
+      return copy.communityBadge;
+    case 'group':
+      return copy.groupBadge;
+    default:
+      return copy.userBadge;
+  }
+}
+
+function initialsOf(title: string): string {
+  const parts = title.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'T';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDesc}
+  image={ogImage}
+  noindex={kind === 'invite' || !isOk}
+  canonicalPath={currentPath}
+>
+  <div class="flex min-h-screen flex-col">
+    <Header locale={locale} currentPath={currentPath} />
+
+    <main class="flex flex-1 items-center justify-center px-4 py-16">
+      {data ? (
+        <div class="ink-card w-full max-w-[440px] p-8 text-center">
+          <div class="mx-auto flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-[var(--border-hairline)] bg-[var(--bg-raised)]">
+            {data.avatar_url ? (
+              <img
+                src={data.avatar_url}
+                alt={data.title}
+                width="80"
+                height="80"
+                class="h-full w-full object-cover"
+              />
+            ) : (
+              <span class="text-[22px] font-medium text-[var(--accent)]">
+                {initialsOf(data.title)}
+              </span>
+            )}
+          </div>
+
+          <div class="mt-4 inline-flex items-center gap-1.5 rounded-[var(--radius-chip)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] px-2.5 py-0.5 text-[12px] text-[var(--text-secondary)]">
+            <span>{badgeFor(data.entity_type)}</span>
+          </div>
+
+          <h1 class="mt-3 flex items-center justify-center gap-2 text-[24px] font-medium text-[var(--text-primary)]">
+            <span>{data.title}</span>
+            {data.is_verified && (
+              <Icon name="verified" size={19} class="text-[var(--accent)]" />
+            )}
+          </h1>
+
+          {(data.username || typeof data.member_count === 'number') && (
+            <p class="mt-1.5 font-mono text-[13px] text-[var(--text-muted)] tabular">
+              {data.username ? `@${data.username}` : ''}
+              {data.username && typeof data.member_count === 'number' ? ' · ' : ''}
+              {typeof data.member_count === 'number'
+                ? data.entity_type === 'channel'
+                  ? copy.subscribers(data.member_count)
+                  : copy.members(data.member_count)
+                : ''}
+            </p>
+          )}
+
+          {data.description && (
+            <p class="mt-4 text-[14.5px] leading-relaxed text-[var(--text-secondary)]">
+              {data.description}
+            </p>
+          )}
+
+          {data.requires_approval && (
+            <p class="mt-3 text-[12.5px] text-[var(--text-muted)]">
+              {copy.approvalNote}
+            </p>
+          )}
+
+          <div class="mt-7 flex flex-col gap-2.5">
+            <a href={data.deep_link} class="btn-primary w-full">
+              <Icon name="message" size={17} />
+              <span>{copy.openInApp}</span>
+            </a>
+
+            <a href={data.web_url} target="_blank" rel="noopener noreferrer" class="btn-secondary w-full">
+              <span>{copy.openInWeb}</span>
+              <Icon name="arrow-up-right" size={15} />
+            </a>
+          </div>
+
+          <div class="mt-6 border-t border-[var(--border-hairline)] pt-4">
+            <a
+              href={localizePath('/downloads', locale)}
+              class="text-[13px] text-[var(--text-muted)] hover:text-[var(--accent)]"
+            >
+              {copy.downloadApp}
+            </a>
+          </div>
+        </div>
+      ) : (
+        <div class="ink-card w-full max-w-[440px] p-8 text-center">
+          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border-hairline)] bg-[var(--bg-raised)] text-[var(--text-muted)]">
+            <Icon name={result.status === 'gone' ? 'warning' : 'info'} size={20} />
+          </div>
+          <h1 class="mt-4 text-[22px] font-medium text-[var(--text-primary)]">
+            {result.status === 'gone' ? copy.expiredTitle : copy.notFoundTitle}
+          </h1>
+          <p class="mt-2 text-[14.5px] leading-relaxed text-[var(--text-secondary)]">
+            {result.status === 'gone' ? copy.expiredBody : copy.notFoundBody}
+          </p>
+          <p class="mt-2 font-mono text-[12px] text-[var(--text-muted)]">{target}</p>
+          <div class="mt-6">
+            <a href={localizePath('/', locale)} class="btn-secondary w-full">
+              {copy.backHome}
+            </a>
+          </div>
+        </div>
+      )}
+    </main>
+
+    <Footer locale={locale} />
+  </div>
+</BaseLayout>

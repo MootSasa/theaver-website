@@ -1,0 +1,68 @@
+---
+title: Клиентский REST API
+description: Авторизация, QR-вход, чаты, сообщения, дельта-обновления, чанковая загрузка файлов и контракт ошибок клиентского API.
+track: client
+order: 3
+---
+
+Все защищённые клиентские маршруты используют JWT-токен, привязанный к сессии устройства (`session_id`):
+
+- Рекомендуемый заголовок: `Authorization: Bearer <jwt_token>`
+- WebSocket и прямые медиа-ссылки: `?token=<jwt_token>`
+
+## Идентификаторы и единый формат ошибок
+
+Идентификаторы пользователей, чатов, папок, сессий, вложений и опросов генерируются 30-битным шифром Фейстеля (`100 000 000` – `2 147 483 647`) и умещаются в знаковый 32-битный integer.
+
+Ошибки возвращаются в едином контракте:
+
+```json
+{
+  "ok": false,
+  "success": false,
+  "error": "BAD_REQUEST",
+  "error_code": 400,
+  "description": "Описание причины ошибки"
+}
+```
+
+| HTTP Статус | Код `error` | Значение |
+|---|---|---|
+| `400` | `BAD_REQUEST` | Ошибка параметров или тела запроса |
+| `401` | `UNAUTHORIZED` / `SESSION_REVOKED` / `TWO_FACTOR_REQUIRED` | Токен истёк, сессия завершена или нужен пароль 2FA |
+| `403` | `FORBIDDEN` / `USER_PRIVACY_RESTRICTED` / `USER_IS_BLOCKED` | Недостаточно прав или ограничение приватности |
+| `404` | `NOT_FOUND` | Сущность не найдена |
+| `409` | `CONFLICT` / `USERNAME_OCCUPIED` | Конфликт состояния или занятый username |
+| `429` | `FLOOD_WAIT` / `SLOWMODE_WAIT` | Превышен лимит запросов или активен slow mode |
+
+## Авторизация и управление сессиями
+
+<ApiEndpoint method="POST" path="/api/auth/login" auth="Public" />
+<ApiEndpoint method="POST" path="/api/auth/register" auth="Public" />
+<ApiEndpoint method="POST" path="/api/auth/qr/create" auth="Public" />
+<ApiEndpoint method="GET" path="/api/auth/qr/status/:token" auth="Public" />
+<ApiEndpoint method="POST" path="/api/auth/qr/confirm" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/auth/sessions" auth="JWT" />
+
+- **Вход и 2FA:** если включён облачный пароль 2FA, `/api/auth/login` возвращает `requires_2fa: true` и временный токен.
+- **Сессии устройств:** список активных входов доступен по `GET /api/auth/sessions`, удалённое завершение — через `POST /api/auth/logout-device` и `POST /api/auth/terminate-others`.
+
+## Чаты, сообщения и дельта-синхронизация
+
+<ApiEndpoint method="GET" path="/api/chats" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/chats/:id/messages?limit=50&before_id=..." auth="JWT" />
+<ApiEndpoint method="POST" path="/api/chats/:id/messages" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/updates?pts=0&limit=200" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/search?q=query&type=all" auth="JWT" />
+
+- Передавайте `local_id` (`client_message_id`) в `POST /api/chats/:id/messages` для безопасных повторных отправок.
+- `GET /api/updates` возвращает `new_messages`, `edited_messages`, `deleted_messages`, `chats`, `next_pts` и `has_more`.
+
+## Загрузка файлов и публичные релизы
+
+<ApiEndpoint method="POST" path="/api/files/upload" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/files/upload/init" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/app/check-update" auth="Public" />
+<ApiEndpoint method="GET" path="/api/public/releases" auth="Public" />
+
+Крупные файлы поддерживают возобновляемую загрузку по частям (`upload/init` → загрузка чанков → `complete`) с дедупликацией по `SHA-256`. Актуальную матрицу клиентских сборок можно получить без авторизации на `/api/public/releases`.

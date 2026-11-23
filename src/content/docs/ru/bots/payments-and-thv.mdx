@@ -1,0 +1,60 @@
+---
+title: Платежи и кошелёк Walt (THV)
+description: Приём оплаты в THV внутри ботов и Mini Apps через sendInvoice, createInvoiceLink и событие successful_payment.
+track: bots
+order: 5
+---
+
+В экосистему Theaver встроен реестр **Walt** (`@walt`) для расчётов в **`THV`** (также поддерживается алиас валюты `XTR` для совместимости с Telegram Stars).
+
+## Выставление счетов через Bot API
+
+Используйте `sendInvoice` (отправляет карточку оплаты в чат) или `createInvoiceLink` (генерирует ссылку `invoice_url` для открытия через `Telegram.WebApp.openInvoice(url)`).
+
+<ApiEndpoint method="POST" path="/bot<token>/sendInvoice" auth="Bot Token" />
+
+```json
+{
+  "chat_id": 849201432,
+  "title": "Подписка на 1 месяц",
+  "description": "Расширенные шаблоны и безлимитные отчёты внутри бота.",
+  "payload": "order_pro_30d_user42",
+  "currency": "THV",
+  "prices": [
+    { "label": "Доступ на 30 дней", "amount": 50 }
+  ]
+}
+```
+
+Если в переданной `reply_markup` отсутствует кнопка с `pay: true`, сервер автоматически добавит кнопку оплаты (`Оплатить 50 THV`) в начало клавиатуры.
+
+## Обработка события `successful_payment`
+
+После подтверждения оплаты в кошельке Walt:
+
+1. Средства `THV` атомарно зачисляются на баланс бота.
+2. Бот получает `Update` типа `message` с объектом `successful_payment` через `getUpdates` или webhook:
+
+```json
+{
+  "update_id": 1094,
+  "message": {
+    "chat": { "id": 849201432, "type": "private" },
+    "from": { "id": 491827364, "username": "alex" },
+    "successful_payment": {
+      "currency": "THV",
+      "total_amount": 50,
+      "invoice_payload": "order_pro_30d_user42",
+      "provider_payment_charge_id": "walt_tx_..."
+    }
+  }
+}
+```
+
+## Вывод заработанных `THV`
+
+Владелец может проверять баланс и выводить средства бота в свой кошелёк `@walt` прямо в Mini App студии **`@BotMother`**.
+
+<Callout type="info" title="Сверяйте invoice_payload на сервере">
+  Перед активацией доступа обязательно проверяйте соответствие `successful_payment.invoice_payload` и `total_amount` заказу в вашей базе данных.
+</Callout>

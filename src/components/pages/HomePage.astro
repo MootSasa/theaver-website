@@ -1,0 +1,412 @@
+---
+import { Code } from 'astro:components';
+import MarketingLayout from '../../layouts/MarketingLayout.astro';
+import Icon from '../Icon.astro';
+import ScreenshotFrame from '../ScreenshotFrame.astro';
+import SmartDownloadButton from '../SmartDownloadButton.astro';
+import CodeTabs from '../docs/CodeTabs.astro';
+import SyncFlowDiagram from '../illustrations/SyncFlowDiagram.astro';
+import CallMediaDiagram from '../illustrations/CallMediaDiagram.astro';
+import BotPlatformDiagram from '../illustrations/BotPlatformDiagram.astro';
+import SignatureVerifyDiagram from '../illustrations/SignatureVerifyDiagram.astro';
+import { localizePath, type Locale } from '../../lib/i18n';
+import { fetchPublicReleases, GITHUB_REPO_URL, WEB_APP_URL } from '../../lib/releases';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const initialReleases = await fetchPublicReleases();
+
+const aiogramSample = `from aiogram import Bot
+from aiogram.client.session.aiohttp import AiohttpSession
+from aiogram.client.telegram import TelegramAPIServer
+
+session = AiohttpSession(
+    api=TelegramAPIServer.from_base("https://api.theaver.app")
+)
+bot = Bot(token=BOT_TOKEN, session=session)`;
+
+const grammySample = `import { Bot } from "grammy";
+
+const bot = new Bot(process.env.BOT_TOKEN!, {
+  client: {
+    apiRoot: "https://api.theaver.app",
+  },
+});`;
+
+const c = locale === 'ru'
+  ? {
+      metaTitle: 'Theaver — Быстрый мессенджер с открытым клиентом',
+      metaDesc: 'Кроссплатформенный мессенджер с офлайн-синхронизацией, тайлинговым десктопом, звонками LiveKit и Telegram-совместимым Bot API.',
+      heroTitle: 'Мессенджер, который держит ритм работы',
+      heroSub: 'Личные чаты, каналы, звонки с демонстрацией экрана, мультиоконный ПК-тайлинг и платформа ботов на базе открытого клиента.',
+      openBrowser: 'Открыть в браузере',
+      heroAlt: 'Интерфейс десктопного клиента Theaver с тайлинговой панелью',
+      section1Label: 'Синхронизация и каналы',
+      section1Title: 'Работает мгновенно, даже без сети',
+      section1Body: 'Сообщения, черновики и медиа кэшируются локально в Drift/SQLite. После восстановления связи очередь уходит через WebSocket RPC с идемпотентным ключом local_id — без дублей и пропусков.',
+      section1List: [
+        'Публичные каналы с комментариями, счётчиком просмотров и пересылкой',
+        'Группы с темами форума, опросами, правами ролей и историей действий',
+        'Единый прогресс прочтения High-Water Mark на всех устройствах',
+      ],
+      chatsAlt: 'Экран чата и офлайн-синхронизации на смартфоне Theaver',
+      section2Label: 'Звонки и стримы',
+      section2Title: 'Голос, видеокружки и экран в 1080p60',
+      section2Body: 'Звонки один на один и групповые комнаты работают через LiveKit SFU и Coturn на порту TLS 443, проходя корпоративные сети без ручной настройки.',
+      section2List: [
+        'Захват окна или всего экрана с аппаратным кодированием до 60 fps',
+        'Голосовые сообщения Opus и круглые видеозаметки с синхронизацией прослушивания',
+        'Стримы через RTMP и WHIP для OBS Studio в сообществах',
+      ],
+      callsAlt: 'Окно группового звонка и демонстрации экрана в Theaver',
+      section3Label: 'Десктоп и медиа',
+      section3Title: 'Создан для большого экрана и клавиатуры',
+      desktopCards: [
+        {
+          icon: 'layers' as const,
+          title: 'Тайлинговый мультиоконный режим',
+          body: 'Открывайте чат, ветку комментариев, боковую панель стикеров или Mini App рядом на одном экране без лишних переключений.',
+        },
+        {
+          icon: 'message' as const,
+          title: 'Стикеры, GIF и кастомные эмодзи',
+          body: 'Живые паки стикеров, поиск по смыслу и импорт наборов из Telegram напрямую через клиент.',
+        },
+        {
+          icon: 'laptop' as const,
+          title: 'Темы оформления и Liquid Glass',
+          body: 'Адаптивная светлая и тёмная тема, настройка акцентов и обмен пользовательскими темами по короткой ссылке.',
+        },
+      ],
+      section4Label: 'Платформа разработчиков',
+      section4Title: 'Перенесите Telegram-бота за одну строку',
+      section4Body: 'Создайте бота у @BotMother и укажите базовый URL api.theaver.app в aiogram, grammY или python-telegram-bot. Доступны Long Polling, Webhooks, inline-режим, Mini Apps v8 и переводы в THV.',
+      readBotDocs: 'Документация Bot API',
+      section5Label: 'Прозрачность и проверки',
+      section5Title: 'Открытый клиент и проверяемые релизы',
+      section5Body: 'Исходный код Flutter-клиента полностью открыт. Каждая сборка снабжается контрольной суммой SHA-256, GPG-подписью для Linux и корневым сертификатом для Windows.',
+      viewSource: 'Исходники на GitHub',
+      verifyGuide: 'Как проверить подпись',
+      ctaTitle: 'Установите Theaver на все устройства',
+      ctaSub: 'Доступно для Windows, macOS, Linux, Android, iOS и в браузере без установки.',
+      allPlatformsBtn: 'Перейти к загрузкам',
+    }
+  : {
+      metaTitle: 'Theaver — Fast cross-platform messenger with an open client',
+      metaDesc: 'Cross-platform messenger with offline-first SQLite sync, desktop tiling, LiveKit voice & screen share, and Telegram-compatible Bot API.',
+      heroTitle: 'A fast messenger built for real work',
+      heroSub: 'Direct chats, channels, screen-sharing calls, tiled desktop workspaces, and a compatible Bot & Mini Apps platform powered by an open-source client.',
+      openBrowser: 'Open in Browser',
+      heroAlt: 'Theaver Desktop workspace with tiled chat list, thread, and sidecar panel',
+      section1Label: 'Sync & Channels',
+      section1Title: 'Instant locally, resilient offline',
+      section1Body: 'Messages, drafts, and media live in local Drift/SQLite storage. Reconnecting drains the outbox over WebSocket RPC using idempotent local_id keys so nothing drops or duplicates.',
+      section1List: [
+        'Public channels with comment threads, view counters, and scheduled posts',
+        'Groups with forum topics, polls, granular admin permissions, and audit logs',
+        'Atomic High-Water Mark read state synchronized across every logged-in device',
+      ],
+      chatsAlt: 'Theaver mobile chat and offline-first sync screen',
+      section2Label: 'Voice & Streams',
+      section2Title: 'Clear calls and 1080p60 screen sharing',
+      section2Body: 'Direct calls and multi-participant voice rooms route through LiveKit SFU with Coturn over TLS port 443 to traverse strict firewalls reliably.',
+      section2List: [
+        'Low-latency window and display sharing up to 60 fps',
+        'Opus voice messages and round video notes with cross-device playback state',
+        'RTMP and WHIP stream ingress for OBS Studio inside communities',
+      ],
+      callsAlt: 'Theaver LiveKit group call and screen sharing window',
+      section3Label: 'Desktop & Media',
+      section3Title: 'Designed for wide screens, not stretched phone UI',
+      desktopCards: [
+        {
+          icon: 'layers' as const,
+          title: 'Tiled multi-window layout',
+          body: 'Pin a conversation, discussion thread, sticker sidecar, or Mini App side by side inside one responsive workspace.',
+        },
+        {
+          icon: 'message' as const,
+          title: 'Stickers, GIFs & custom emoji',
+          body: 'Smooth animated sticker rendering, semantic sticker search, and direct Telegram sticker pack import.',
+        },
+        {
+          icon: 'laptop' as const,
+          title: 'Custom themes & Liquid Glass',
+          body: 'Tinted light and dark surfaces, custom bubble styles, and shareable theme links across devices.',
+        },
+      ],
+      section4Label: 'Developer Platform',
+      section4Title: 'Migrate your Telegram bot in one line',
+      section4Body: 'Register a bot via @BotMother and point aiogram, grammY, or python-telegram-bot at api.theaver.app. Supports Long Polling, Webhooks, inline queries, Mini Apps v8, and THV wallet payments.',
+      readBotDocs: 'Read Bot API Docs',
+      section5Label: 'Verifiable Builds',
+      section5Title: 'Open-source client and signed installers',
+      section5Body: 'The Flutter client source code is public on GitHub. Every build ships with SHA-256 checksums, detached GPG signatures on Linux, and signed installers on Windows.',
+      viewSource: 'View Client Source',
+      verifyGuide: 'Verification Guide',
+      ctaTitle: 'Get Theaver on every screen',
+      ctaSub: 'Native builds for Windows, macOS, Linux, Android, iOS, plus the Web client.',
+      allPlatformsBtn: 'Browse all downloads',
+    };
+---
+
+<MarketingLayout title={c.metaTitle} description={c.metaDesc}>
+  <!-- Hero -->
+  <section class="border-b border-[var(--border-hairline)] pt-12 pb-16 lg:pt-20 lg:pb-24">
+    <div class="container-page">
+      <div class="grid items-center gap-12 lg:grid-cols-12">
+        <div class="min-w-0 lg:col-span-5">
+          <h1 class="text-[36px] font-medium leading-[1.06] tracking-[-0.03em] text-[var(--text-primary)] sm:text-[48px] lg:text-[52px]">
+            {c.heroTitle}
+          </h1>
+          <p class="mt-5 max-w-lg text-[17px] leading-[1.6] text-[var(--text-secondary)]">
+            {c.heroSub}
+          </p>
+
+          <div class="mt-8">
+            <SmartDownloadButton locale={locale} initialReleases={initialReleases}>
+              <a
+                slot="secondary"
+                href={WEB_APP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn-secondary"
+              >
+                <span>{c.openBrowser}</span>
+                <Icon name="arrow-up-right" size={16} />
+              </a>
+            </SmartDownloadButton>
+          </div>
+        </div>
+
+        <div class="min-w-0 lg:col-span-7">
+          <ScreenshotFrame
+            name="hero-desktop"
+            alt={c.heroAlt}
+            width={960}
+            height={600}
+            priority={true}
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 1: Chats & Offline Sync -->
+  <section id="features" class="border-b border-[var(--border-hairline)] py-20 lg:py-24">
+    <div class="container-page">
+      <div class="grid items-center gap-12 lg:grid-cols-12">
+        <div class="min-w-0 lg:col-span-5">
+          <div class="mx-auto max-w-[340px]">
+            <ScreenshotFrame
+              name="chats-mobile"
+              alt={c.chatsAlt}
+              width={380}
+              height={640}
+            />
+          </div>
+        </div>
+
+        <div class="min-w-0 lg:col-span-7">
+          <p class="font-mono text-[12.5px] text-[var(--accent)]">{c.section1Label}</p>
+          <h2 class="mt-2 text-[28px] font-medium leading-[1.15] text-[var(--text-primary)] sm:text-[34px]">
+            {c.section1Title}
+          </h2>
+          <p class="mt-4 max-w-2xl text-[15.5px] leading-[1.65] text-[var(--text-secondary)]">
+            {c.section1Body}
+          </p>
+
+          <ul class="mt-6 flex flex-col gap-3 text-[14.5px] text-[var(--text-secondary)]">
+            {c.section1List.map((item) => (
+              <li class="flex items-start gap-2.5">
+                <Icon name="check" size={18} class="mt-0.5 text-[var(--positive)]" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div class="mt-8">
+            <SyncFlowDiagram locale={locale} />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Calls & Streams -->
+  <section class="border-b border-[var(--border-hairline)] py-20 lg:py-24">
+    <div class="container-page">
+      <div class="grid items-center gap-12 lg:grid-cols-12">
+        <div class="order-2 min-w-0 lg:order-1 lg:col-span-6">
+          <p class="font-mono text-[12.5px] text-[var(--accent)]">{c.section2Label}</p>
+          <h2 class="mt-2 text-[28px] font-medium leading-[1.15] text-[var(--text-primary)] sm:text-[34px]">
+            {c.section2Title}
+          </h2>
+          <p class="mt-4 max-w-xl text-[15.5px] leading-[1.65] text-[var(--text-secondary)]">
+            {c.section2Body}
+          </p>
+
+          <ul class="mt-6 flex flex-col gap-3 text-[14.5px] text-[var(--text-secondary)]">
+            {c.section2List.map((item) => (
+              <li class="flex items-start gap-2.5">
+                <Icon name="phone" size={17} class="mt-0.5 text-[var(--accent)]" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div class="mt-8">
+            <CallMediaDiagram locale={locale} />
+          </div>
+        </div>
+
+        <div class="order-1 min-w-0 lg:order-2 lg:col-span-6">
+          <ScreenshotFrame
+            name="calls-stream"
+            alt={c.callsAlt}
+            width={720}
+            height={460}
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Desktop & Media -->
+  <section class="border-b border-[var(--border-hairline)] py-20 lg:py-24">
+    <div class="container-page">
+      <div class="max-w-2xl">
+        <p class="font-mono text-[12.5px] text-[var(--accent)]">{c.section3Label}</p>
+        <h2 class="mt-2 text-[28px] font-medium leading-[1.15] text-[var(--text-primary)] sm:text-[34px]">
+          {c.section3Title}
+        </h2>
+      </div>
+
+      <div class="mt-10 grid gap-6 md:grid-cols-12">
+        {c.desktopCards.map((card, index) => (
+          <div
+            class:list={[
+              'ink-card flex flex-col justify-between p-6',
+              index === 0 ? 'md:col-span-6' : 'md:col-span-3',
+            ]}
+          >
+            <div>
+              <div class="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-raised)] text-[var(--accent)]">
+                <Icon name={card.icon} size={19} />
+              </div>
+              <h3 class="mt-5 text-[18px] font-medium text-[var(--text-primary)]">
+                {card.title}
+              </h3>
+              <p class="mt-2 text-[14.5px] leading-relaxed text-[var(--text-secondary)]">
+                {card.body}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Bots, Mini Apps & Walt -->
+  <section class="border-b border-[var(--border-hairline)] py-20 lg:py-24">
+    <div class="container-page">
+      <div class="grid items-start gap-12 lg:grid-cols-12">
+        <div class="min-w-0 lg:col-span-6">
+          <p class="font-mono text-[12.5px] text-[var(--accent)]">{c.section4Label}</p>
+          <h2 class="mt-2 text-[28px] font-medium leading-[1.15] text-[var(--text-primary)] sm:text-[34px]">
+            {c.section4Title}
+          </h2>
+          <p class="mt-4 text-[15.5px] leading-[1.65] text-[var(--text-secondary)]">
+            {c.section4Body}
+          </p>
+
+          <div class="mt-6">
+            <a
+              href={localizePath('/docs/bots/overview-botmother', locale)}
+              class="btn-secondary"
+            >
+              <Icon name="code" size={17} />
+              <span>{c.readBotDocs}</span>
+            </a>
+          </div>
+
+          <div class="mt-8">
+            <BotPlatformDiagram locale={locale} />
+          </div>
+        </div>
+
+        <div class="min-w-0 lg:col-span-6">
+          <CodeTabs tabs={['Python (aiogram 3)', 'TypeScript (grammY)']}>
+            <div class="min-w-0 max-w-full overflow-x-auto">
+              <Code code={aiogramSample} lang="python" themes={{ light: 'github-light-default', dark: 'github-dark-default' }} />
+            </div>
+            <div class="hidden min-w-0 max-w-full overflow-x-auto">
+              <Code code={grammySample} lang="ts" themes={{ light: 'github-light-default', dark: 'github-dark-default' }} />
+            </div>
+          </CodeTabs>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: Verifiable Open Client -->
+  <section class="border-b border-[var(--border-hairline)] py-20 lg:py-24">
+    <div class="container-page">
+      <div class="grid items-center gap-12 lg:grid-cols-12">
+        <div class="min-w-0 lg:col-span-5">
+          <p class="font-mono text-[12.5px] text-[var(--accent)]">{c.section5Label}</p>
+          <h2 class="mt-2 text-[28px] font-medium leading-[1.15] text-[var(--text-primary)] sm:text-[34px]">
+            {c.section5Title}
+          </h2>
+          <p class="mt-4 text-[15.5px] leading-[1.65] text-[var(--text-secondary)]">
+            {c.section5Body}
+          </p>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" class="btn-secondary">
+              <Icon name="github" size={17} />
+              <span>{c.viewSource}</span>
+            </a>
+            <a href={localizePath('/docs/guide/verify-downloads', locale)} class="btn-secondary">
+              <Icon name="shield" size={17} />
+              <span>{c.verifyGuide}</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="min-w-0 lg:col-span-7">
+          <SignatureVerifyDiagram locale={locale} />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom Downloads Strip -->
+  <section class="py-16 lg:py-20">
+    <div class="container-page">
+      <div class="ink-card flex flex-col items-start justify-between gap-8 p-8 lg:flex-row lg:items-center">
+        <div>
+          <h2 class="text-[24px] font-medium text-[var(--text-primary)] sm:text-[28px]">
+            {c.ctaTitle}
+          </h2>
+          <p class="mt-2 text-[15px] text-[var(--text-secondary)]">
+            {c.ctaSub}
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <a href={localizePath('/downloads', locale)} class="btn-primary">
+            <Icon name="download" size={17} />
+            <span>{c.allPlatformsBtn}</span>
+          </a>
+          <a href={WEB_APP_URL} target="_blank" rel="noopener noreferrer" class="btn-secondary">
+            <span>{c.openBrowser}</span>
+            <Icon name="arrow-up-right" size={16} />
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</MarketingLayout>

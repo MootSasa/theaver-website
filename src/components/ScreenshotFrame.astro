@@ -1,0 +1,78 @@
+---
+interface Props {
+  name: 'hero-desktop' | 'chats-mobile' | 'calls-stream';
+  alt: string;
+  width: number;
+  height: number;
+  priority?: boolean;
+  class?: string;
+}
+
+const { name, alt, width, height, priority = false, class: className = '' } = Astro.props;
+const baseDark = `/screenshots/${name}-dark`;
+const baseLight = `/screenshots/${name}-light`;
+---
+
+<div
+  class:list={[
+    'overflow-hidden rounded-[var(--radius-frame)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] shadow-[var(--frame-shadow)]',
+    className,
+  ]}
+>
+  <picture class="theme-only-dark block">
+    <source type="image/avif" srcset={`${baseDark}.avif 1x, ${baseDark}@2x.avif 2x`} />
+    <source type="image/webp" srcset={`${baseDark}.webp 1x, ${baseDark}@2x.webp 2x`} />
+    {priority ? (
+      <img
+        src={`${baseDark}.webp`}
+        alt={alt}
+        width={width}
+        height={height}
+        fetchpriority="high"
+        class="block h-auto w-full"
+      />
+    ) : (
+      <img
+        src={`${baseDark}.webp`}
+        alt={alt}
+        width={width}
+        height={height}
+        loading="lazy"
+        class="block h-auto w-full"
+      />
+    )}
+  </picture>
+
+  <picture class="theme-only-light block">
+    <source type="image/avif" srcset={`${baseLight}.avif 1x, ${baseLight}@2x.avif 2x`} />
+    <source type="image/webp" srcset={`${baseLight}.webp 1x, ${baseLight}@2x.webp 2x`} />
+    {priority ? (
+      <img
+        src={`${baseLight}.webp`}
+        alt={alt}
+        width={width}
+        height={height}
+        fetchpriority="high"
+        class="block h-auto w-full"
+      />
+    ) : (
+      <img
+        src={`${baseLight}.webp`}
+        alt={alt}
+        width={width}
+        height={height}
+        loading="lazy"
+        class="block h-auto w-full"
+      />
+    )}
+  </picture>
+</div>
+
+<style is:global>
+  html[data-theme="dark"] .theme-only-light {
+    display: none;
+  }
+  html[data-theme="light"] .theme-only-dark {
+    display: none;
+  }
+</style>

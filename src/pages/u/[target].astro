@@ -1,0 +1,18 @@
+---
+import PreviewCardPage from '../../components/pages/PreviewCardPage.astro';
+import { detectRequestLocale, fetchPublicPreview } from '../../lib/preview';
+
+export const prerender = false;
+
+const target = Astro.params.target || '';
+const locale = detectRequestLocale(Astro.request);
+const result = await fetchPublicPreview('user', target);
+
+if (result.status === 'not_found') {
+  Astro.response.status = 404;
+} else if (result.status === 'error') {
+  Astro.response.status = 502;
+}
+---
+
+<PreviewCardPage kind="user" target={target} locale={locale} result={result} />

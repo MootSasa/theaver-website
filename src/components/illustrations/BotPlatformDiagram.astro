@@ -1,0 +1,57 @@
+---
+import type { Locale } from '../../lib/i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = locale === 'ru'
+  ? {
+      title: 'Экосистема ботов и Mini Apps v8',
+      mother: '@BotMother',
+      motherSub: 'Создание и токены',
+      botApi: 'Telegram-совместимый Bot API',
+      botApiSub: '/bot<token>/<method>',
+      apps: 'Mini Apps v8',
+      appsSub: 'WebApp JS Bridge · Тема',
+      walt: 'Кошелёк Walt (THV)',
+      waltSub: 'Инвойсы · Чеки · Вывод',
+    }
+  : {
+      title: 'Bots, Mini Apps v8 & Walt Ecosystem',
+      mother: '@BotMother',
+      motherSub: 'Token & command setup',
+      botApi: 'Telegram-Compatible Bot API',
+      botApiSub: '/bot<token>/<method>',
+      apps: 'Mini Apps v8',
+      appsSub: 'WebApp JS Bridge · Theme',
+      walt: 'Walt Wallet (THV)',
+      waltSub: 'Invoices · Checks · Payouts',
+    };
+---
+
+<div class="ink-card p-5">
+  <div class="mb-3 font-mono text-[12px] text-[var(--text-muted)]">{copy.title}</div>
+  <svg viewBox="0 0 560 220" class="h-auto w-full" role="img" aria-label={copy.title}>
+    <rect x="16" y="16" width="244" height="84" rx="12" fill="var(--bg-raised)" stroke="var(--border-strong)" />
+    <text x="36" y="48" fill="var(--text-primary)" font-size="14" font-weight="500" font-family="var(--font-sans)">{copy.mother}</text>
+    <text x="36" y="72" fill="var(--text-secondary)" font-size="12" font-family="var(--font-mono)">{copy.motherSub}</text>
+
+    <rect x="300" y="16" width="244" height="84" rx="12" fill="var(--bg-raised)" stroke="var(--accent)" />
+    <text x="320" y="48" fill="var(--text-primary)" font-size="14" font-weight="500" font-family="var(--font-sans)">{copy.botApi}</text>
+    <text x="320" y="72" fill="var(--accent)" font-size="12" font-family="var(--font-mono)">{copy.botApiSub}</text>
+
+    <path d="M264 58h32m-6-5l6 5-6 5" stroke="var(--accent)" stroke-width="1.5" fill="none" stroke-linecap="round" />
+
+    <rect x="16" y="120" width="244" height="84" rx="12" fill="var(--bg-raised)" stroke="var(--border-strong)" />
+    <text x="36" y="152" fill="var(--text-primary)" font-size="14" font-weight="500" font-family="var(--font-sans)">{copy.apps}</text>
+    <text x="36" y="176" fill="var(--text-secondary)" font-size="12" font-family="var(--font-mono)">{copy.appsSub}</text>
+
+    <rect x="300" y="120" width="244" height="84" rx="12" fill="var(--bg-raised)" stroke="var(--border-strong)" />
+    <text x="320" y="152" fill="var(--text-primary)" font-size="14" font-weight="500" font-family="var(--font-sans)">{copy.walt}</text>
+    <text x="320" y="176" fill="var(--positive)" font-size="12" font-family="var(--font-mono)">{copy.waltSub}</text>
+
+    <path d="M422 104v12M138 104v12" stroke="var(--border-strong)" stroke-width="1.4" />
+  </svg>
+</div>

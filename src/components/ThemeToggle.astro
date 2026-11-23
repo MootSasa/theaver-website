@@ -1,0 +1,81 @@
+---
+import Icon from './Icon.astro';
+import { UI_STRINGS, type Locale } from '../lib/i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = UI_STRINGS[locale].theme;
+---
+
+<button
+  type="button"
+  data-theme-toggle
+  class="inline-flex h-9 items-center gap-2 rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-card)] px-2.5 text-[13px] font-medium text-[var(--text-secondary)] transition-colors duration-150 hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
+  aria-label={t.toggleLabel}
+  title={t.toggleLabel}
+>
+  <span data-theme-icon="system" class="inline-flex items-center">
+    <Icon name="monitor" size={16} />
+  </span>
+  <span data-theme-icon="dark" class="hidden items-center">
+    <Icon name="moon" size={16} />
+  </span>
+  <span data-theme-icon="light" class="hidden items-center">
+    <Icon name="sun" size={16} />
+  </span>
+  <span class="hidden sm:inline" data-theme-label data-label-system={t.system} data-label-dark={t.dark} data-label-light={t.light}>
+    {t.system}
+  </span>
+</button>
+
+<script is:inline>
+  (() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+
+    function applyTheme(pref) {
+      const resolved = pref === 'light' || pref === 'dark' ? pref : mq.matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = resolved;
+      document.documentElement.dataset.themePref = pref;
+      document.querySelectorAll('[data-theme-toggle]').forEach((btn) => {
+        btn.querySelectorAll('[data-theme-icon]').forEach((el) => {
+          el.classList.toggle('hidden', el.getAttribute('data-theme-icon') !== pref);
+          el.classList.toggle('inline-flex', el.getAttribute('data-theme-icon') === pref);
+        });
+        const lbl = btn.querySelector('[data-theme-label]');
+        if (lbl) {
+          lbl.textContent = lbl.getAttribute(`data-label-${pref}`) || pref;
+        }
+      });
+    }
+
+    const initial = localStorage.getItem('theaver-theme') || 'system';
+    applyTheme(initial);
+
+    mq.addEventListener('change', () => {
+      if ((localStorage.getItem('theaver-theme') || 'system') === 'system') {
+        applyTheme('system');
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      const btn = e.target instanceof Element ? e.target.closest('[data-theme-toggle]') : null;
+      if (!btn) return;
+      const curResolved = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+      const curPref = localStorage.getItem('theaver-theme') || 'system';
+      // Flip visible theme immediately on first click; cycling back through system
+      let next;
+      if (curPref === 'system') {
+        next = curResolved === 'dark' ? 'light' : 'dark';
+      } else if (curPref === 'light') {
+        next = mq.matches ? 'system' : 'dark';
+      } else {
+        next = !mq.matches ? 'system' : 'light';
+      }
+      localStorage.setItem('theaver-theme', next);
+      applyTheme(next);
+    });
+  })();
+</script>

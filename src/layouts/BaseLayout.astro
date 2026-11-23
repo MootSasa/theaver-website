@@ -1,0 +1,78 @@
+---
+import '../styles/global.css';
+import { getLocaleFromPath, localizePath } from '../lib/i18n';
+
+interface Props {
+  title: string;
+  description: string;
+  image?: string;
+  noindex?: boolean;
+  canonicalPath?: string;
+}
+
+const {
+  title,
+  description,
+  image = 'https://theaver.app/app-icon.png',
+  noindex = false,
+  canonicalPath,
+} = Astro.props;
+
+const pathname = canonicalPath || Astro.url.pathname;
+const locale = getLocaleFromPath(pathname);
+const enUrl = `https://theaver.app${localizePath(pathname, 'en')}`;
+const ruUrl = `https://theaver.app${localizePath(pathname, 'ru')}`;
+const canonicalUrl = locale === 'ru' ? ruUrl : enUrl;
+---
+
+<!doctype html>
+<html lang={locale} data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="alternate" hreflang="en" href={enUrl} />
+    <link rel="alternate" hreflang="ru" href={ruUrl} />
+    <link rel="alternate" hreflang="x-default" href={enUrl} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Theaver" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={image} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" href="/app-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <script is:inline>
+      (() => {
+        try {
+          const pref = localStorage.getItem('theaver-theme') || 'system';
+          const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const resolved = pref === 'light' || pref === 'dark' ? pref : sysDark ? 'dark' : 'light';
+          document.documentElement.dataset.theme = resolved;
+          document.documentElement.dataset.themePref = pref;
+        } catch {
+          document.documentElement.dataset.theme = 'dark';
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

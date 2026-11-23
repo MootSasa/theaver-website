@@ -1,0 +1,88 @@
+---
+title: Миграция с Telegram Bot API
+description: Запустите существующего бота на aiogram, grammY, python-telegram-bot или telegraf в Theaver, сменив базовый URL API.
+track: bots
+order: 2
+---
+
+Поскольку Theaver повторяет стандартный контракт `/bot<token>/<method>`, формат ответа `{"ok": true, "result": ...}`, поля `Update` и структуру `reply_markup`, перенос готового бота обычно сводится к замене базового URL на `https://api.theaver.app`.
+
+## Примеры для популярных библиотек
+
+<CodeTabs tabs={['Python (aiogram 3)', 'TypeScript (grammY)', 'Python (PTB v21)', 'Node (Telegraf)']}>
+```python
+import asyncio
+import os
+from aiogram import Bot, Dispatcher, types
+from aiogram.client.session.aiohttp import AiohttpSession
+from aiogram.client.telegram import TelegramAPIServer
+from aiogram.filters import CommandStart
+
+session = AiohttpSession(
+    api=TelegramAPIServer.from_base("https://api.theaver.app")
+)
+bot = Bot(token=os.environ["BOT_TOKEN"], session=session)
+dp = Dispatcher()
+
+@dp.message(CommandStart())
+async def on_start(message: types.Message):
+    await message.answer("Привет из Theaver Bot API.")
+
+asyncio.run(dp.start_polling(bot))
+```
+
+```ts
+import { Bot, InlineKeyboard } from "grammy";
+
+const bot = new Bot(process.env.BOT_TOKEN!, {
+  client: {
+    apiRoot: "https://api.theaver.app",
+  },
+});
+
+bot.command("start", async (ctx) => {
+  const kb = new InlineKeyboard().text("Подтвердить", "confirm_action");
+  await ctx.reply("Привет из Theaver Bot API.", { reply_markup: kb });
+});
+
+bot.start();
+```
+
+```python
+import os
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Привет из Theaver.")
+
+app = (
+    ApplicationBuilder()
+    .token(os.environ["BOT_TOKEN"])
+    .base_url("https://api.theaver.app/bot")
+    .base_file_url("https://api.theaver.app/file/bot")
+    .build()
+)
+app.add_handler(CommandHandler("start", start))
+app.run_polling()
+```
+
+```js
+const { Telegraf } = require("telegraf");
+
+const bot = new Telegraf(process.env.BOT_TOKEN, {
+  telegram: {
+    apiRoot: "https://api.theaver.app",
+  },
+});
+
+bot.start((ctx) => ctx.reply("Привет из Theaver."));
+bot.launch();
+```
+</CodeTabs>
+
+## Совместимость идентификаторов и разметки
+
+- **Формат `chat_id`:** используются непоследовательные 30-битные Feistel ID (`100 000 000` – `2 147 483 647`). Для групп и каналов принимаются как прямые ID (`849201432`), так и префикс `-100849201432` или `@username`.
+- **Разметка текста:** поддерживаются `MarkdownV2`, `Markdown`, `HTML` и явный массив `entities`.
+- **Скачивание файлов:** вызовите `getFile` для получения `file_path` и загрузите файл по `/file/bot<token>/<file_path>`.
