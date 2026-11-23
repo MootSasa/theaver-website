@@ -1,4 +1,6 @@
 ---
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=60');
 import DownloadsPage from '../components/pages/DownloadsPage.astro';
 ---
 

@@ -2,7 +2,12 @@
 import MarketingLayout from '../../layouts/MarketingLayout.astro';
 import Icon from '../Icon.astro';
 import type { Locale } from '../../lib/i18n';
-import { GITHUB_RELEASES_URL } from '../../lib/releases';
+import {
+  fetchPublicReleases,
+  GITHUB_RELEASES_URL,
+  parseChannelReleaseEntry,
+  type ChangelogEntryData,
+} from '../../lib/releases';
 
 interface Props {
   locale: Locale;
@@ -10,18 +15,7 @@ interface Props {
 
 const { locale } = Astro.props;
 
-interface ReleaseEntry {
-  version: string;
-  date: string;
-  channel: 'stable' | 'beta';
-  title: string;
-  sections: Array<{
-    kind: 'added' | 'improved' | 'fixed';
-    items: string[];
-  }>;
-}
-
-const entries: ReleaseEntry[] = locale === 'ru'
+const curatedEntries: ChangelogEntryData[] = locale === 'ru'
   ? [
       {
         version: 'v1.20.3-beta.429',
@@ -208,6 +202,22 @@ const labels = locale === 'ru'
       fixed: 'Fixed',
       tagLink: 'View release on GitHub',
     };
+
+const livePayload = await fetchPublicReleases();
+const curatedVersions = new Set(curatedEntries.map((e) => e.version.toLowerCase()));
+const dynamicEntries: ChangelogEntryData[] = [];
+
+for (const chKey of ['stable', 'beta'] as const) {
+  const chObj = livePayload.channels[chKey];
+  if (!chObj) continue;
+  const parsed = parseChannelReleaseEntry(chObj, locale);
+  if (parsed && !curatedVersions.has(parsed.version.toLowerCase())) {
+    dynamicEntries.push(parsed);
+    curatedVersions.add(parsed.version.toLowerCase());
+  }
+}
+dynamicEntries.sort((a, b) => b.date.localeCompare(a.date));
+const entries: ChangelogEntryData[] = [...dynamicEntries, ...curatedEntries];
 ---
 
 <MarketingLayout title={`${labels.title} — Theaver`} description={labels.description}>

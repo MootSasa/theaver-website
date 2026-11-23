@@ -45,6 +45,13 @@ export const FALLBACK_RELEASES: PublicReleasesPayload = {
   },
 };
 
+const SSR_RELEASES_TTL_MS = 30_000;
+const ssrReleasesCache = new Map<
+  string,
+  { expiresAt: number; payload: PublicReleasesPayload }
+>();
+const ssrReleasesInflight = new Map<string, Promise<PublicReleasesPayload>>();
+
 export async function fetchPublicReleases(baseUrl?: string): Promise<PublicReleasesPayload> {
   const apiBase = (
     baseUrl ||
@@ -53,22 +60,44 @@ export async function fetchPublicReleases(baseUrl?: string): Promise<PublicRelea
     PUBLIC_API_URL
   ).replace(/\/+$/, '');
 
-  try {
-    const resp = await fetch(`${apiBase}/api/public/releases`, {
-      signal: AbortSignal.timeout(2500),
-      headers: { Accept: 'application/json' },
-    });
-    if (!resp.ok) {
-      return FALLBACK_RELEASES;
-    }
-    const data = (await resp.json()) as PublicReleasesPayload;
-    if (data && data.ok && data.channels && Object.keys(data.channels).length > 0) {
-      return data;
-    }
-  } catch {
-    // Graceful fallback when building in offline CI without live backend
+  const cached = ssrReleasesCache.get(apiBase);
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.payload;
   }
-  return FALLBACK_RELEASES;
+
+  const inflight = ssrReleasesInflight.get(apiBase);
+  if (inflight) {
+    return inflight;
+  }
+
+  const request = (async (): Promise<PublicReleasesPayload> => {
+    try {
+      const resp = await fetch(`${apiBase}/api/public/releases`, {
+        signal: AbortSignal.timeout(2500),
+        headers: { Accept: 'application/json' },
+      });
+      if (resp.ok) {
+        const data = (await resp.json()) as PublicReleasesPayload;
+        if (data && data.ok && data.channels && Object.keys(data.channels).length > 0) {
+          ssrReleasesCache.set(apiBase, {
+            expiresAt: Date.now() + SSR_RELEASES_TTL_MS,
+            payload: data,
+          });
+          return data;
+        }
+      }
+    } catch {
+      // Graceful fallback when building in offline CI or transient backend error
+    }
+    return ssrReleasesCache.get(apiBase)?.payload ?? FALLBACK_RELEASES;
+  })();
+
+  ssrReleasesInflight.set(apiBase, request);
+  try {
+    return await request;
+  } finally {
+    ssrReleasesInflight.delete(apiBase);
+  }
 }
 
 export function formatBytes(bytes: number): string {
@@ -182,3 +211,103 @@ export const PLATFORM_LABELS: Record<'en' | 'ru', Record<string, PlatformLabel>>
     },
   },
 };
+
+export interface ChangelogSection {
+  kind: 'added' | 'improved' | 'fixed';
+  items: string[];
+}
+
+export interface ChangelogEntryData {
+  version: string;
+  date: string;
+  channel: 'stable' | 'beta';
+  title: string;
+  sections: ChangelogSection[];
+}
+
+function cleanReleaseItemText(raw: string): string {
+  return raw
+    .replace(/^[-*•]\s+/, '')
+    .replace(/\s*\(`?[0-9a-f]{6,40}`?\)\s*$/i, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\p{Extended_Pictographic}/gu, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+export function parseChannelReleaseEntry(
+  ch: PublicReleaseChannel,
+  locale: 'en' | 'ru',
+): ChangelogEntryData | null {
+  if (ch.channel !== 'stable' && ch.channel !== 'beta') return null;
+  if (!ch.latest_version) return null;
+
+  const version = ch.latest_version.startsWith('v')
+    ? ch.latest_version
+    : `v${ch.latest_version}`;
+  const date = (ch.updated_at || '').slice(0, 10) || new Date().toISOString().slice(0, 10);
+
+  const buckets: Record<'added' | 'improved' | 'fixed', string[]> = {
+    added: [],
+    improved: [],
+    fixed: [],
+  };
+
+  let currentKind: 'added' | 'improved' | 'fixed' = 'improved';
+  const lines = (ch.release_notes || '').split(/\r?\n/);
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('# ')) continue;
+
+    if (line.startsWith('##')) {
+      const lower = line.toLowerCase();
+      if (lower.includes('feature') || lower.includes('новые') || lower.includes('added') || lower.includes('добав')) {
+        currentKind = 'added';
+      } else if (lower.includes('fix') || lower.includes('исправ')) {
+        currentKind = 'fixed';
+      } else {
+        currentKind = 'improved';
+      }
+      continue;
+    }
+
+    if (line.startsWith('- ') || line.startsWith('* ') || line.startsWith('• ')) {
+      const cleaned = cleanReleaseItemText(line);
+      if (cleaned) buckets[currentKind].push(cleaned);
+    } else {
+      const cleaned = cleanReleaseItemText(line);
+      if (cleaned) buckets[currentKind].push(cleaned);
+    }
+  }
+
+  const sections: ChangelogSection[] = (['added', 'improved', 'fixed'] as const)
+    .filter((k) => buckets[k].length > 0)
+    .map((k) => ({ kind: k, items: buckets[k] }));
+
+  if (sections.length === 0) {
+    sections.push({
+      kind: 'improved',
+      items: [
+        locale === 'ru'
+          ? 'Плановое обновление стабильности и производительности клиента.'
+          : 'Scheduled client stability and performance update.',
+      ],
+    });
+  }
+
+  const chName = ch.channel === 'beta' ? 'Beta' : 'Stable';
+  const title =
+    locale === 'ru'
+      ? `Релиз канала ${chName} (${version})`
+      : `${chName} channel release (${version})`;
+
+  return {
+    version,
+    date,
+    channel: ch.channel,
+    title,
+    sections,
+  };
+}

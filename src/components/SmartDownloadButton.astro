@@ -13,6 +13,11 @@ const { locale, initialReleases } = Astro.props;
 const downloadsHref = localizePath('/downloads', locale);
 const defaultLabel = locale === 'ru' ? 'Скачать Theaver' : 'Download Theaver';
 const subFallback = locale === 'ru' ? 'Все платформы' : 'All platforms';
+const rawInitialVer =
+  initialReleases.channels.stable?.latest_version ||
+  initialReleases.channels.beta?.latest_version ||
+  '1.20';
+const initialVersionLabel = rawInitialVer.startsWith('v') ? rawInitialVer : `v${rawInitialVer}`;
 ---
 
 <div class="flex flex-col gap-2">
@@ -33,11 +38,7 @@ const subFallback = locale === 'ru' ? 'Все платформы' : 'All platfor
   </div>
 
   <p class="text-[13px] text-[var(--text-muted)]" data-smart-download-meta>
-    <span class="tabular" data-smart-download-version>
-      {initialReleases.channels.stable?.latest_version ||
-        initialReleases.channels.beta?.latest_version ||
-        'v1.20'}
-    </span>
+    <span class="tabular" data-smart-download-version>{initialVersionLabel}</span>
     <span> · </span>
     <a href={downloadsHref} class="text-[var(--text-secondary)] underline underline-offset-4 hover:text-[var(--text-primary)]">
       {subFallback}
