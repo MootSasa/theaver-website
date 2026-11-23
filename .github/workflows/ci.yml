@@ -1,13 +1,23 @@
-name: Website CI
+name: Website CI & Deploy
 
 on:
   push:
-    branches: [ main, beta, 'feat/*', 'fix/*' ]
+    branches:
+      - main
+      - beta
+      - 'feat/**'
+      - 'fix/**'
+      - 'chore/**'
+      - 'refactor/**'
   pull_request:
-    branches: [ main, beta ]
+    branches:
+      - main
+      - beta
+  workflow_dispatch:
 
 jobs:
   check-and-build:
+    name: Check & Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,3 +28,67 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm run build
+
+  deploy:
+    name: Deploy to Production
+    needs: check-and-build
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' &&
+       (github.ref == 'refs/heads/main' ||
+        github.ref_name == github.event.repository.default_branch))
+    runs-on: ubuntu-latest
+    concurrency:
+      group: production-website-deploy
+      cancel-in-progress: false
+    steps:
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Pull & Rebuild Website on Server
+        env:
+          DEPLOY_SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
+          DEPLOY_SSH_USER: ${{ secrets.DEPLOY_SSH_USER }}
+          TARGET_BRANCH: ${{ github.ref_name }}
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            "${DEPLOY_SSH_USER}@${DEPLOY_SSH_HOST}" \
+            "TARGET_BRANCH='${TARGET_BRANCH}' EXPECTED_SHA='${EXPECTED_SHA}' bash -se" <<'EOF'
+          set -euo pipefail
+          cd ~/theaver-server/Theaver/website
+          git fetch origin "$TARGET_BRANCH"
+          git checkout -B "$TARGET_BRANCH" "origin/$TARGET_BRANCH"
+          ACTUAL_SHA="$(git rev-parse HEAD)"
+          echo "Checked out website commit: $ACTUAL_SHA (expected: $EXPECTED_SHA)"
+
+          cd ~/theaver-server/Theaver/docker
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-deps --build website
+
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            st="$(docker inspect --format '{{.State.Health.Status}}' theaver-website 2>/dev/null || echo starting)"
+            echo "Healthcheck attempt $i: $st"
+            if [ "$st" = "healthy" ]; then
+              curl -sf http://127.0.0.1:4321/api/health
+              echo ""
+              exit 0
+            fi
+            sleep 3
+          done
+
+          echo "ERROR: theaver-website did not become healthy in time" >&2
+          docker logs --tail 50 theaver-website >&2 || true
+          exit 1
+          EOF
+
+      - name: Clean up SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
