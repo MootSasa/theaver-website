@@ -1,42 +1,39 @@
 ---
 title: Contributing & Changelog Guide
-description: Branch naming conventions, commit style, tests, and how to write clean user-facing changelog notes.
+description: Branch naming conventions, commit style, tests, and how to write bilingual user-facing changelog fragments.
 track: client
 order: 5
 ---
 
 Contributions to both [`theaver-frontend`](https://github.com/MootSasa/theaver-frontend) and [`theaver-website`](https://github.com/MootSasa/theaver-website) are welcome through Pull Requests.
 
-## Branch & commit conventions
+## Branch and commit rules
 
-- Never commit directly to `main` or `beta`. Always open a topic branch:
-  - `feat/<name>` for new features
-  - `fix/<name>` for bug fixes
-  - `refactor/<name>` for internal cleanups
-  - `docs/<name>` for documentation updates
-- Write commit subjects in English following **Conventional Commits** (`feat(chat): ...`, `fix(notifications): ...`).
+Never commit directly to `main` or `beta`. Open a topic branch first (`feat/<name>`, `fix/<name>`, `refactor/<name>`, `chore/<name>`, or `docs/<name>`), and write commit subjects in English following **Conventional Commits** (`feat(chat): ...`, `fix(notifications): ...`).
 
-## Pre-PR verification
+## Pre-PR checks
 
-Before opening a Pull Request in `theaver-frontend`, verify static analysis and widget/unit tests:
+Before opening a Pull Request in `theaver-frontend`, run static analysis, fragment validation, and unit tests:
 
 ```bash
-flutter analyze
+flutter analyze --no-fatal-infos --no-fatal-warnings
 flutter test
+python3 scripts/calculate_release.py --validate-fragments
 ```
 
-For documentation and site changes in `theaver-website`:
+For documentation and website changes in `theaver-website`:
 
 ```bash
 npm run check
 npm run build
 ```
 
-## Writing user-facing changelog entries
+## Writing user-facing changelog fragments
 
-Release notes displayed on GitHub Releases, inside the in-app updater dialog, and on `/changelog` are written for end users rather than git commit logs:
+Release notes shown on GitHub Releases, inside the in-app updater dialog, in push alerts, and on [`/changelog`](/changelog) are assembled from bilingual fragment files under `changelogs/fragments/<topic-slug>.md` rather than raw git commit lists.
 
-1. **Describe the visible effect:** Explain what improved for the person using the app instead of naming internal widgets, refactors, or file paths.
-2. **Group by feature:** Collapse multi-commit feature work into 1–3 concise bullet points.
-3. **Omit internal churn:** Skip CI fixes, version bumps, test-only commits, and regressions fixed before release.
-4. **Use standard sections:** Organize entries under **Added**, **Improved**, **Fixed**, and **Security**.
+Each fragment has short YAML metadata (`type`: `added`, `improved`, `fixed`, or `security`, plus plain-text `summary_ru` and `summary_en`) followed by `### ru` and `### en` bullet lists:
+
+1. **Describe the visible effect:** Explain what improved for the person using the app instead of naming internal widgets, refactors, or commit hashes.
+2. **Collapse multi-commit work:** Summarize a whole feature branch in 1 to 3 clear bullets per language.
+3. **Skip internal churn:** Pure refactoring, tests, CI edits, docs-only changes, and regressions fixed before release do not need a fragment; add `[no-changelog]` to the PR description instead.

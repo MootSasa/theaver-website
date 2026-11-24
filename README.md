@@ -1,22 +1,21 @@
-# Theaver Website & Documentation (`theaver.app`)
+**English** | [Русский](./README.ru.md)
 
-Official product website, download center, deep-link preview cards, and bilingual (`EN` / `RU`) documentation portal for **Theaver Messenger**.
+# Theaver Website and Documentation
+
+Public product site, downloads hub, OpenGraph deep-link previews, and bilingual (`EN` / `RU`) documentation portal at [theaver.app](https://theaver.app).
 
 ## Stack
 
-- **Astro 5** (`output: 'static'` + `@astrojs/node` standalone SSR for `/u/*`, `/c/*`, `/join/*` OpenGraph previews)
-- **Tailwind CSS v4** with `Ink` dark/light design tokens
-- **MDX** documentation with Shiki dual-theme highlighting
-- **Pagefind** static full-text documentation search (`Cmd+K` / `Ctrl+K`)
+Built with Astro 5 (`output: 'static'` plus the `@astrojs/node` standalone adapter for `/u/*`, `/c/*`, and `/join/*` preview cards), Tailwind CSS v4 with custom light/dark tokens in [tokens.css](./src/styles/tokens.css), MDX docs with Shiki highlighting, and Pagefind static search (`Cmd+K` / `Ctrl+K`).
 
-## Development
+## Local Development
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
-## Type Check & Production Build
+## Type Check and Production Build
 
 ```bash
 npm run check
@@ -24,11 +23,13 @@ npm run build
 npm run preview
 ```
 
-## Related Repositories
+## Related Links
 
-- Open-source Flutter client: [`MootSasa/theaver-frontend`](https://github.com/MootSasa/theaver-frontend)
-- Live Web client: [`app.theaver.app`](https://app.theaver.app)
+- Open-source Flutter client: [MootSasa/theaver-frontend](https://github.com/MootSasa/theaver-frontend)
+- Web client: [app.theaver.app](https://app.theaver.app)
+- Security policy: [SECURITY.md](./SECURITY.md)
+- Contributing guide: [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+MIT License. See [LICENSE](./LICENSE).
