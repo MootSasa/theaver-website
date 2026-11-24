@@ -236,6 +236,30 @@ function cleanReleaseItemText(raw: string): string {
     .trim();
 }
 
+function extractLocalizedReleaseSlice(
+  rawNotes: string,
+  locale: 'en' | 'ru',
+): { body: string; summary: string } {
+  const trimmed = (rawNotes || '').trim();
+  if (!trimmed) {
+    return { body: '', summary: '' };
+  }
+
+  const findSlice = (code: 'en' | 'ru'): string | null => {
+    const re = new RegExp(`<!--\\s*lang:${code}\\s*-->([\\s\\S]*?)<!--\\s*/lang:${code}\\s*-->`, 'i');
+    const match = trimmed.match(re);
+    return match && match[1]?.trim() ? match[1].trim() : null;
+  };
+
+  const altLocale: 'en' | 'ru' = locale === 'ru' ? 'en' : 'ru';
+  const slice = findSlice(locale) ?? findSlice(altLocale) ?? trimmed;
+  const summaryMatch = slice.match(/<!--\s*summary:\s*(.+?)\s*-->/i);
+  const summary = summaryMatch?.[1]?.replace(/\s+/g, ' ').trim() ?? '';
+  const body = slice.replace(/<!--[\s\S]*?-->/g, '').trim();
+
+  return { body, summary };
+}
+
 export function parseChannelReleaseEntry(
   ch: PublicReleaseChannel,
   locale: 'en' | 'ru',
@@ -255,15 +279,25 @@ export function parseChannelReleaseEntry(
   };
 
   let currentKind: 'added' | 'improved' | 'fixed' = 'improved';
-  const lines = (ch.release_notes || '').split(/\r?\n/);
+  const { body: localizedBody, summary: customSummary } = extractLocalizedReleaseSlice(
+    ch.release_notes || '',
+    locale,
+  );
+  const lines = localizedBody.split(/\r?\n/);
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
-    if (!line || line.startsWith('# ')) continue;
+    if (!line || (line.startsWith('# ') && !line.startsWith('##'))) continue;
 
     if (line.startsWith('##')) {
       const lower = line.toLowerCase();
-      if (lower.includes('feature') || lower.includes('новые') || lower.includes('added') || lower.includes('добав')) {
+      if (
+        lower.includes('feature') ||
+        lower.includes('новое') ||
+        lower.includes('новые') ||
+        lower.includes('added') ||
+        lower.includes('добав')
+      ) {
         currentKind = 'added';
       } else if (lower.includes('fix') || lower.includes('исправ')) {
         currentKind = 'fixed';
@@ -299,9 +333,10 @@ export function parseChannelReleaseEntry(
 
   const chName = ch.channel === 'beta' ? 'Beta' : 'Stable';
   const title =
-    locale === 'ru'
+    customSummary ||
+    (locale === 'ru'
       ? `Релиз канала ${chName} (${version})`
-      : `${chName} channel release (${version})`;
+      : `${chName} channel release (${version})`);
 
   return {
     version,
