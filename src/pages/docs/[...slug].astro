@@ -4,6 +4,10 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 import Callout from '../../components/docs/Callout.astro';
 import CodeTabs from '../../components/docs/CodeTabs.astro';
 import ApiEndpoint from '../../components/docs/ApiEndpoint.astro';
+import SyncFlowDiagram from '../../components/illustrations/SyncFlowDiagram.astro';
+import CallMediaDiagram from '../../components/illustrations/CallMediaDiagram.astro';
+import BotPlatformDiagram from '../../components/illustrations/BotPlatformDiagram.astro';
+import SignatureVerifyDiagram from '../../components/illustrations/SignatureVerifyDiagram.astro';
 
 export async function getStaticPaths() {
   const allDocs = await getCollection('docs');
@@ -29,5 +33,5 @@ const { Content, headings } = await render(entry);
   locale="en"
   slug={cleanSlug}
 >
-  <Content components={{ Callout, CodeTabs, ApiEndpoint }} />
+  <Content components={{ Callout, CodeTabs, ApiEndpoint, SyncFlowDiagram, CallMediaDiagram, BotPlatformDiagram, SignatureVerifyDiagram }} />
 </DocsLayout>

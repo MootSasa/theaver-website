@@ -37,7 +37,14 @@ wss://api.theaver.app/api/ws?token=<jwt_token>
 | `typing` | `chat_id`, `action` (`typing`, `record_voice`, `upload_photo`) | Рассылает статус активности в чат (не чаще 1 раза в 2 сек) |
 | `active_chat` | `chat_id` | Сообщает открытый чат для подавления лишних push-уведомлений |
 | `emoji_interaction` | `chat_id`, `message_id`, `emoji` | Синхронизирует полноэкранный эффект по нажатию на эмодзи |
+| `call.signal` | `call_id`, SDP / ICE payload | Сигналинг WebRTC для звонков 1:1 и комнат |
 | `ping` | `req_id` (опционально) | Проверка соединения, отвечает событием `pong` |
+
+## Медиатракт звонков и стримов
+
+Голосовые комнаты, звонки и демонстрация экрана `1080p60` используют **LiveKit SFU** с резервным релеем **Coturn** поверх TLS-порта `443` (`turn.theaver.app`), чтобы звонки устанавливались даже в закрытых корпоративных сетях.
+
+<CallMediaDiagram locale="ru" />
 
 ## Серверные события реального времени (Server → Client)
 

@@ -66,3 +66,12 @@ order: 3
 <ApiEndpoint method="GET" path="/api/public/releases" auth="Public" />
 
 Крупные файлы поддерживают возобновляемую загрузку по частям (`upload/init` → загрузка чанков → `complete`) с дедупликацией по `SHA-256`. Актуальную матрицу клиентских сборок можно получить без авторизации на `/api/public/releases`.
+
+## Удаление аккаунта
+
+<ApiEndpoint method="POST" path="/api/auth/account/delete/send-code" auth="Public" />
+<ApiEndpoint method="POST" path="/api/auth/account/delete/confirm" auth="Public" />
+<ApiEndpoint method="POST" path="/api/security/account/delete/send-code" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/security/account/delete/confirm" auth="JWT" />
+
+Подтверждение удаления сразу отзывает все активные сессии устройств и ставит аккаунт в очередь на полное удаление через 7 дней (`grace_period_days: 7`). Повторный вход по логину или QR до истечения этого срока автоматически отменяет удаление.

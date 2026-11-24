@@ -1,22 +1,24 @@
 ---
 title: Проверка подписей и SHA-256
-description: Как проверить контрольную сумму SHA-256, GPG-подпись архива Linux и сертификат установщика Windows перед запуском.
+description: Как сверить контрольную сумму SHA-256, GPG-подпись архива Linux и сертификат установщика Windows перед запуском.
 track: guide
 order: 2
 ---
 
-Каждая официальная сборка Theaver снабжается криптографическими данными для проверки подлинности перед установкой.
+Перед тем как запустить установщик, скачанный вручную, можно убедиться, что файл не был подменён в пути. К каждой официальной сборке прилагаются хэш и цифровая подпись.
+
+<SignatureVerifyDiagram locale="ru" />
 
 ## Публичные ключи проверки
 
-Ключи доступны напрямую с сайта и в открытом репозитории [`theaver-frontend`](https://github.com/MootSasa/theaver-frontend) в каталоге `signing/`:
+Оба ключа лежат на сайте и в открытом репозитории [`theaver-frontend`](https://github.com/MootSasa/theaver-frontend) внутри папки `signing/`:
 
 - Публичный GPG-ключ для Linux: [`/signing/theaver-release-public.asc`](/signing/theaver-release-public.asc)
 - Корневой сертификат подписи Windows: [`/signing/theaver-windows-root.cer`](/signing/theaver-windows-root.cer)
 
 ## Сверка контрольной суммы SHA-256
 
-Хэш `SHA-256` отображается на странице [Загрузки](/ru/downloads) и в окне обновления внутри приложения. Сравните его с результатом локальной проверки:
+Хэш `SHA-256` указан на странице [Загрузки](/ru/downloads) и в окне обновления внутри приложения. Посчитайте сумму локально и сравните строки символ в символ:
 
 <CodeTabs tabs={['Linux / macOS', 'Windows (PowerShell)']}>
 ```bash
@@ -32,7 +34,7 @@ Get-FileHash .\theaver-v1.20.3-beta-windows-x64-setup.exe -Algorithm SHA256
 
 ## Проверка архива Linux через GPG
 
-Рядом с архивами `.tar.gz` публикуется файл отсоединённой подписи `.tar.gz.asc`:
+Рядом с архивами `.tar.gz` публикуется файл подписи `.tar.gz.asc`:
 
 ```bash
 curl -fsSLO https://theaver.app/signing/theaver-release-public.asc
@@ -40,17 +42,17 @@ gpg --import theaver-release-public.asc
 gpg --verify theaver-v1.20.3-beta-linux-x64.tar.gz.asc theaver-v1.20.3-beta-linux-x64.tar.gz
 ```
 
-Убедитесь, что `gpg` сообщает о действительной подписи (`Good signature`) от ключа релиза Theaver.
+Убедитесь, что `gpg` выводит сообщение о действительной подписи (`Good signature`) от ключа релиза Theaver.
 
 ## Проверка установщика Windows
 
-Исполняемые файлы и установщик Windows подписываются сертификатом Authenticode:
+Установщики и исполняемые файлы Windows подписаны сертификатом Authenticode:
 
 ```powershell
 curl -fsSLO https://theaver.app/signing/theaver-windows-root.cer
 Get-AuthenticodeSignature .\theaver-v1.20.3-beta-windows-x64-setup.exe
 ```
 
-<Callout type="warning" title="Загружайте сборки только из доверенных источников">
-  Скачивайте установщики исключительно с `theaver.app`, `storage.theaver.app` или официальной страницы GitHub Releases (`MootSasa/theaver-frontend`).
+<Callout type="warning" title="Загружайте сборки только с официальных адресов">
+  Берите установщики только с `theaver.app`, `storage.theaver.app` или на официальной странице GitHub Releases (`MootSasa/theaver-frontend`).
 </Callout>

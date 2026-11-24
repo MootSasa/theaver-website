@@ -1,0 +1,519 @@
+---
+import LegalLayout from '../../layouts/LegalLayout.astro';
+import Icon from '../Icon.astro';
+import { localizePath, type Locale } from '../../lib/i18n';
+import { PUBLIC_API_URL } from '../../lib/releases';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const updatedAt = '2026-11-24';
+
+const c = locale === 'ru'
+  ? {
+      title: 'Удаление аккаунта',
+      desc: 'Запрос на полное удаление аккаунта Theaver и связанных данных через веб-форму или в приложении.',
+      intro:
+        'Вы можете удалить аккаунт Theaver через приложение или прямо на этой странице. После подтверждения все активные сессии завершатся сразу, а профиль, переписка и загруженные файлы будут окончательно удалены через 7 дней.',
+      inAppHeading: 'Удаление прямо в приложении',
+      inAppBody:
+        'Если у вас есть вход в клиент на телефоне или компьютере, откройте «Настройки» → «Конфиденциальность и безопасность» → «Удалить аккаунт». Приложение само отправит код подтверждения или запросит пароль.',
+      formHeading: 'Удаление через веб-форму',
+      formHint:
+        'Для подтверждения через сайт к аккаунту должен быть привязан email. Если почта не привязана или вы потеряли к ней доступ, воспользуйтесь формой внутри приложения или напишите на privacy@theaver.app.',
+      step1Title: 'Шаг 1. Укажите аккаунт',
+      identifierLabel: 'Email или @username',
+      identifierPlaceholder: 'name@example.com или @username',
+      sendBtn: 'Отправить код на почту',
+      sendingBtn: 'Отправка...',
+      step2Title: 'Шаг 2. Подтвердите удаление',
+      codeSentInfo:
+        'Если к этому аккаунту привязан email, мы отправили туда 6-значный код. Письмо приходит с адреса noreply@theaver.app и действует 10 минут.',
+      codeLabel: '6-значный код из письма',
+      codePlaceholder: '000000',
+      resendBtn: 'Отправить код повторно',
+      resendWait: 'Повторная отправка через {sec} с',
+      changeAccountBtn: 'Выбрать другой аккаунт',
+      twoFactorToggle: 'На аккаунте включён облачный пароль (2FA)',
+      twoFactorHint: 'Введите облачный пароль 2FA или один из резервных кодов восстановления.',
+      twoFactorPwdLabel: 'Облачный пароль 2FA',
+      recoveryCodeLabel: 'Или резервный код восстановления',
+      confirmCheck:
+        'Я понимаю, что все мои устройства выйдут из аккаунта сразу, а через 7 дней профиль, сообщения, файлы, боты и баланс THV будут удалены без возможности восстановления.',
+      confirmBtn: 'Запланировать удаление аккаунта',
+      confirmingBtn: 'Проверка и планирование...',
+      successTitle: 'Удаление запланировано',
+      successBody:
+        'Все активные сессии завершены. Аккаунт и связанные с ним данные будут окончательно удалены {date}.',
+      successCancel:
+        'Если вы передумали, достаточно снова войти в Theaver до указанной даты — удаление отменится автоматически.',
+      backHome: 'Вернуться на главную',
+      dataHeading: 'Какие данные удаляются и в какие сроки',
+      immediateLabel: 'Удаляются сразу после подтверждения:',
+      immediateText:
+        'все активные сессии устройств, JWT-токены доступа и зарегистрированные push-токены уведомлений (FCM / HMS).',
+      after7DaysLabel: 'Удаляются безвозвратно через 7 дней:',
+      after7DaysText:
+        'учётная запись (@username, email, хэш пароля, настройки и коды 2FA), фото, баннер и описание профиля, список контактов, отправленные вами сообщения, медиафайлы и документы в хранилище, созданные опросы и пригласительные ссылки, ваши боты (@BotMother) и кошелёк Walt (THV).',
+      retainedLabel: 'Обезличиваются или хранятся временно:',
+      retainedText:
+        'созданные вами общие группы и каналы продолжают работать для остальных участников, но ссылка на создателя очищается (NULL); в истории операций Walt у других пользователей сумма транзакции сохраняется для целостности баланса, но без привязки к вашему удалённому профилю; технические серверные логи безопасности очищаются автоматически в срок до 30 дней.',
+      helpHeading: 'Если нет доступа к почте',
+      helpBody:
+        'Напишите на privacy@theaver.app с темой «Account Deletion», указав ваш @username и примерную дату регистрации — мы подскажем, как подтвердить владение аккаунтом.',
+      errEmptyId: 'Укажите email или @username.',
+      errInvalidCode: 'Код неверный, просрочен или к аккаунту не привязан подтверждённый email.',
+      errNeedCheck: 'Подтвердите согласие с последствиями удаления.',
+      err2FA: 'Для этого аккаунта требуется верный облачный пароль 2FA или резервный код.',
+      errCooldown: 'Слишком частые запросы. Подождите немного и попробуйте снова.',
+      errNotConfigured: 'Почтовый сервис сейчас недоступен. Попробуйте удалить аккаунт в приложении или напишите на privacy@theaver.app.',
+      errGeneric: 'Не удалось выполнить запрос. Проверьте соединение и попробуйте снова.',
+    }
+  : {
+      title: 'Delete Account',
+      desc: 'How to permanently delete your Theaver account and associated data via the web form or inside the app.',
+      intro:
+        'You can delete your Theaver account inside the app or directly on this page. Once confirmed, all active sessions end immediately, and your profile, messages, and uploaded files are permanently deleted after 7 days.',
+      inAppHeading: 'Deleting inside the app',
+      inAppBody:
+        'If you are signed in on a phone or computer, open Settings → Privacy & Security → Delete Account. The app handles confirmation via your linked email or current account password.',
+      formHeading: 'Deleting via the web form',
+      formHint:
+        'Web verification requires an email address linked to your account. If no email is linked or you lost access to your inbox, delete from inside the app or contact privacy@theaver.app.',
+      step1Title: 'Step 1. Identify your account',
+      identifierLabel: 'Email or @username',
+      identifierPlaceholder: 'name@example.com or @username',
+      sendBtn: 'Send verification code',
+      sendingBtn: 'Sending...',
+      step2Title: 'Step 2. Confirm deletion',
+      codeSentInfo:
+        'If an email address is linked to that account, we sent a 6-digit code from noreply@theaver.app. The code stays valid for 10 minutes.',
+      codeLabel: '6-digit verification code',
+      codePlaceholder: '000000',
+      resendBtn: 'Resend code',
+      resendWait: 'Resend available in {sec}s',
+      changeAccountBtn: 'Use a different account',
+      twoFactorToggle: 'My account has a 2FA cloud password enabled',
+      twoFactorHint: 'Enter your 2FA cloud password or one of your backup recovery codes.',
+      twoFactorPwdLabel: '2FA cloud password',
+      recoveryCodeLabel: 'Or backup recovery code',
+      confirmCheck:
+        'I understand that all active devices will be signed out immediately, and after 7 days my profile, messages, files, bots, and THV balance will be permanently removed.',
+      confirmBtn: 'Schedule account deletion',
+      confirmingBtn: 'Verifying...',
+      successTitle: 'Deletion scheduled',
+      successBody:
+        'All active sessions have been signed out. Your account and associated data will be permanently deleted on {date}.',
+      successCancel:
+        'Changed your mind? Simply sign back into Theaver before that date to cancel deletion automatically.',
+      backHome: 'Back to homepage',
+      dataHeading: 'What gets deleted and retention timeline',
+      immediateLabel: 'Deleted immediately upon confirmation:',
+      immediateText:
+        'all active device sessions, authorization tokens, and registered push notification tokens (FCM / HMS).',
+      after7DaysLabel: 'Permanently deleted after 7 days:',
+      after7DaysText:
+        'account credentials (@username, email, password hash, 2FA settings and recovery codes), profile photo, banner, bio, contacts, messages you sent, uploaded files and media in storage, polls and invite links you created, bots owned by you (@BotMother), and your Walt (THV) wallet balance.',
+      retainedLabel: 'Anonymized or kept temporarily:',
+      retainedText:
+        'shared groups and channels you created stay accessible to remaining members with the creator reference cleared (NULL); counterparty entries in the Walt ledger keep numeric amounts for balance integrity with your profile link cleared (NULL); server security and anti-abuse logs rotate automatically within 30 days.',
+      helpHeading: 'Lost access to your email?',
+      helpBody:
+        'Write to privacy@theaver.app with your @username and approximate sign-up date so we can help verify ownership.',
+      errEmptyId: 'Enter your email address or @username.',
+      errInvalidCode: 'The verification code is invalid or expired, or this account has no linked email.',
+      errNeedCheck: 'Please confirm that you understand the 7-day deletion consequences.',
+      err2FA: 'A valid 2FA cloud password or backup recovery code is required for this account.',
+      errCooldown: 'Too many requests. Please wait a moment before trying again.',
+      errNotConfigured: 'Email verification is temporarily unavailable. Please delete inside the app or contact privacy@theaver.app.',
+      errGeneric: 'Could not complete the request. Check your connection and try again.',
+    };
+---
+
+<LegalLayout title={c.title} description={c.desc} updatedAt={updatedAt}>
+  <p>{c.intro}</p>
+
+  <div
+    id="delete-account-app"
+    class="ink-card mt-8 p-6 sm:p-7"
+    data-api-base={PUBLIC_API_URL}
+    data-locale={locale}
+    data-strings={JSON.stringify(c)}
+  >
+    <div class="flex items-start gap-3">
+      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-raised)] text-[var(--negative)]">
+        <Icon name="trash" size={19} />
+      </div>
+      <div>
+        <h2 class="!mt-0 !border-0 !pt-0 text-[20px] font-semibold text-[var(--text-primary)]">
+          {c.formHeading}
+        </h2>
+        <p class="mt-1.5 text-[14.5px] leading-relaxed text-[var(--text-secondary)]">
+          {c.formHint}
+        </p>
+      </div>
+    </div>
+
+    <!-- Step 1: Identify account -->
+    <form id="del-step-1" class="mt-6 flex flex-col gap-4">
+      <div>
+        <p class="text-[14px] font-semibold text-[var(--text-primary)]">{c.step1Title}</p>
+        <label for="del-identifier" class="mt-2 block text-[13.5px] text-[var(--text-secondary)]">
+          {c.identifierLabel}
+        </label>
+        <input
+          id="del-identifier"
+          name="identifier"
+          type="text"
+          required
+          autocomplete="username"
+          placeholder={c.identifierPlaceholder}
+          class="mt-1.5 block min-h-[44px] w-full rounded-[var(--radius-control)] border border-[var(--border-strong)] bg-[var(--bg-deep)] px-3.5 py-2.5 text-[15px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
+        />
+      </div>
+
+      <p id="del-error-1" role="alert" class="hidden text-[13.5px] font-semibold text-[var(--negative)]"></p>
+
+      <div>
+        <button id="del-send-btn" type="submit" class="btn-primary">
+          <Icon name="mail" size={16} />
+          <span data-btn-label>{c.sendBtn}</span>
+        </button>
+      </div>
+    </form>
+
+    <!-- Step 2: Verify code + optional 2FA -->
+    <form id="del-step-2" class="mt-6 hidden flex-col gap-4">
+      <div class="rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] p-3.5 text-[14px] leading-relaxed text-[var(--text-secondary)]">
+        <p class="font-semibold text-[var(--text-primary)]">{c.step2Title}</p>
+        <p class="mt-1">{c.codeSentInfo}</p>
+      </div>
+
+      <div>
+        <label for="del-code" class="block text-[13.5px] text-[var(--text-secondary)]">
+          {c.codeLabel}
+        </label>
+        <input
+          id="del-code"
+          name="code"
+          type="text"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          maxlength="8"
+          required
+          placeholder={c.codePlaceholder}
+          class="mt-1.5 block min-h-[44px] w-full rounded-[var(--radius-control)] border border-[var(--border-strong)] bg-[var(--bg-deep)] px-3.5 py-2.5 font-mono text-[16px] tracking-[0.2em] text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
+        />
+        <div class="mt-2 flex flex-wrap items-center gap-4 text-[13px]">
+          <button
+            id="del-resend-btn"
+            type="button"
+            class="text-[var(--accent)] hover:underline disabled:cursor-not-allowed disabled:text-[var(--text-muted)] disabled:no-underline"
+          >
+            {c.resendBtn}
+          </button>
+          <button
+            id="del-change-btn"
+            type="button"
+            class="text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:underline"
+          >
+            {c.changeAccountBtn}
+          </button>
+        </div>
+      </div>
+
+      <details id="del-2fa-details" class="rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] p-3.5">
+        <summary class="flex items-center gap-2 text-[14px] font-semibold text-[var(--text-primary)]">
+          <Icon name="lock" size={15} class="text-[var(--accent)]" />
+          <span>{c.twoFactorToggle}</span>
+        </summary>
+        <p class="mt-2 text-[13px] text-[var(--text-secondary)]">{c.twoFactorHint}</p>
+        <div class="mt-3 grid gap-3 sm:grid-cols-2">
+          <div>
+            <label for="del-2fa-pwd" class="block text-[12.5px] text-[var(--text-secondary)]">
+              {c.twoFactorPwdLabel}
+            </label>
+            <input
+              id="del-2fa-pwd"
+              name="two_factor_password"
+              type="password"
+              autocomplete="off"
+              class="mt-1 block min-h-[44px] w-full rounded-[var(--radius-control)] border border-[var(--border-strong)] bg-[var(--bg-card)] px-3 py-2 text-[14.5px] text-[var(--text-primary)]"
+            />
+          </div>
+          <div>
+            <label for="del-recovery-code" class="block text-[12.5px] text-[var(--text-secondary)]">
+              {c.recoveryCodeLabel}
+            </label>
+            <input
+              id="del-recovery-code"
+              name="recovery_code"
+              type="text"
+              autocomplete="off"
+              class="mt-1 block min-h-[44px] w-full rounded-[var(--radius-control)] border border-[var(--border-strong)] bg-[var(--bg-card)] px-3 py-2 font-mono text-[14px] text-[var(--text-primary)]"
+            />
+          </div>
+        </div>
+      </details>
+
+      <label class="flex items-start gap-2.5 text-[14px] leading-snug text-[var(--text-secondary)]">
+        <input
+          id="del-confirm-check"
+          type="checkbox"
+          class="mt-0.5 h-4 w-4 shrink-0 rounded accent-[var(--negative)]"
+        />
+        <span>{c.confirmCheck}</span>
+      </label>
+
+      <p id="del-error-2" role="alert" class="hidden text-[13.5px] font-semibold text-[var(--negative)]"></p>
+
+      <div>
+        <button
+          id="del-confirm-btn"
+          type="submit"
+          class="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-[var(--negative)] px-5 py-2.5 text-[15px] font-semibold text-white transition-transform duration-150 hover:opacity-90 active:scale-95 disabled:opacity-60"
+        >
+          <Icon name="trash" size={16} />
+          <span data-btn-label>{c.confirmBtn}</span>
+        </button>
+      </div>
+    </form>
+
+    <!-- Step 3: Scheduled confirmation -->
+    <div id="del-step-3" class="mt-6 hidden flex-col gap-4">
+      <div class="rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] p-4">
+        <p class="text-[16px] font-semibold text-[var(--text-primary)]">{c.successTitle}</p>
+        <p id="del-success-body" class="mt-2 text-[14.5px] leading-relaxed text-[var(--text-secondary)]"></p>
+        <p class="mt-2 text-[14px] leading-relaxed text-[var(--text-primary)]">{c.successCancel}</p>
+      </div>
+      <div>
+        <a href={localizePath('/', locale)} class="btn-secondary !no-underline">
+          <span>{c.backHome}</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <h2>{c.inAppHeading}</h2>
+  <p>{c.inAppBody}</p>
+
+  <h2>{c.dataHeading}</h2>
+  <ul>
+    <li><strong>{c.immediateLabel}</strong> {c.immediateText}</li>
+    <li><strong>{c.after7DaysLabel}</strong> {c.after7DaysText}</li>
+    <li><strong>{c.retainedLabel}</strong> {c.retainedText}</li>
+  </ul>
+
+  <h2>{c.helpHeading}</h2>
+  <p>{c.helpBody}</p>
+</LegalLayout>
+
+<script is:inline>
+  (() => {
+    const root = document.getElementById('delete-account-app');
+    if (!root) return;
+
+    const apiBase = (root.getAttribute('data-api-base') || '').replace(/\/+$/, '');
+    const locale = root.getAttribute('data-locale') || 'en';
+    const str = JSON.parse(root.getAttribute('data-strings') || '{}');
+
+    const step1 = document.getElementById('del-step-1');
+    const step2 = document.getElementById('del-step-2');
+    const step3 = document.getElementById('del-step-3');
+
+    const identifierInput = document.getElementById('del-identifier');
+    const codeInput = document.getElementById('del-code');
+    const twoFaDetails = document.getElementById('del-2fa-details');
+    const twoFaPwdInput = document.getElementById('del-2fa-pwd');
+    const recoveryInput = document.getElementById('del-recovery-code');
+    const checkInput = document.getElementById('del-confirm-check');
+
+    const sendBtn = document.getElementById('del-send-btn');
+    const resendBtn = document.getElementById('del-resend-btn');
+    const changeBtn = document.getElementById('del-change-btn');
+    const confirmBtn = document.getElementById('del-confirm-btn');
+
+    const err1 = document.getElementById('del-error-1');
+    const err2 = document.getElementById('del-error-2');
+    const successBody = document.getElementById('del-success-body');
+
+    let currentIdentifier = '';
+    let cooldownTimer = null;
+
+    function showError(el, msg) {
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+
+    function hideError(el) {
+      if (!el) return;
+      el.textContent = '';
+      el.classList.add('hidden');
+    }
+
+    function setBtnLoading(btn, loading, idleText, busyText) {
+      if (!(btn instanceof HTMLButtonElement)) return;
+      btn.disabled = loading;
+      const span = btn.querySelector('[data-btn-label]');
+      if (span) span.textContent = loading ? busyText : idleText;
+    }
+
+    function startCooldown(seconds) {
+      if (!(resendBtn instanceof HTMLButtonElement)) return;
+      if (cooldownTimer) clearInterval(cooldownTimer);
+      let left = Math.max(1, Number(seconds) || 60);
+      resendBtn.disabled = true;
+      resendBtn.textContent = (str.resendWait || '{sec}s').replace('{sec}', String(left));
+      cooldownTimer = setInterval(() => {
+        left -= 1;
+        if (left <= 0) {
+          clearInterval(cooldownTimer);
+          cooldownTimer = null;
+          resendBtn.disabled = false;
+          resendBtn.textContent = str.resendBtn || 'Resend';
+        } else {
+          resendBtn.textContent = (str.resendWait || '{sec}s').replace('{sec}', String(left));
+        }
+      }, 1000);
+    }
+
+    function mapError(data) {
+      const code = (data && data.error) || '';
+      if (code === 'email_not_configured') return str.errNotConfigured;
+      if (code === 'cooldown' || code === 'rate_limited') return str.errCooldown;
+      if (code === '2fa_required' || code === 'invalid_2fa_password') return str.err2FA;
+      if (code === 'invalid_code' || code === 'too_many_attempts') return str.errInvalidCode;
+      return str.errGeneric;
+    }
+
+    async function requestCode() {
+      const val = identifierInput instanceof HTMLInputElement ? identifierInput.value.trim() : '';
+      if (!val) {
+        showError(err1, str.errEmptyId);
+        return false;
+      }
+      currentIdentifier = val;
+      hideError(err1);
+      hideError(err2);
+      setBtnLoading(sendBtn, true, str.sendBtn, str.sendingBtn);
+      try {
+        const resp = await fetch(`${apiBase}/api/auth/account/delete/send-code`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: currentIdentifier, locale }),
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+          showError(err1, mapError(data));
+          if (step2 && !step2.classList.contains('hidden')) {
+            showError(err2, mapError(data));
+          }
+          if (data && data.retry_after) startCooldown(data.retry_after);
+          return false;
+        }
+        if (step1 && step2) {
+          step1.classList.add('hidden');
+          step2.classList.remove('hidden');
+          step2.classList.add('flex');
+        }
+        startCooldown(data.cooldown_seconds || 60);
+        if (codeInput instanceof HTMLInputElement) codeInput.focus();
+        return true;
+      } catch {
+        showError(err1, str.errGeneric);
+        return false;
+      } finally {
+        setBtnLoading(sendBtn, false, str.sendBtn, str.sendingBtn);
+      }
+    }
+
+    step1?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      requestCode();
+    });
+
+    resendBtn?.addEventListener('click', () => {
+      requestCode();
+    });
+
+    changeBtn?.addEventListener('click', () => {
+      hideError(err1);
+      hideError(err2);
+      if (step2 && step1) {
+        step2.classList.add('hidden');
+        step2.classList.remove('flex');
+        step1.classList.remove('hidden');
+      }
+      if (identifierInput instanceof HTMLInputElement) identifierInput.focus();
+    });
+
+    step2?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError(err2);
+
+      const code = codeInput instanceof HTMLInputElement ? codeInput.value.trim() : '';
+      const twoFactorPwd = twoFaPwdInput instanceof HTMLInputElement ? twoFaPwdInput.value : '';
+      const recoveryCode = recoveryInput instanceof HTMLInputElement ? recoveryInput.value.trim() : '';
+      const checked = checkInput instanceof HTMLInputElement ? checkInput.checked : false;
+
+      if (!code || code.length < 4) {
+        showError(err2, str.errInvalidCode);
+        return;
+      }
+      if (!checked) {
+        showError(err2, str.errNeedCheck);
+        return;
+      }
+
+      setBtnLoading(confirmBtn, true, str.confirmBtn, str.confirmingBtn);
+      try {
+        const resp = await fetch(`${apiBase}/api/auth/account/delete/confirm`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            identifier: currentIdentifier,
+            code,
+            two_factor_password: twoFactorPwd,
+            recovery_code: recoveryCode,
+            locale,
+          }),
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+          if (data && (data.requires_2fa || data.error === '2fa_required' || data.error === 'invalid_2fa_password')) {
+            if (twoFaDetails instanceof HTMLDetailsElement) twoFaDetails.open = true;
+            if (twoFaPwdInput instanceof HTMLInputElement) twoFaPwdInput.focus();
+          }
+          showError(err2, mapError(data));
+          return;
+        }
+
+        const rawDate = data.deletion_scheduled_at;
+        let formattedDate = rawDate || '7 days';
+        if (rawDate) {
+          const dt = new Date(rawDate);
+          if (!Number.isNaN(dt.getTime())) {
+            const locStr = locale === 'ru' ? 'ru-RU' : 'en-US';
+            formattedDate = `${dt.toLocaleString(locStr, { dateStyle: 'long', timeStyle: 'short' })} (${dt.toISOString().slice(0, 16).replace('T', ' ')} UTC)`;
+          }
+        }
+        if (successBody) {
+          successBody.textContent = (str.successBody || '').replace('{date}', formattedDate);
+        }
+        if (step2 && step3) {
+          step2.classList.add('hidden');
+          step2.classList.remove('flex');
+          step3.classList.remove('hidden');
+          step3.classList.add('flex');
+        }
+      } catch {
+        showError(err2, str.errGeneric);
+      } finally {
+        setBtnLoading(confirmBtn, false, str.confirmBtn, str.confirmingBtn);
+      }
+    });
+  })();
+</script>

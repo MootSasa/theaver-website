@@ -27,4 +27,7 @@ export type IconName =
   | 'github'
   | 'smartphone'
   | 'laptop'
-  | 'verified';
+  | 'verified'
+  | 'trash'
+  | 'mail'
+  | 'lock';

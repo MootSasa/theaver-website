@@ -21,19 +21,19 @@ const curatedEntries: ChangelogEntryData[] = locale === 'ru'
         version: 'v1.20.3-beta.429',
         date: '2026-11-09',
         channel: 'beta',
-        title: 'Сглаженная навигация, превью ссылок и стикеры',
+        title: 'Плавные переходы, превью ссылок и стабильность стикеров',
         sections: [
           {
             kind: 'fixed',
             items: [
-              'Кастомные эмодзи и внутренние ссылки хранилища больше не вызывают лишнее превью веб-страниц в пузыре сообщения.',
-              'Исправлена стабильность анимаций стикеров и GIF при быстром пролистывании ленты чата.',
+              'Кастомные эмодзи и внутренние ссылки хранилища больше не рисуют лишнюю карточку превью веб-страницы в пузыре сообщения.',
+              'Анимации стикеров и GIF перестали подёргиваться при быстром пролистывании ленты чата.',
             ],
           },
           {
             kind: 'improved',
             items: [
-              'Оптимизирован переход между списком чатов, диалогом и экраном профиля без пропусков кадров.',
+              'Переход между списком чатов, диалогом и профилем стал плавнее и без пропусков кадров.',
             ],
           },
         ],
@@ -42,19 +42,19 @@ const curatedEntries: ChangelogEntryData[] = locale === 'ru'
         version: 'v1.20.0-beta.423',
         date: '2026-11-09',
         channel: 'beta',
-        title: 'Mini Apps v8, безопасность кошелька Walt и подписи сборок',
+        title: 'Mini Apps v8, проверки кошелька Walt и подпись сборок',
         sections: [
           {
             kind: 'added',
             items: [
-              'Обновлена платформа Mini Apps до версии v8.0 с кэшированием ETag, безопасными отступами HUD и событийной загрузкой.',
-              'Добавлена автоматическая подпись релизных сборок для Windows и GPG-подписи для Linux.',
+              'Обновили Mini Apps до версии v8.0 с кэшированием ETag, безопасными отступами экрана и быстрым запуском.',
+              'Включили автоматическую подпись установщиков для Windows и GPG-подписи для архивов Linux.',
             ],
           },
           {
             kind: 'improved',
             items: [
-              'Усилена проверка входных данных в Bot API и транзакциях кошелька Walt (THV).',
+              'Добавили дополнительные проверки для запросов Bot API и переводов в кошельке Walt (THV).',
             ],
           },
         ],
@@ -63,20 +63,20 @@ const curatedEntries: ChangelogEntryData[] = locale === 'ru'
         version: 'v1.19.0-beta.421',
         date: '2026-11-08',
         channel: 'beta',
-        title: 'Панель стикеров, GIF-сетка и импорт из Telegram',
+        title: 'Панель стикеров, сетка GIF и импорт из Telegram',
         sections: [
           {
             kind: 'added',
             items: [
-              'Боковая панель эмодзи и стикеров (Sidecar) для тайлингового режима на десктопе.',
-              'Адаптивная сетка GIF, предпросмотр по удержанию и отправка в полном качестве.',
-              'Импорт наборов стикеров из Telegram с отображением прогресса в реальном времени.',
+              'Добавили отдельную боковую панель эмодзи и стикеров для многооконного режима на компьютере.',
+              'Сделали адаптивную сетку GIF с предпросмотром по удержанию и отправкой в полном качестве.',
+              'Появился импорт наборов стикеров из Telegram с отображением прогресса прямо в клиенте.',
             ],
           },
           {
             kind: 'improved',
             items: [
-              'Приостановка анимаций стикеров и GIF вне видимой области экрана и фиксация высокой частоты кадров.',
+              'Стикеры и GIF за пределами экрана теперь ставятся на паузу, чтобы не нагружать процессор и батарею.',
             ],
           },
         ],
@@ -90,8 +90,8 @@ const curatedEntries: ChangelogEntryData[] = locale === 'ru'
           {
             kind: 'added',
             items: [
-              'Аудио- и видеозвонки, демонстрация экрана и комнаты сообществ на базе LiveKit SFU.',
-              'Карточки итогов звонков в истории чата и гибкие настройки уведомлений.',
+              'Запустили аудио- и видеозвонки, показ экрана и голосовые комнаты в сообществах.',
+              'В истории чата появились карточки итогов звонков и раздельные настройки уведомлений.',
             ],
           },
         ],
@@ -102,19 +102,19 @@ const curatedEntries: ChangelogEntryData[] = locale === 'ru'
         version: 'v1.20.3-beta.429',
         date: '2026-11-09',
         channel: 'beta',
-        title: 'Smoother navigation transitions, link previews, and sticker stability',
+        title: 'Smoother screen transitions, link previews, and steady stickers',
         sections: [
           {
             kind: 'fixed',
             items: [
-              'Custom emojis and internal storage media URLs no longer trigger unintended web link preview cards.',
-              'Eliminated animation frame jitter across animated stickers and GIFs during fast scroll.',
+              'Custom emoji and internal storage media links no longer trigger blank web link preview cards inside message bubbles.',
+              'Animated stickers and GIFs no longer stutter when scrolling fast through long chats.',
             ],
           },
           {
             kind: 'improved',
             items: [
-              'Refined transitions between chat list, active thread, and profile info panels.',
+              'Opening chats and profile panels feels smoother without dropped frames.',
             ],
           },
         ],
@@ -123,19 +123,19 @@ const curatedEntries: ChangelogEntryData[] = locale === 'ru'
         version: 'v1.20.0-beta.423',
         date: '2026-11-09',
         channel: 'beta',
-        title: 'Mini Apps v8, Walt wallet hardening, and signed installers',
+        title: 'Mini Apps v8, Walt wallet checks, and signed installers',
         sections: [
           {
             kind: 'added',
             items: [
-              'Upgraded Mini Apps platform to v8.0 with ETag caching, safe HUD insets, and event-driven boot.',
-              'Enabled automated Authenticode signing on Windows and GPG signatures on Linux release archives.',
+              'Upgraded Mini Apps to v8.0 with ETag caching, safe HUD insets, and faster launch events.',
+              'Added automated Authenticode signing for Windows installers and GPG signatures for Linux archives.',
             ],
           },
           {
             kind: 'improved',
             items: [
-              'Hardened Bot API validation and Walt (THV) ledger checks.',
+              'Tightened validation checks across Bot API calls and Walt (THV) ledger transfers.',
             ],
           },
         ],
@@ -144,20 +144,20 @@ const curatedEntries: ChangelogEntryData[] = locale === 'ru'
         version: 'v1.19.0-beta.421',
         date: '2026-11-08',
         channel: 'beta',
-        title: 'Emoji & sticker sidecar, GIF grid, and Telegram pack import',
+        title: 'Sticker sidecar, GIF grid, and Telegram pack import',
         sections: [
           {
             kind: 'added',
             items: [
-              'Dedicated Emoji & Sticker Sidecar panel for desktop tiling workspaces.',
-              'Justified GIF grid with press-and-hold peek preview and full-resolution sending.',
-              'Real-time progress reporting when importing sticker packs from Telegram.',
+              'Added a dedicated Emoji & Sticker side panel for wide desktop windows.',
+              'Built a justified GIF grid with press-and-hold preview and full-resolution sending.',
+              'Added direct Telegram sticker pack import with live progress inside the app.',
             ],
           },
           {
             kind: 'improved',
             items: [
-              'Paused off-screen animated stickers/GIFs and locked high refresh rate during touch interactions.',
+              'Off-screen animated stickers and GIFs now pause automatically, keeping high refresh rates smooth during touch scrolling.',
             ],
           },
         ],
@@ -166,13 +166,13 @@ const curatedEntries: ChangelogEntryData[] = locale === 'ru'
         version: 'v1.18.0-beta.400',
         date: '2026-11-07',
         channel: 'beta',
-        title: 'Calls, streams, and communities',
+        title: 'Calls, screen sharing, and communities',
         sections: [
           {
             kind: 'added',
             items: [
-              'Voice calls, 1080p60 screen sharing, and community voice channels powered by LiveKit SFU.',
-              'Call summary cards in chat history and per-chat notification controls.',
+              'Added voice calls, 1080p60 screen sharing, and voice channels inside communities.',
+              'Added call summary cards in chat history along with per-chat notification settings.',
             ],
           },
         ],
@@ -182,7 +182,7 @@ const curatedEntries: ChangelogEntryData[] = locale === 'ru'
 const labels = locale === 'ru'
   ? {
       title: 'История обновлений',
-      description: 'Хронология релизов клиента и платформы Theaver по каналам Stable и Beta.',
+      description: 'Что менялось в новых версиях клиента и платформы Theaver на каналах Stable и Beta.',
       all: 'Все',
       stable: 'Stable',
       beta: 'Beta',
@@ -193,7 +193,7 @@ const labels = locale === 'ru'
     }
   : {
       title: 'Changelog',
-      description: 'Release history for Theaver client builds and platform updates across Stable and Beta channels.',
+      description: 'What changed in recent Stable and Beta builds of Theaver.',
       all: 'All',
       stable: 'Stable',
       beta: 'Beta',
@@ -226,7 +226,7 @@ const entries: ChangelogEntryData[] = [...dynamicEntries, ...curatedEntries];
       <div class="mx-auto max-w-3xl">
         <div class="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--border-hairline)] pb-6">
           <div>
-            <h1 class="text-[32px] font-medium leading-[1.15] text-[var(--text-primary)] sm:text-[38px]">
+            <h1 class="text-[32px] font-semibold leading-[1.15] text-[var(--text-primary)] sm:text-[38px]">
               {labels.title}
             </h1>
             <p class="mt-2 text-[15.5px] text-[var(--text-secondary)]">
@@ -269,7 +269,7 @@ const entries: ChangelogEntryData[] = [...dynamicEntries, ...curatedEntries];
                 </time>
               </div>
 
-              <h2 class="mt-3 text-[20px] font-medium text-[var(--text-primary)]">
+              <h2 class="mt-3 text-[20px] font-semibold text-[var(--text-primary)]">
                 {entry.title}
               </h2>
 

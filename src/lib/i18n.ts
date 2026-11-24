@@ -61,6 +61,7 @@ export interface SiteStrings {
     privacy: string;
     terms: string;
     security: string;
+    deleteAccount: string;
     copyright: string;
   };
   tracks: {
@@ -103,7 +104,7 @@ export const UI_STRINGS: Record<Locale, SiteStrings> = {
       toggleLabel: 'Theme',
     },
     footer: {
-      tagline: 'Cross-platform messenger with an open-source client, desktop tiling, calls, and Bot API.',
+      tagline: 'Cross-platform messenger with an open client, desktop multi-pane layout, calls, and Bot API.',
       product: 'Product',
       developers: 'Developers',
       resources: 'Resources',
@@ -122,6 +123,7 @@ export const UI_STRINGS: Record<Locale, SiteStrings> = {
       privacy: 'Privacy Policy',
       terms: 'Terms of Service',
       security: 'Security',
+      deleteAccount: 'Delete Account',
       copyright: 'Theaver',
     },
     tracks: {
@@ -162,7 +164,7 @@ export const UI_STRINGS: Record<Locale, SiteStrings> = {
       toggleLabel: 'Тема',
     },
     footer: {
-      tagline: 'Кроссплатформенный мессенджер с открытым клиентом, тайлингом на ПК, звонками и Bot API.',
+      tagline: 'Кроссплатформенный мессенджер с открытым клиентом, несколькими панелями на ПК, звонками и Bot API.',
       product: 'Продукт',
       developers: 'Разработчикам',
       resources: 'Ресурсы',
@@ -181,6 +183,7 @@ export const UI_STRINGS: Record<Locale, SiteStrings> = {
       privacy: 'Политика конфиденциальности',
       terms: 'Условия использования',
       security: 'Безопасность',
+      deleteAccount: 'Удаление аккаунта',
       copyright: 'Theaver',
     },
     tracks: {

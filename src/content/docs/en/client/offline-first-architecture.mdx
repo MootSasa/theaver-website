@@ -5,7 +5,9 @@ track: client
 order: 2
 ---
 
-Theaver renders the UI directly from local **Drift/SQLite** tables rather than blocking on network round-trips. Network synchronization runs asynchronously in the background and streams updates into the UI.
+Theaver renders screens directly from local **Drift/SQLite** tables instead of blocking on network round-trips. Background sync handles retries and streams live updates back into the UI.
+
+<SyncFlowDiagram locale="en" />
 
 ## Core principles
 

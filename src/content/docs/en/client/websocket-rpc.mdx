@@ -37,7 +37,14 @@ When a JSON frame includes `req_id`, the server guarantees an `rpc_result` or `r
 | `typing` | `chat_id`, `action` (`typing`, `record_voice`, `upload_photo`) | Broadcasts activity indicator (throttled to 1 event / 2s) |
 | `active_chat` | `chat_id` | Reports foreground chat to suppress duplicate push notifications |
 | `emoji_interaction` | `chat_id`, `message_id`, `emoji` | Synchronizes fullscreen emoji tap effects |
+| `call.signal` | `call_id`, SDP / ICE payload | WebRTC signaling for 1:1 calls and rooms |
 | `ping` | `req_id` (optional) | Keepalive check returning `pong` |
+
+## Voice, video, and stream media path
+
+Direct calls, voice channels, and `1080p60` screen sharing route through **LiveKit SFU** alongside **Coturn** over TLS port `443` (`turn.theaver.app`), keeping media connections working behind strict NATs and corporate firewalls.
+
+<CallMediaDiagram locale="en" />
 
 ## Real-time server events (Server → Client)
 

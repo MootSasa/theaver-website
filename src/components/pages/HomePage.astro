@@ -1,14 +1,8 @@
 ---
-import { Code } from 'astro:components';
 import MarketingLayout from '../../layouts/MarketingLayout.astro';
 import Icon from '../Icon.astro';
 import ScreenshotFrame from '../ScreenshotFrame.astro';
 import SmartDownloadButton from '../SmartDownloadButton.astro';
-import CodeTabs from '../docs/CodeTabs.astro';
-import SyncFlowDiagram from '../illustrations/SyncFlowDiagram.astro';
-import CallMediaDiagram from '../illustrations/CallMediaDiagram.astro';
-import BotPlatformDiagram from '../illustrations/BotPlatformDiagram.astro';
-import SignatureVerifyDiagram from '../illustrations/SignatureVerifyDiagram.astro';
 import { localizePath, type Locale } from '../../lib/i18n';
 import { fetchPublicReleases, GITHUB_REPO_URL, WEB_APP_URL } from '../../lib/releases';
 
@@ -25,142 +19,123 @@ const rawHeroVer =
 const heroVersionTag = rawHeroVer.startsWith('v') ? rawHeroVer : `v${rawHeroVer}`;
 const channelPill = locale === 'ru' ? `Релиз ${heroVersionTag}` : `Release ${heroVersionTag}`;
 
-const aiogramSample = `from aiogram import Bot
-from aiogram.client.session.aiohttp import AiohttpSession
-from aiogram.client.telegram import TelegramAPIServer
-
-session = AiohttpSession(
-    api=TelegramAPIServer.from_base("https://api.theaver.app")
-)
-bot = Bot(token=BOT_TOKEN, session=session)`;
-
-const grammySample = `import { Bot } from "grammy";
-
-const bot = new Bot(process.env.BOT_TOKEN!, {
-  client: {
-    apiRoot: "https://api.theaver.app",
-  },
-});`;
-
 const c = locale === 'ru'
   ? {
-      metaTitle: 'Theaver — Быстрый мессенджер с открытым клиентом',
-      metaDesc: 'Кроссплатформенный мессенджер с офлайн-синхронизацией, тайлинговым десктопом, звонками LiveKit и Telegram-совместимым Bot API.',
-      heroTitle: 'Мессенджер, который держит ритм работы',
-      heroSub: 'Личные чаты, каналы, звонки с демонстрацией экрана, мультиоконный ПК-тайлинг и платформа ботов на базе открытого клиента.',
+      metaTitle: 'Theaver — Мессенджер для чатов, звонков и работы',
+      metaDesc: 'Кроссплатформенный мессенджер с открытым клиентом: чаты с работой без сети, каналы, звонки с показом экрана, несколько панелей на ПК и боты.',
+      heroTitle: 'Общение, звонки и работа в одном мессенджере',
+      heroSub: 'Быстрые чаты, каналы, звонки с показом экрана, несколько окон на одном экране компьютера и встроенные боты.',
       openBrowser: 'Открыть в браузере',
-      heroAlt: 'Интерфейс десктопного клиента Theaver с тайлинговой панелью',
-      section1Label: 'Синхронизация и каналы',
-      section1Title: 'Работает мгновенно, даже без сети',
-      section1Body: 'Сообщения, черновики и медиа кэшируются локально в Drift/SQLite. После восстановления связи очередь уходит через WebSocket RPC с идемпотентным ключом local_id — без дублей и пропусков.',
+      heroAlt: 'Десктопный клиент Theaver с открытыми чатами и боковой панелью',
+      section1Label: 'Чаты и звонки',
+      section1Title: 'На связи, даже когда интернет пропадает',
+      section1Body: 'Сообщения, черновики и недавние файлы сохраняются на вашем устройстве. Если отправить ответ в метро или без сети, приложение само доставит его, как только вернётся связь.',
       section1List: [
-        'Публичные каналы с комментариями, счётчиком просмотров и пересылкой',
-        'Группы с темами форума, опросами, правами ролей и историей действий',
-        'Единый прогресс прочтения High-Water Mark на всех устройствах',
+        'Публичные каналы со счётчиком просмотров, отложенной отправкой и комментариями',
+        'Группы с темами обсуждений, опросами, викторинами и настройкой прав участников',
+        'Голосовые, видеокружки и групповые звонки с демонстрацией экрана до 1080p 60 fps',
       ],
-      chatsAlt: 'Экран чата и офлайн-синхронизации на смартфоне Theaver',
-      section2Label: 'Звонки и стримы',
-      section2Title: 'Голос, видеокружки и экран в 1080p60',
-      section2Body: 'Звонки один на один и групповые комнаты работают через LiveKit SFU и Coturn на порту TLS 443, проходя корпоративные сети без ручной настройки.',
-      section2List: [
-        'Захват окна или всего экрана до 60 fps',
-        'Голосовые Opus и видеокружки с общей позицией',
-        'Стримы RTMP и WHIP для OBS Studio',
-      ],
-      callsAlt: 'Окно группового звонка и демонстрации экрана в Theaver',
-      section3Label: 'Десктоп и медиа',
-      section3Title: 'Создан для большого экрана и клавиатуры',
-      desktopCards: [
+      chatsAlt: 'Экран мобильного клиента Theaver со списком чатов',
+      callsAlt: 'Групповой звонок и демонстрация экрана в Theaver',
+      section2Label: 'Компьютер и оформление',
+      section2Title: 'Удобно на большом экране и настраивается под себя',
+      featureCards: [
         {
           icon: 'layers' as const,
-          title: 'Тайлинговый мультиоконный режим',
-          body: 'Открывайте чат, ветку комментариев, боковую панель стикеров или Mini App рядом на одном экране без лишних переключений.',
+          title: 'Несколько панелей на одном экране',
+          body: 'На компьютере диалог, ветку комментариев, профиль и панель стикеров можно держать открытыми рядом без постоянных переключений.',
+          href: '',
+          linkLabel: '',
         },
         {
           icon: 'message' as const,
-          title: 'Стикеры, GIF и кастомные эмодзи',
-          body: 'Живые паки стикеров, поиск по смыслу и импорт наборов из Telegram напрямую через клиент.',
+          title: 'Стикеры, GIF и перенос из Telegram',
+          body: 'Анимированные стикеры, быстрый поиск по GIF-ленте и импорт ваших любимых наборов из Telegram прямо внутри приложения.',
+          href: '',
+          linkLabel: '',
         },
         {
           icon: 'laptop' as const,
-          title: 'Темы оформления и Liquid Glass',
-          body: 'Адаптивная светлая и тёмная тема, настройка акцентов и обмен пользовательскими темами по короткой ссылке.',
+          title: 'Свои темы и оформление',
+          body: 'Светлая и тёмная палитры, выбор акцентов, фонов чата и возможность поделиться готовой темой по короткой ссылке.',
+          href: '',
+          linkLabel: '',
+        },
+        {
+          icon: 'bot' as const,
+          title: 'Боты и мини-приложения',
+          body: 'Запускайте ботов и веб-сервисы прямо в чатах. Для разработчиков доступна привычная совместимость с Telegram Bot API.',
+          href: localizePath('/docs/bots/overview-botmother', locale),
+          linkLabel: 'Документация для разработчиков',
         },
       ],
-      section4Badge: '@BotMother · Bot API & Mini Apps v8',
-      section4Title: 'Перенесите Telegram-бота за одну строку',
-      section4Body: 'Создайте бота у @BotMother и укажите базовый URL api.theaver.app в aiogram, grammY или python-telegram-bot. Доступны Long Polling, Webhooks, inline-режим, Mini Apps v8 и переводы в THV.',
-      readBotDocs: 'Документация Bot API',
-      section5Label: 'Прозрачность и проверки',
-      section5Title: 'Открытый клиент и проверяемые релизы',
-      section5Body: 'Исходный код Flutter-клиента полностью открыт. Каждая сборка снабжается контрольной суммой SHA-256, GPG-подписью для Linux и корневым сертификатом для Windows.',
+      section3Badge: 'Открытый клиент',
+      section3Title: 'Исходный код открыт, а сборки проверяются',
+      section3Body: 'Клиент написан на открытом коде. Все установщики для Windows, macOS, Linux, Android и iOS публикуются с контрольной суммой SHA-256 и цифровой подписью.',
+      allPlatformsBtn: 'Скачать приложение',
       viewSource: 'Исходники на GitHub',
       verifyGuide: 'Как проверить подпись',
-      ctaTitle: 'Установите Theaver на все устройства',
-      ctaSub: 'Доступно для Windows, macOS, Linux, Android, iOS и в браузере без установки.',
-      allPlatformsBtn: 'Перейти к загрузкам',
     }
   : {
-      metaTitle: 'Theaver — Fast cross-platform messenger with an open client',
-      metaDesc: 'Cross-platform messenger with offline-first SQLite sync, desktop tiling, LiveKit voice & screen share, and Telegram-compatible Bot API.',
-      heroTitle: 'A fast messenger built for real work',
-      heroSub: 'Direct chats, channels, screen-sharing calls, tiled desktop workspaces, and a compatible Bot & Mini Apps platform powered by an open-source client.',
+      metaTitle: 'Theaver — Messenger for chats, calls, and everyday work',
+      metaDesc: 'Cross-platform messenger with an open client: offline-ready chats, channels, 1080p screen-sharing calls, multi-pane desktop layout, and bots.',
+      heroTitle: 'Chats, calls, and your workspace in one messenger',
+      heroSub: 'Fast direct messages, channels, screen-sharing calls, side-by-side desktop panes, and built-in bots.',
       openBrowser: 'Open in Browser',
-      heroAlt: 'Theaver Desktop workspace with tiled chat list, thread, and sidecar panel',
-      section1Label: 'Sync & Channels',
-      section1Title: 'Instant locally, resilient offline',
-      section1Body: 'Messages, drafts, and media live in local Drift/SQLite storage. Reconnecting drains the outbox over WebSocket RPC using idempotent local_id keys so nothing drops or duplicates.',
+      heroAlt: 'Theaver desktop client showing chat list, conversation, and side panel',
+      section1Label: 'Chats & Calls',
+      section1Title: 'Keeps up even when your connection drops',
+      section1Body: 'Your messages, drafts, and recent media stay cached on your device. Send a reply on a train or in a dead zone, and the app delivers it automatically once you reconnect.',
       section1List: [
-        'Public channels with comment threads, view counters, and scheduled posts',
-        'Groups with forum topics, polls, granular admin permissions, and audit logs',
-        'Atomic High-Water Mark read state synchronized across every logged-in device',
+        'Public channels with view counts, scheduled posts, and comment threads',
+        'Groups with forum topics, polls, quizzes, and clear member permissions',
+        'Voice notes, round video messages, and calls with 1080p 60 fps screen sharing',
       ],
-      chatsAlt: 'Theaver mobile chat and offline-first sync screen',
-      section2Label: 'Voice & Streams',
-      section2Title: 'Clear calls and 1080p60 screen sharing',
-      section2Body: 'Direct calls and multi-participant voice rooms route through LiveKit SFU with Coturn over TLS port 443 to traverse strict firewalls reliably.',
-      section2List: [
-        'Low-latency window and display sharing up to 60 fps',
-        'Opus voice notes and round video messages synced across devices',
-        'RTMP and WHIP stream ingress for OBS Studio in communities',
-      ],
-      callsAlt: 'Theaver LiveKit group call and screen sharing window',
-      section3Label: 'Desktop & Media',
-      section3Title: 'Designed for wide screens, not stretched phone UI',
-      desktopCards: [
+      chatsAlt: 'Theaver mobile app chat screen',
+      callsAlt: 'Theaver group call and screen sharing window',
+      section2Label: 'Desktop & Personalization',
+      section2Title: 'Built for wide screens and tailored to your style',
+      featureCards: [
         {
           icon: 'layers' as const,
-          title: 'Tiled multi-window layout',
-          body: 'Pin a conversation, discussion thread, sticker sidecar, or Mini App side by side inside one responsive workspace.',
+          title: 'Side-by-side desktop panes',
+          body: 'Keep your main chat, a comment thread, a profile card, and the sticker panel open next to each other instead of jumping back and forth.',
+          href: '',
+          linkLabel: '',
         },
         {
           icon: 'message' as const,
-          title: 'Stickers, GIFs & custom emoji',
-          body: 'Smooth animated sticker rendering, semantic sticker search, and direct Telegram sticker pack import.',
+          title: 'Stickers, GIFs & Telegram import',
+          body: 'Smooth animated stickers, quick GIF search with hold-to-preview, and direct sticker pack import from Telegram.',
+          href: '',
+          linkLabel: '',
         },
         {
           icon: 'laptop' as const,
-          title: 'Custom themes & Liquid Glass',
-          body: 'Tinted light and dark surfaces, custom bubble styles, and shareable theme links across devices.',
+          title: 'Custom themes you can share',
+          body: 'Switch between light and dark modes, tune accent colors and chat backgrounds, and share your theme via a short link.',
+          href: '',
+          linkLabel: '',
+        },
+        {
+          icon: 'bot' as const,
+          title: 'Bots & Mini Apps',
+          body: 'Run interactive bots and web tools directly inside conversations, backed by a Telegram-compatible Bot API for developers.',
+          href: localizePath('/docs/bots/overview-botmother', locale),
+          linkLabel: 'Bot developer docs',
         },
       ],
-      section4Badge: '@BotMother · Bot API & Mini Apps v8',
-      section4Title: 'Migrate your Telegram bot in one line',
-      section4Body: 'Register a bot via @BotMother and point aiogram, grammY, or python-telegram-bot at api.theaver.app. Supports Long Polling, Webhooks, inline queries, Mini Apps v8, and THV wallet payments.',
-      readBotDocs: 'Read Bot API Docs',
-      section5Label: 'Verifiable Builds',
-      section5Title: 'Open-source client and signed installers',
-      section5Body: 'The Flutter client source code is public on GitHub. Every build ships with SHA-256 checksums, detached GPG signatures on Linux, and signed installers on Windows.',
-      viewSource: 'View Client Source',
+      section3Badge: 'Open Client',
+      section3Title: 'Open client code and verifiable builds',
+      section3Body: 'The app client source code is public on GitHub. Official installers for Windows, macOS, Linux, Android, and iOS include SHA-256 checksums and signing keys.',
+      allPlatformsBtn: 'Download Theaver',
+      viewSource: 'View on GitHub',
       verifyGuide: 'Verification Guide',
-      ctaTitle: 'Get Theaver on every screen',
-      ctaSub: 'Native builds for Windows, macOS, Linux, Android, iOS, plus the Web client.',
-      allPlatformsBtn: 'Browse all downloads',
     };
 ---
 
 <MarketingLayout title={c.metaTitle} description={c.metaDesc}>
-  <!-- Tile 1: Centered Gallery Hero (Canvas) -->
+  <!-- Section 1: Hero (Canvas) -->
   <section class="bg-[var(--bg-page)] pt-14 pb-16 lg:pt-20 lg:pb-24">
     <div class="container-page">
       <div class="mx-auto max-w-3xl text-center">
@@ -200,7 +175,7 @@ const c = locale === 'ru'
     </div>
   </section>
 
-  <!-- Tile 2: Sync & Channels (Parchment) -->
+  <!-- Section 2: Chats, Channels & Calls (Parchment) -->
   <section id="features" class="bg-[var(--bg-alt)] py-14 lg:py-20">
     <div class="container-page">
       <div class="mx-auto max-w-3xl text-center">
@@ -215,9 +190,9 @@ const c = locale === 'ru'
         </p>
       </div>
 
-      <div class="mx-auto mt-12 grid max-w-5xl items-center gap-12 lg:grid-cols-12">
+      <div class="mx-auto mt-12 grid max-w-5xl items-center gap-10 lg:grid-cols-12">
         <div class="min-w-0 lg:col-span-5">
-          <div class="mx-auto max-w-[320px]">
+          <div class="mx-auto max-w-[300px]">
             <ScreenshotFrame
               name="chats-mobile"
               alt={c.chatsAlt}
@@ -238,14 +213,19 @@ const c = locale === 'ru'
           </ul>
 
           <div class="mt-8">
-            <SyncFlowDiagram locale={locale} />
+            <ScreenshotFrame
+              name="calls-stream"
+              alt={c.callsAlt}
+              width={720}
+              height={460}
+            />
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Tile 3: Voice, Video & Streams (Canvas) -->
+  <!-- Section 3: Desktop, Media, Themes & Bots (Canvas) -->
   <section class="bg-[var(--bg-page)] py-14 lg:py-20">
     <div class="container-page">
       <div class="mx-auto max-w-3xl text-center">
@@ -255,51 +235,10 @@ const c = locale === 'ru'
         <h2 class="mt-2 text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[40px]">
           {c.section2Title}
         </h2>
-        <p class="mx-auto mt-4 max-w-2xl text-[17px] leading-[1.47] text-[var(--text-secondary)]">
-          {c.section2Body}
-        </p>
       </div>
 
-      <div class="mx-auto mt-12 max-w-[820px]">
-        <ScreenshotFrame
-          name="calls-stream"
-          alt={c.callsAlt}
-          width={720}
-          height={460}
-        />
-      </div>
-
-      <div class="mx-auto mt-10 max-w-4xl">
-        <div class="grid gap-4 text-[15px] leading-[1.47] text-[var(--text-secondary)] sm:grid-cols-3">
-          {c.section2List.map((item) => (
-            <div class="ink-card flex items-start gap-2.5 p-4">
-              <Icon name="phone" size={17} class="mt-0.5 shrink-0 text-[var(--accent)]" />
-              <span>{item}</span>
-            </div>
-          ))}
-        </div>
-
-        <div class="mt-8">
-          <CallMediaDiagram locale={locale} />
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Tile 4: Desktop & Media Utility Grid (Parchment) -->
-  <section class="bg-[var(--bg-alt)] py-14 lg:py-20">
-    <div class="container-page">
-      <div class="mx-auto max-w-3xl text-center">
-        <p class="font-mono text-[12.5px] font-semibold tracking-tight text-[var(--accent)]">
-          {c.section3Label}
-        </p>
-        <h2 class="mt-2 text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[40px]">
-          {c.section3Title}
-        </h2>
-      </div>
-
-      <div class="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-3">
-        {c.desktopCards.map((card) => (
+      <div class="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-2">
+        {c.featureCards.map((card) => (
           <div class="ink-card flex flex-col justify-between p-7">
             <div>
               <div class="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-raised)] text-[var(--accent)]">
@@ -312,91 +251,33 @@ const c = locale === 'ru'
                 {card.body}
               </p>
             </div>
+            {card.href && (
+              <div class="mt-5">
+                <a href={card.href} class="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[var(--accent)] hover:underline">
+                  <span>{card.linkLabel}</span>
+                  <Icon name="arrow-right" size={14} />
+                </a>
+              </div>
+            )}
           </div>
         ))}
       </div>
     </div>
   </section>
 
-  <!-- Tile 5: Featured Dark Contrast Spotlight — Bots, Mini Apps & Walt -->
+  <!-- Section 4: Open Client & Downloads CTA (Dark Contrast Spotlight) -->
   <section class="tile-contrast-dark py-14 lg:py-20">
     <div class="container-page">
       <div class="mx-auto max-w-3xl text-center">
-        <span class="badge-warm">{c.section4Badge}</span>
+        <span class="badge-warm">{c.section3Badge}</span>
         <h2 class="mt-4 text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[40px]">
-          {c.section4Title}
+          {c.section3Title}
         </h2>
         <p class="mx-auto mt-4 max-w-2xl text-[17px] leading-[1.47] text-[var(--text-secondary)]">
-          {c.section4Body}
-        </p>
-        <div class="mt-7 flex justify-center">
-          <a
-            href={localizePath('/docs/bots/overview-botmother', locale)}
-            class="btn-primary"
-          >
-            <Icon name="code" size={17} />
-            <span>{c.readBotDocs}</span>
-          </a>
-        </div>
-      </div>
-
-      <div class="mx-auto mt-12 grid max-w-5xl items-start gap-8 lg:grid-cols-12">
-        <div class="min-w-0 lg:col-span-5">
-          <BotPlatformDiagram locale={locale} />
-        </div>
-
-        <div class="min-w-0 lg:col-span-7">
-          <CodeTabs tabs={['Python (aiogram 3)', 'TypeScript (grammY)']}>
-            <div class="min-w-0 max-w-full overflow-x-auto">
-              <Code code={aiogramSample} lang="python" themes={{ light: 'github-light-default', dark: 'github-dark-default' }} />
-            </div>
-            <div class="hidden min-w-0 max-w-full overflow-x-auto">
-              <Code code={grammySample} lang="ts" themes={{ light: 'github-light-default', dark: 'github-dark-default' }} />
-            </div>
-          </CodeTabs>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Tile 6: Verifiable Open Client & Final Downloads CTA (Canvas) -->
-  <section class="bg-[var(--bg-page)] py-14 lg:py-20">
-    <div class="container-page">
-      <div class="mx-auto max-w-3xl text-center">
-        <p class="font-mono text-[12.5px] font-semibold tracking-tight text-[var(--accent)]">
-          {c.section5Label}
-        </p>
-        <h2 class="mt-2 text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[40px]">
-          {c.section5Title}
-        </h2>
-        <p class="mx-auto mt-4 max-w-2xl text-[17px] leading-[1.47] text-[var(--text-secondary)]">
-          {c.section5Body}
+          {c.section3Body}
         </p>
 
-        <div class="mt-7 flex flex-wrap justify-center gap-3">
-          <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" class="btn-secondary">
-            <Icon name="github" size={17} />
-            <span>{c.viewSource}</span>
-          </a>
-          <a href={localizePath('/docs/guide/verify-downloads', locale)} class="btn-secondary">
-            <Icon name="shield" size={17} />
-            <span>{c.verifyGuide}</span>
-          </a>
-        </div>
-      </div>
-
-      <div class="mx-auto mt-10 max-w-3xl">
-        <SignatureVerifyDiagram locale={locale} />
-      </div>
-
-      <div class="mx-auto mt-16 max-w-2xl text-center">
-        <h2 class="text-[28px] font-semibold leading-[1.15] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[34px]">
-          {c.ctaTitle}
-        </h2>
-        <p class="mt-3 text-[17px] leading-[1.47] text-[var(--text-secondary)]">
-          {c.ctaSub}
-        </p>
-        <div class="mt-6 flex flex-wrap justify-center gap-3">
+        <div class="mt-8 flex flex-wrap justify-center gap-3">
           <a href={localizePath('/downloads', locale)} class="btn-primary">
             <Icon name="download" size={17} />
             <span>{c.allPlatformsBtn}</span>
@@ -404,6 +285,17 @@ const c = locale === 'ru'
           <a href={WEB_APP_URL} target="_blank" rel="noopener noreferrer" class="btn-secondary">
             <span>{c.openBrowser}</span>
             <Icon name="arrow-up-right" size={16} />
+          </a>
+        </div>
+
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-5 text-[14px] text-[var(--text-secondary)]">
+          <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 hover:text-[var(--accent)] hover:underline">
+            <Icon name="github" size={15} />
+            <span>{c.viewSource}</span>
+          </a>
+          <a href={localizePath('/docs/guide/verify-downloads', locale)} class="inline-flex items-center gap-1.5 hover:text-[var(--accent)] hover:underline">
+            <Icon name="shield" size={15} />
+            <span>{c.verifyGuide}</span>
           </a>
         </div>
       </div>

@@ -38,7 +38,7 @@ export const FALLBACK_RELEASES: PublicReleasesPayload = {
       latest_version: '1.20.3-beta.429',
       latest_build: 429,
       release_notes:
-        'Desktop tiling workspace, animated stickers and custom emojis, GIF search, LiveKit voice & video streams, and Bot API v7.x / Mini Apps v8.',
+        'Multi-pane desktop workspace, animated stickers and custom emojis, GIF search, voice and video calls with screen sharing, and Bot API / Mini Apps v8.',
       updated_at: '2026-11-09T20:17:28Z',
       artifacts: [],
     },

@@ -21,9 +21,9 @@ const platformOrder = ['windows', 'macos', 'linux', 'android', 'ios', 'web'];
 const copy = locale === 'ru'
   ? {
       title: 'Скачать Theaver',
-      description: 'Установщики и архивы Theaver для Windows, macOS, Linux, Android, iOS и веб-версии с SHA-256 и ключами проверки.',
+      description: 'Установщики и архивы Theaver для Windows, macOS, Linux, Android, iOS и веб-клиент с контрольными суммами SHA-256 и ключами проверки.',
       heading: 'Загрузки для всех платформ',
-      sub: 'Выберите канал обновлений и скачайте установочный пакет для вашего устройства или запустите клиент прямо в браузере.',
+      sub: 'Выберите канал обновлений и скачайте установщик для своей системы. Веб-версию можно открыть сразу в браузере.',
       channelLabel: 'Канал релизов:',
       stable: 'Stable',
       beta: 'Beta',
@@ -32,20 +32,20 @@ const copy = locale === 'ru'
       openWebBtn: 'Открыть app.theaver.app',
       shaLabel: 'SHA-256',
       copyDone: 'Скопировано',
-      noChannelBuilds: 'В этом канале пока нет опубликованных артефактов на сервере обновлений. Посмотрите доступные сборки на GitHub Releases или выберите канал Beta.',
+      noChannelBuilds: 'В этом канале пока нет опубликованных сборок. Посмотрите доступные файлы на GitHub Releases или переключитесь на канал Beta.',
       githubFallback: 'Открыть GitHub Releases',
       verifyHeading: 'Проверка подлинности сборок',
       verifySummary: 'Публичные ключи и команды проверки (Windows CA, Linux GPG, SHA-256)',
       verifyDocsLink: 'Подробная инструкция в документации',
-      gpgDesc: 'Linux-архивы сопровождаются отсоединенной подписью .asc. Импортируйте публичный ключ перед проверкой:',
+      gpgDesc: 'Рядом с Linux-архивами лежит файл подписи .asc. Перед проверкой импортируйте публичный ключ:',
       winDesc: 'Установщики Windows подписаны корневым сертификатом Theaver Root CA:',
-      shaDesc: 'Проверка контрольной суммы SHA-256 в терминале:',
+      shaDesc: 'Проверить контрольную сумму SHA-256 можно в терминале:',
     }
   : {
       title: 'Download Theaver',
-      description: 'Official Theaver installers and archives for Windows, macOS, Linux, Android, iOS, and Web with SHA-256 checksums and signing keys.',
+      description: 'Installers and archives for Windows, macOS, Linux, Android, iOS, plus the Web client with SHA-256 checksums and signing keys.',
       heading: 'Downloads for every platform',
-      sub: 'Pick a release channel and download the native build for your device, or launch the Web client directly in your browser.',
+      sub: 'Pick a release channel and download an installer for your device, or launch the web client right in your browser.',
       channelLabel: 'Release channel:',
       stable: 'Stable',
       beta: 'Beta',
@@ -54,14 +54,14 @@ const copy = locale === 'ru'
       openWebBtn: 'Open app.theaver.app',
       shaLabel: 'SHA-256',
       copyDone: 'Copied',
-      noChannelBuilds: 'No builds are registered for this channel yet on the update server. Check GitHub Releases or switch to the Beta channel.',
+      noChannelBuilds: 'No builds are listed for this channel yet. Check GitHub Releases or switch to Beta.',
       githubFallback: 'Browse GitHub Releases',
       verifyHeading: 'Verify installer authenticity',
       verifySummary: 'Public signing keys and verification commands (Windows CA, Linux GPG, SHA-256)',
       verifyDocsLink: 'Read full verification guide',
-      gpgDesc: 'Linux archives ship with detached .asc signatures. Import the public release key before verifying:',
+      gpgDesc: 'Linux archives include a detached .asc signature. Import the public key before running verification:',
       winDesc: 'Windows builds are signed with the Theaver Root certificate:',
-      shaDesc: 'Verify the SHA-256 checksum locally:',
+      shaDesc: 'Check the SHA-256 digest locally:',
     };
 
 const activeChannel =
@@ -141,7 +141,7 @@ const activeChannel =
         <div class="ink-card flex flex-col justify-between p-6">
           <div>
             <div class="flex items-center justify-between">
-              <span class="text-[17px] font-medium text-[var(--text-primary)]">
+              <span class="text-[17px] font-semibold text-[var(--text-primary)]">
                 {PLATFORM_LABELS[locale].web.title}
               </span>
               <span class="font-mono text-[12px] text-[var(--accent)]">PWA</span>
@@ -172,7 +172,7 @@ const activeChannel =
 
       <!-- Verification Accordion -->
       <details class="ink-card mt-12 p-6">
-        <summary class="flex items-center justify-between gap-4 text-[16px] font-medium text-[var(--text-primary)]">
+        <summary class="flex items-center justify-between gap-4 text-[16px] font-semibold text-[var(--text-primary)]">
           <span class="inline-flex items-center gap-2.5">
             <Icon name="shield" size={19} class="text-[var(--positive)]" />
             <span>{copy.verifySummary}</span>
@@ -182,7 +182,7 @@ const activeChannel =
 
         <div class="mt-5 grid gap-6 border-t border-[var(--border-hairline)] pt-5 md:grid-cols-3">
           <div>
-            <h2 class="text-[14px] font-medium text-[var(--text-primary)]">Linux GPG</h2>
+            <h2 class="text-[14px] font-semibold text-[var(--text-primary)]">Linux GPG</h2>
             <p class="mt-1.5 text-[13px] text-[var(--text-secondary)]">{copy.gpgDesc}</p>
             <pre class="mt-3 overflow-x-auto rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] p-3 font-mono text-[12px] text-[var(--text-primary)]">curl -fsSLO https://theaver.app/signing/theaver-release-public.asc
 gpg --import theaver-release-public.asc
@@ -190,14 +190,14 @@ gpg --verify theaver-*.tar.gz.asc</pre>
           </div>
 
           <div>
-            <h2 class="text-[14px] font-medium text-[var(--text-primary)]">Windows Root CA</h2>
+            <h2 class="text-[14px] font-semibold text-[var(--text-primary)]">Windows Root CA</h2>
             <p class="mt-1.5 text-[13px] text-[var(--text-secondary)]">{copy.winDesc}</p>
             <pre class="mt-3 overflow-x-auto rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] p-3 font-mono text-[12px] text-[var(--text-primary)]">curl -fsSLO https://theaver.app/signing/theaver-windows-root.cer
 certutil -verify theaver-*-setup.exe</pre>
           </div>
 
           <div>
-            <h2 class="text-[14px] font-medium text-[var(--text-primary)]">SHA-256</h2>
+            <h2 class="text-[14px] font-semibold text-[var(--text-primary)]">SHA-256</h2>
             <p class="mt-1.5 text-[13px] text-[var(--text-secondary)]">{copy.shaDesc}</p>
             <pre class="mt-3 overflow-x-auto rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] p-3 font-mono text-[12px] text-[var(--text-primary)]"># Linux / macOS
 shasum -a 256 theaver-*
@@ -210,7 +210,7 @@ Get-FileHash .\theaver-*.exe -Algorithm SHA256</pre>
         <div class="mt-5">
           <a
             href={localizePath('/docs/guide/verify-downloads', locale)}
-            class="inline-flex items-center gap-1.5 text-[13.5px] font-medium text-[var(--accent)] hover:underline"
+            class="inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-[var(--accent)] hover:underline"
           >
             <span>{copy.verifyDocsLink}</span>
             <Icon name="arrow-right" size={15} />
@@ -272,7 +272,7 @@ Get-FileHash .\theaver-*.exe -Algorithm SHA256</pre>
 
         const top = createEl('div');
         const head = createEl('div', 'flex items-center justify-between gap-2');
-        head.appendChild(createEl('h2', 'text-[18px] font-medium text-[var(--text-primary)]', platInfo.title));
+        head.appendChild(createEl('h2', 'text-[18px] font-semibold text-[var(--text-primary)]', platInfo.title));
         head.appendChild(
           createEl(
             'span',
@@ -337,7 +337,7 @@ Get-FileHash .\theaver-*.exe -Algorithm SHA256</pre>
       const webCard = createEl('div', 'ink-card flex flex-col justify-between p-6');
       const webTop = createEl('div');
       const webHead = createEl('div', 'flex items-center justify-between gap-2');
-      webHead.appendChild(createEl('h2', 'text-[18px] font-medium text-[var(--text-primary)]', webInfo.title));
+      webHead.appendChild(createEl('h2', 'text-[18px] font-semibold text-[var(--text-primary)]', webInfo.title));
       webHead.appendChild(
         createEl(
           'span',

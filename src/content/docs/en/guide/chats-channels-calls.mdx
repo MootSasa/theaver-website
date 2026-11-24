@@ -1,30 +1,26 @@
 ---
 title: Chats, Channels & Calls
-description: Organize conversations with folders, forum topics, channel comment threads, polls, and LiveKit voice or screen-sharing calls.
+description: Chat formatting, cloud drafts, forum topics, channel comment threads, polls, voice notes, and 1080p60 screen-sharing calls.
 track: guide
 order: 3
 ---
 
-Theaver supports direct messages, groups with forum topics, broadcast channels with comments, Discord-style communities, and real-time voice/video calls.
+Theaver brings together direct chats, groups with forum topics, broadcast channels with comments, role-based communities, and voice rooms.
 
-## Direct chats, replies & formatting
+## Direct chats and formatting
 
-- **Rich text & entities:** Supports bold, italic, underline, strikethrough, inline code, preformatted blocks, spoilers, and custom inline emojis.
-- **Cloud drafts:** Draft messages and reply targets synchronize automatically across your devices.
-- **Message reactions & pins:** Add up to 3 distinct emoji reactions per message and pin important announcements per chat.
-- **High-Water Mark read sync:** Unread counters and read positions synchronize atomically across every active session.
+Messages support bold, italic, underline, strikethrough, inline code, preformatted code blocks, spoilers, and custom animated emoji inline inside sentences.
 
-## Groups, channels & communities
+Unfinished messages and selected replies sync as cloud drafts across your signed-in devices. You can leave up to three reactions per message, pin important updates to the top of a chat, and count on unread badges staying accurate across phone, desktop, and web.
 
-- **Public channels (`/c/<slug>`):** Broadcast posts with view counters, linked discussion groups, comments, and scheduled messages.
-- **Forum topics:** Split large groups into organized topic threads while keeping unread badges accurate per topic.
-- **Polls & quizzes:** Create single-choice, multiple-choice, anonymous, or quiz polls with explanations.
-- **Communities:** Combine text, voice, and stage channels under categories with role-based permissions, soundboards, and invite links.
+## Groups, channels, and communities
 
-## Voice, video & screen sharing
+Public channels (`/c/<slug>`) include post view counts, scheduled posts, and an optional linked group for reader comments.
 
-1:1 calls and group voice rooms run on **LiveKit SFU** with **Coturn** over TLS port 443 (`turn.theaver.app`), ensuring calls connect reliably behind restrictive NATs and firewalls.
+Large groups can split conversations into separate forum topics, each tracking its own unread count. Chats also support single-choice, multi-choice, anonymous, and quiz polls with explanations. Communities add structured categories of text, voice, and stage channels with role permissions, soundboards, and invite links.
 
-- **Screen sharing:** Share individual windows or full displays at up to `1080p60`.
-- **Voice & round video notes:** Recorded in Opus / MP4 with synchronized `listened` state.
-- **OBS / external streams:** Communities support RTMP and WHIP ingress streams alongside server-side recording.
+## Voice, video notes, and calls
+
+One-on-one calls and group voice rooms run over encrypted media channels designed to connect reliably even behind strict office or campus firewalls.
+
+During calls, you can share a single application window or an entire display at up to `1080p` and `60 fps`. Voice notes and round video messages record in one tap and track when the other person listens. For community live streams, you can feed OBS Studio directly via RTMP or WHIP.

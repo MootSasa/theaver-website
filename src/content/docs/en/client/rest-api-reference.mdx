@@ -66,3 +66,12 @@ Errors return a consistent JSON contract:
 <ApiEndpoint method="GET" path="/api/public/releases" auth="Public" />
 
 Large files support resumable chunked uploads (`upload/init` → chunk parts → `complete`) with `SHA-256` deduplication. Public download clients can query `/api/public/releases` for the release matrix by channel and architecture.
+
+## Self-service account deletion
+
+<ApiEndpoint method="POST" path="/api/auth/account/delete/send-code" auth="Public" />
+<ApiEndpoint method="POST" path="/api/auth/account/delete/confirm" auth="Public" />
+<ApiEndpoint method="POST" path="/api/security/account/delete/send-code" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/security/account/delete/confirm" auth="JWT" />
+
+Confirming account deletion revokes all active device sessions immediately and schedules permanent deletion in 7 days (`grace_period_days: 7`). Signing back in via password or QR before the grace period ends cancels the scheduled deletion automatically.

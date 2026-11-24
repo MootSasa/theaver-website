@@ -1,22 +1,24 @@
 ---
 title: Verifying Downloads & Signatures
-description: Verify SHA-256 checksums, detached GPG signatures on Linux, and root code-signing certificates on Windows before installing.
+description: Check SHA-256 digests, detached Linux GPG signatures, and Windows Authenticode certificates before running an installer.
 track: guide
 order: 2
 ---
 
-Every official Theaver build is published with cryptographic verification metadata. Before installing an archive or executable downloaded outside a package manager, verify its integrity locally.
+If you downloaded an installer manually, you can check before opening it that the file was not modified in transit. Every official release includes a checksum and a digital signature.
+
+<SignatureVerifyDiagram locale="en" />
 
 ## Public signing keys
 
-You can download the official public keys directly from this website or inspect them inside the open-source [`theaver-frontend`](https://github.com/MootSasa/theaver-frontend) repository under `signing/`:
+Both keys are hosted on this site and mirrored in the open-source [`theaver-frontend`](https://github.com/MootSasa/theaver-frontend) repository under `signing/`:
 
 - Linux GPG release public key: [`/signing/theaver-release-public.asc`](/signing/theaver-release-public.asc)
 - Windows code-signing root certificate: [`/signing/theaver-windows-root.cer`](/signing/theaver-windows-root.cer)
 
 ## Checking SHA-256 checksums
 
-Each artifact listed on [Downloads](/downloads) and in the in-app updater displays its exact `SHA-256` digest. Compute the local hash and compare both strings character for character:
+Each download on [Downloads](/downloads) and in the in-app update sheet displays its exact `SHA-256` hash. Compute the local hash and compare both strings:
 
 <CodeTabs tabs={['Linux / macOS', 'Windows (PowerShell)']}>
 ```bash
@@ -32,7 +34,7 @@ Get-FileHash .\theaver-v1.20.3-beta-windows-x64-setup.exe -Algorithm SHA256
 
 ## Verifying Linux archives with GPG
 
-Linux `.tar.gz` bundles ship alongside a matching `.tar.gz.asc` detached signature:
+Each `.tar.gz` archive ships alongside a matching `.tar.gz.asc` signature file:
 
 ```bash
 curl -fsSLO https://theaver.app/signing/theaver-release-public.asc
@@ -44,13 +46,13 @@ Look for `Good signature` from the imported Theaver release key.
 
 ## Verifying Windows installers
 
-Windows builds (`.exe` installer and runner binaries) are signed using Authenticode. If you want to verify or trust the publisher root certificate explicitly on Windows:
+Windows installers and binaries are signed with Authenticode. To inspect the signature locally:
 
 ```powershell
 curl -fsSLO https://theaver.app/signing/theaver-windows-root.cer
 Get-AuthenticodeSignature .\theaver-v1.20.3-beta-windows-x64-setup.exe
 ```
 
-<Callout type="warning" title="Never skip checksum verification on untrusted mirrors">
-  Always download Theaver installers from `theaver.app`, `storage.theaver.app`, or the official GitHub Releases page (`MootSasa/theaver-frontend`).
+<Callout type="warning" title="Stick to official download sources">
+  Only download installers from `theaver.app`, `storage.theaver.app`, or the official GitHub Releases page (`MootSasa/theaver-frontend`).
 </Callout>

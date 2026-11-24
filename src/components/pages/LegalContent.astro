@@ -1,6 +1,6 @@
 ---
 import LegalLayout from '../../layouts/LegalLayout.astro';
-import type { Locale } from '../../lib/i18n';
+import { localizePath, type Locale } from '../../lib/i18n';
 
 interface Props {
   locale: Locale;
@@ -14,29 +14,29 @@ const titles = {
   en: {
     privacy: {
       title: 'Privacy Policy',
-      desc: 'How Theaver collects, stores, protects, and deletes account and messaging data.',
+      desc: 'What data Theaver processes, which device permissions the app asks for, and how account deletion works.',
     },
     terms: {
       title: 'Terms of Service',
-      desc: 'Rules for using the Theaver messenger, public channels, Bot API, and Mini Apps.',
+      desc: 'Rules for using Theaver, content moderation, reporting abuse, bots, Mini Apps, and internal THV units.',
     },
     security: {
       title: 'Security & Vulnerability Disclosure',
-      desc: 'Release signature verification and responsible vulnerability reporting for Theaver.',
+      desc: 'How data and sessions are protected in Theaver, how to verify release installers, and how to report vulnerabilities.',
     },
   },
   ru: {
     privacy: {
       title: 'Политика конфиденциальности',
-      desc: 'Какие данные обрабатывает мессенджер Theaver, как они защищаются и как управляются пользователем.',
+      desc: 'Какие данные обрабатывает Theaver, зачем приложению разрешения на устройстве и как удалить аккаунт.',
     },
     terms: {
       title: 'Условия использования',
-      desc: 'Правила работы с мессенджером Theaver, публичными каналами, Bot API и Mini Apps.',
+      desc: 'Правила работы с Theaver, модерация контента, жалобы и блокировки, боты, Mini Apps и внутренние единицы THV.',
     },
     security: {
       title: 'Безопасность и сообщение об уязвимостях',
-      desc: 'Проверка цифровых подписей сборок и порядок ответственного раскрытия уязвимостей Theaver.',
+      desc: 'Как в Theaver защищены переписки и сессии, как проверить подлинность установщиков и куда сообщать об уязвимостях.',
     },
   },
 }[locale][doc];
@@ -45,148 +45,282 @@ const titles = {
 <LegalLayout title={titles.title} description={titles.desc} updatedAt={updatedAt}>
   {doc === 'privacy' && locale === 'en' && (
     <>
-      <h2>1. Data We Process</h2>
+      <h2>1. Who runs Theaver and how to reach us</h2>
       <p>
-        Theaver stores the information necessary to deliver messages, maintain your sessions, and synchronize your chats across devices: account email and username, profile display name and avatar, chat memberships, messages, media attachments, and active device session metadata (platform, app version, and push tokens when notifications are enabled).
+        Theaver is maintained by an independent developer and project team. For privacy requests, data questions, or account issues, email{' '}
+        <a href="mailto:privacy@theaver.app">privacy@theaver.app</a>. General support and abuse reports go to{' '}
+        <a href="mailto:support@theaver.app">support@theaver.app</a>.
+      </p>
+      <p>
+        The service is intended for users aged 13 and older, or 16 and older where local law sets a higher digital consent age (including the European Economic Area).
       </p>
 
-      <h2>2. Privacy Controls</h2>
+      <h2>2. What data we process</h2>
       <p>
-        Inside Settings → Privacy, you control who can view your profile photo, bio, online status, and last seen timestamp, or who can call and invite you to groups. Anonymous public link previews on <code>theaver.app/u/&lt;username&gt;</code> strictly hide your avatar and bio unless visibility is set to Everybody.
+        When you register and use Theaver, we store the minimum information required to run your account and keep your chats synchronized across devices: your email address, unique <code>@username</code>, password hash, optional display name, bio, profile photo and banner, contacts you choose to add, and your messages and attachments.
+      </p>
+      <p>
+        Standard one-on-one chats, group chats, channels, and communities use cloud storage protected with TLS encryption in transit so your history is available on any device where you sign in. Dedicated end-to-end encrypted (E2EE) Secret Chats are currently in development. Audio calls, video calls, and screen sharing are relayed in real time and are not recorded by the operator.
+      </p>
+      <p>
+        Each sign-in records basic session details (device model, operating system, app version, IP address, approximate city/country derived from IP, and push tokens when notifications are enabled) so you can review active sessions and spot unfamiliar logins. If you interact with bots, Mini Apps, or the built-in Walt (<code>THV</code>) ledger, we also store the state and transaction records needed for those features to work.
       </p>
 
-      <h2>3. Device Sessions & Retention</h2>
+      <h2>3. Device permissions</h2>
+      <p>The native apps ask for system permissions only when you use the corresponding feature:</p>
+      <ul>
+        <li>Camera: taking photos, recording round video messages, and scanning login or invite QR codes.</li>
+        <li>Microphone: voice notes, video messages, and calls.</li>
+        <li>Photos, media, and files: sending and saving attachments, avatars, and chat wallpapers.</li>
+        <li>Location: strictly when you explicitly share a location in chat or grant location access to a Mini App.</li>
+        <li>Biometrics: checked locally by the operating system for App Lock. Biometric data never leaves your device.</li>
+        <li>Bluetooth and notifications: routing call audio to wireless headsets and delivering incoming message or call alerts.</li>
+      </ul>
+
+      <h2>4. Infrastructure services and third parties</h2>
       <p>
-        Each client sign-in creates a tracked device session. You can inspect active sessions, terminate individual devices, or configure automatic inactive session expiration (TTL) and account inactivity TTL directly in the app.
+        Theaver contains no advertising SDKs, does not profile users for ad targeting, and does not sell personal data. To deliver push notifications, transactional codes, and edge routing, specific infrastructure providers process only the payload required for delivery: Firebase Cloud Messaging (Google) and Huawei Push Kit (on Huawei devices) for notifications, a transactional email provider sending from <code>noreply@theaver.app</code> for verification codes, and Cloudflare for network routing.
+      </p>
+      <p>
+        On your own device, the open-source client caches messages and drafts in a local SQLite database for offline startup and stores login tokens in the operating system's secure storage.
       </p>
 
-      <h2>4. Local Storage & Open Client</h2>
+      <h2>5. Privacy settings, retention, and deletion</h2>
       <p>
-        The open-source Theaver client stores cached messages and drafts locally in SQLite/Drift on your device for instant startup and offline queueing. Authentication secrets are stored via platform secure storage APIs where available.
+        Inside Settings → Privacy &amp; Security you choose who can see your profile photo, bio, last seen time, and birthday, and who can call you or add you to groups. Public preview pages on <code>theaver.app/u/&lt;username&gt;</code> hide your avatar and bio unless visibility is set to Everybody.
       </p>
-
-      <h2>5. Contact</h2>
       <p>
-        For privacy inquiries or data removal requests, open a security advisory or issue on{' '}
-        <a href="https://github.com/MootSasa/theaver-frontend">GitHub</a>.
+        You can configure automatic deletion of inactive accounts (from 1 to 24 months) or delete your account yourself at any time, either inside the app under Settings → Privacy &amp; Security → Delete Account or on the{' '}
+        <a href={localizePath('/delete-account', locale)}>Account Deletion page</a>. Confirming deletion signs out all devices right away and permanently removes your account and data after a 7-day grace window, unless you sign back in before those 7 days pass. Technical server logs rotate automatically within 30 days.
       </p>
     </>
   )}
 
   {doc === 'privacy' && locale === 'ru' && (
     <>
-      <h2>1. Какие данные обрабатываются</h2>
+      <h2>1. Оператор и контакты</h2>
       <p>
-        Theaver хранит только данные, необходимые для доставки сообщений, работы звонков и синхронизации истории между устройствами: email и имя пользователя, отображаемое имя и аватар, состав чатов, сообщения, вложения и метаданные активных сессий устройств (платформа, версия клиента и push-токен при включённых уведомлениях).
+        Проект Theaver развивает независимый разработчик и команда проекта. По вопросам персональных данных и удаления информации пишите на{' '}
+        <a href="mailto:privacy@theaver.app">privacy@theaver.app</a>, по общим вопросам и жалобам — на{' '}
+        <a href="mailto:support@theaver.app">support@theaver.app</a>.
+      </p>
+      <p>
+        Сервис предназначен для пользователей от 13 лет, а в странах Европейской экономической зоны и юрисдикциях с повышенным порогом цифрового согласия — от 16 лет.
       </p>
 
-      <h2>2. Настройки приватности</h2>
+      <h2>2. Какие данные мы обрабатываем</h2>
       <p>
-        В разделе Настройки → Конфиденциальность вы определяете, кому видны фото профиля, раздел «О себе», время последнего захода и кто может звонить вам или добавлять в группы. Публичные карточки предпросмотра на <code>theaver.app/u/&lt;username&gt;</code> скрывают аватар и описание, если доступ ограничен параметром «Контакты» или «Никто».
+        Для работы аккаунта и синхронизации истории между устройствами на сервере хранятся ваш email, уникальный <code>@username</code>, хэш пароля, имя, описание, аватар и баннер профиля, добавленные контакты, а также отправленные сообщения и вложения.
+      </p>
+      <p>
+        Обычные личные чаты, группы, каналы и сообщества работают как облачные: при передаче данные шифруются по TLS, чтобы переписка мгновенно открывалась на любом вашем устройстве. Отдельные секретные чаты со сквозным шифрованием (E2EE) сейчас находятся в разработке. Голосовые, видеозвонки и демонстрация экрана передаются в реальном времени и не записываются оператором.
+      </p>
+      <p>
+        При каждом входе сохраняются метаданные сессии: модель устройства, операционная система, версия клиента, IP-адрес, примерный город/страна по IP и push-токен при включённых уведомлениях. Это позволяет вам видеть список активных устройств и вовремя закрывать незнакомые сеансы. При использовании ботов, Mini Apps и встроенного кошелька Walt (<code>THV</code>) также сохраняются необходимые состояния и журнал операций.
       </p>
 
-      <h2>3. Сессии устройств и сроки хранения</h2>
+      <h2>3. Разрешения на устройстве</h2>
+      <p>Клиент запрашивает доступ к функциям системы только тогда, когда они нужны для конкретного действия:</p>
+      <ul>
+        <li>Камера — фото, видеокружки и сканирование QR-кодов для входа или приглашений.</li>
+        <li>Микрофон — голосовые сообщения, видеокружки и звонки.</li>
+        <li>Фото, медиа и файлы — отправка и сохранение вложений, аватаров и фонов.</li>
+        <li>Геолокация — только если вы сами отправляете геопозицию в чат или разрешаете доступ конкретному Mini App.</li>
+        <li>Биометрия — проверяется локально средствами ОС для блокировки входа в приложение (App Lock) и никогда не передаётся на сервер.</li>
+        <li>Bluetooth и уведомления — подключение беспроводных гарнитур во время звонков и доставка уведомлений.</li>
+      </ul>
+
+      <h2>4. Сторонние сервисы и отсутствие рекламы</h2>
       <p>
-        Каждый вход создаёт отдельную сессию. Вы можете завершить любое устройство удалённо, а также настроить автоматическое завершение неактивных сессий и срок жизни неактивного аккаунта.
+        В Theaver нет рекламных SDK, трекеров поведения и продажи пользовательских данных. Для доставки уведомлений и писем с кодами используются только технические подрядчики: Firebase Cloud Messaging (Google) и Huawei Push Kit на совместимых устройствах, сервис транзакционной почты для писем с <code>noreply@theaver.app</code> и Cloudflare для сетевой маршрутизации.
+      </p>
+      <p>
+        На самом устройстве открытый клиент кэширует переписки и черновики в локальной базе SQLite, чтобы приложение открывалось без задержек и без сети, а токены авторизации помещаются в системное защищённое хранилище.
       </p>
 
-      <h2>4. Локальное хранилище и открытый клиент</h2>
+      <h2>5. Управление приватностью и удаление данных</h2>
       <p>
-        Открытый клиент Theaver кэширует сообщения и черновики локально в базе SQLite/Drift на вашем устройстве для мгновенного запуска и работы без сети. Токены авторизации сохраняются через защищённое системное хранилище операционной системы.
+        В разделе Настройки → Конфиденциальность вы решаете, кому видны фото профиля, раздел «О себе», дата рождения и время последнего захода, а также кто может звонить вам или добавлять в группы. На публичных страницах вида <code>theaver.app/u/&lt;username&gt;</code> аватар и описание скрыты от неавторизованных посетителей, если в настройках не выбран вариант «Все».
       </p>
-
-      <h2>5. Обратная связь</h2>
       <p>
-        По вопросам конфиденциальности и удаления данных обращайтесь через репозиторий клиента на{' '}
-        <a href="https://github.com/MootSasa/theaver-frontend">GitHub</a>.
+        Вы можете настроить автоудаление неактивного аккаунта (от 1 до 24 месяцев) либо удалить его вручную в любой момент — в приложении (Настройки → Конфиденциальность и безопасность → Удалить аккаунт) или через{' '}
+        <a href={localizePath('/delete-account', locale)}>веб-форму удаления аккаунта</a>. После подтверждения все сессии завершаются сразу, а профиль, сообщения, файлы и боты безвозвратно удаляются через 7 дней. Чтобы отменить удаление, достаточно снова войти в аккаунт в течение этих 7 дней. Технические логи сервера очищаются автоматически в срок до 30 дней.
       </p>
     </>
   )}
 
   {doc === 'terms' && locale === 'en' && (
     <>
-      <h2>1. Acceptance of Terms</h2>
+      <h2>1. Acceptance and age requirement</h2>
       <p>
-        By creating an account or accessing Theaver via native clients or <code>app.theaver.app</code>, you agree to use the service lawfully and respectfully without disrupting network infrastructure or other users.
+        By creating an account or using any Theaver client (including <code>app.theaver.app</code>), you agree to these terms. You must be at least 13 years old to use Theaver, or at least 16 years old in the European Economic Area and any region with a higher age of digital consent.
       </p>
 
-      <h2>2. Accounts, Channels & Bots</h2>
+      <h2>2. Your account and username</h2>
       <p>
-        You are responsible for keeping your password, two-factor recovery codes, and Bot API tokens confidential. Bots created via <code>@BotMother</code> must not distribute malware, perform unsolicited bulk messaging, or impersonate official system accounts.
+        Keep your login password, two-factor cloud password, backup recovery codes, and any Bot API tokens confidential. Do not impersonate other people, organizations, or official system accounts such as <code>@BotMother</code> or <code>@walt</code>, and do not register handles to squat or abuse the service.
       </p>
 
-      <h2>3. Open-Source Client License</h2>
+      <h2>3. User content and unacceptable behavior</h2>
       <p>
-        Client builds are provided from the public repository{' '}
-        <a href="https://github.com/MootSasa/theaver-frontend">theaver-frontend</a>. Official installers carry verifiable SHA-256 hashes and signing keys published on <a href="/downloads">Downloads</a>.
+        You retain ownership of the messages, media, and channels you publish in Theaver, while granting us the technical right to store, resize, and deliver that content across your chats and devices. You are solely responsible for what you share.
+      </p>
+      <p>The following are strictly prohibited across chats, public channels, profiles, bots, and Mini Apps:</p>
+      <ul>
+        <li>Child sexual abuse material (CSAM) or exploitation in any form (zero tolerance; immediate permanent ban and reporting where legally required).</li>
+        <li>Threats of violence, terrorism, incitement to physical harm, or doxxing.</li>
+        <li>Fraud, phishing, malware distribution, unsolicited bulk spam, or automated abuse of infrastructure.</li>
+        <li>Content you have no legal right to distribute, including copyright infringement.</li>
+      </ul>
+
+      <h2>4. Reporting abuse, blocking, and 24-hour moderation</h2>
+      <p>
+        Theaver provides built-in tools inside the app to block any user and report abusive messages, profiles, groups, or channels. You can also send abuse reports with links or screenshots to{' '}
+        <a href="mailto:support@theaver.app">support@theaver.app</a>.
+      </p>
+      <p>
+        We review user reports within 24 hours, remove violating public content, and suspend or permanently terminate accounts that breach these rules.
+      </p>
+
+      <h2>5. Bots and Mini Apps</h2>
+      <p>
+        Bots created via <code>@BotMother</code> and Mini Apps launched inside Theaver are operated by their respective developers unless marked as official system services. Developers must respect user privacy, avoid deceptive permission prompts, and refrain from spam. We may revoke tokens or block Mini Apps that break these rules.
+      </p>
+
+      <h2>6. Walt wallet and THV units</h2>
+      <p>
+        <code>THV</code> inside the built-in <code>@walt</code> wallet are internal virtual platform units used for digital bot features, checks, and in-app ecosystem interactions. <code>THV</code> are not legal tender, fiat money, electronic money, payment instruments, securities, or cryptocurrency, and the operator does not convert or redeem <code>THV</code> into fiat currency.
+      </p>
+
+      <h2>7. Open client, availability, and termination</h2>
+      <p>
+        Client source code is published in the public repository{' '}
+        <a href="https://github.com/MootSasa/theaver-frontend">theaver-frontend</a>, and official installers carry SHA-256 checksums and signatures listed on{' '}
+        <a href="/downloads">Downloads</a>. Theaver is provided "as is", especially on <code>beta</code> and <code>alpha</code> preview channels. You may stop using the service and delete your account at any time on{' '}
+        <a href={localizePath('/delete-account', locale)}>Delete Account</a> or in app settings. For questions, contact{' '}
+        <a href="mailto:support@theaver.app">support@theaver.app</a>.
       </p>
     </>
   )}
 
   {doc === 'terms' && locale === 'ru' && (
     <>
-      <h2>1. Принятие условий</h2>
+      <h2>1. Принятие условий и возраст</h2>
       <p>
-        Регистрируя аккаунт или используя клиенты Theaver и веб-версию на <code>app.theaver.app</code>, вы соглашаетесь соблюдать законодательство и не нарушать работу инфраструктуры и других пользователей сервиса.
+        Регистрируясь в Theaver или открывая веб-клиент на <code>app.theaver.app</code>, вы соглашаетесь с этими правилами. Пользоваться сервисом можно с 13 лет, а в странах Европейской экономической зоны и юрисдикциях с более высоким порогом цифрового согласия — с 16 лет.
       </p>
 
-      <h2>2. Аккаунты, каналы и боты</h2>
+      <h2>2. Аккаунт и имя пользователя</h2>
       <p>
-        Пользователь несёт ответственность за сохранность пароля, кодов 2FA и токенов ботов, выданных через <code>@BotMother</code>. Ботам и Mini Apps запрещена массовая спам-рассылка, распространение вредоносного кода и выдача себя за системные аккаунты.
+        Следите за сохранностью пароля от аккаунта, облачного пароля 2FA, резервных кодов и токенов ботов. Запрещено выдавать себя за других людей, организации или системные аккаунты (такие как <code>@BotMother</code> и <code>@walt</code>), а также массово регистрировать <code>@username</code> для злоупотреблений.
       </p>
 
-      <h2>3. Открытый клиент и подлинность сборок</h2>
+      <h2>3. Пользовательский контент и запрещённые действия</h2>
       <p>
-        Клиентские сборки собираются из открытого репозитория{' '}
-        <a href="https://github.com/MootSasa/theaver-frontend">theaver-frontend</a>. Проверить подлинность установщика можно по SHA-256 и публичным ключам на странице <a href="/ru/downloads">Загрузки</a>.
+        Права на ваши сообщения, медиа и публикации остаются за вами; при этом вы даёте нам техническое разрешение хранить, обрабатывать и доставлять их участникам ваших чатов и на ваши устройства. За содержание публикаций отвечает их автор.
+      </p>
+      <p>В личных и публичных чатах, каналах, профилях, ботах и Mini Apps строго запрещены:</p>
+      <ul>
+        <li>Любые материалы с сексуальной эксплуатацией несовершеннолетних (CSAM) — нулевая терпимость, мгновенная блокировка и передача сведений в уполномоченные органы при необходимости по закону.</li>
+        <li>Призывы к насилию, терроризм, травля и публикация чужих личных данных (доксинг).</li>
+        <li>Мошенничество, фишинг, распространение вредоносных программ, спам-рассылки и атаки на инфраструктуру сервиса.</li>
+        <li>Материалы, нарушающие авторские и смежные права третьих лиц.</li>
+      </ul>
+
+      <h2>4. Жалобы, блокировка пользователей и модерация до 24 часов</h2>
+      <p>
+        В клиенте встроена возможность заблокировать любого пользователя и пожаловаться на сообщение, профиль, группу или канал. Сообщить о нарушении можно также по адресу{' '}
+        <a href="mailto:support@theaver.app">support@theaver.app</a>.
+      </p>
+      <p>
+        Мы рассматриваем жалобы на контент в течение 24 часов, удаляем материалы, нарушающие правила, и блокируем учётные записи нарушителей.
+      </p>
+
+      <h2>5. Боты и Mini Apps</h2>
+      <p>
+        За работу сторонних ботов, созданных через <code>@BotMother</code>, и веб-приложений Mini Apps отвечают их разработчики. Если бот рассылает спам, собирает данные обманом или нарушает правила сервиса, мы вправе отозвать его токен и ограничить доступ к платформе.
+      </p>
+
+      <h2>6. Внутренние единицы Walt (THV)</h2>
+      <p>
+        Единицы <code>THV</code> во встроенном кошельке <code>@walt</code> являются внутренними виртуальными баллами платформы для оплаты цифровых функций в ботах и Mini Apps. <code>THV</code> не являются деньгами, электронными денежными средствами, платёжным инструментом, ценной бумагой или криптовалютой; оператор не производит их выкуп или вывод в фиатные валюты.
+      </p>
+
+      <h2>7. Открытый клиент, отказ от гарантий и прекращение работы</h2>
+      <p>
+        Исходный код клиента открыт в репозитории{' '}
+        <a href="https://github.com/MootSasa/theaver-frontend">theaver-frontend</a>, а подписи и хэши сборок опубликованы на странице{' '}
+        <a href="/ru/downloads">Загрузки</a>. Сервис предоставляется «как есть», особенно на тестовых каналах <code>beta</code> и <code>alpha</code>. Вы можете в любой момент удалить аккаунт в настройках клиента или на странице{' '}
+        <a href={localizePath('/delete-account', locale)}>Удаление аккаунта</a>. По всем вопросам пишите на{' '}
+        <a href="mailto:support@theaver.app">support@theaver.app</a>.
       </p>
     </>
   )}
 
   {doc === 'security' && locale === 'en' && (
     <>
-      <h2>1. Reporting a Vulnerability</h2>
+      <h2>1. How Theaver protects your data</h2>
       <p>
-        Do not disclose suspected security vulnerabilities in public issues or community chats before a fix is released. Please submit a private advisory via{' '}
-        <a href="https://github.com/MootSasa/theaver-frontend/security/advisories/new">
-          GitHub Security Advisories
-        </a>.
+        All client-to-server traffic (REST API requests, WebSocket messages, media transfers, and WebRTC calls) uses encrypted TLS connections. Cloud chats synchronize your history across devices today, while optional end-to-end encryption (E2EE) for dedicated Secret Chats is under active development.
+      </p>
+      <p>
+        On your device, authentication credentials sit inside the operating system's secure storage (Keychain on Apple devices, Android Keystore, and equivalent system stores), while embedded Mini Apps run in isolated per-account storage. You can enable a local PIN or biometric App Lock, set a cloud 2FA password with one-time backup recovery codes, inspect active sessions, and rely on a 24-hour guard that stops a brand-new login from terminating your older trusted sessions.
       </p>
 
-      <h2>2. Signed Releases & Public Keys</h2>
+      <h2>2. Verifying official builds</h2>
+      <p>
+        The client code is open for inspection at{' '}
+        <a href="https://github.com/MootSasa/theaver-frontend">MootSasa/theaver-frontend</a>. Every official build ships with a <code>SHA-256</code> checksum and platform signing artifacts so you can confirm an installer has not been tampered with:
+      </p>
       <ul>
         <li>Linux GPG public key: <a href="/signing/theaver-release-public.asc">theaver-release-public.asc</a></li>
         <li>Windows Root CA certificate: <a href="/signing/theaver-windows-root.cer">theaver-windows-root.cer</a></li>
-        <li>Machine-readable policy: <a href="/.well-known/security.txt">/.well-known/security.txt</a></li>
+        <li>Step-by-step guide: <a href={localizePath('/docs/guide/verify-downloads', locale)}>Verifying Downloads &amp; Signatures</a></li>
+        <li>RFC 9116 policy file: <a href="/.well-known/security.txt">/.well-known/security.txt</a></li>
       </ul>
 
-      <h2>3. Two-Factor Authentication</h2>
+      <h2>3. Reporting security vulnerabilities</h2>
       <p>
-        We recommend enabling Two-Factor Authentication (2FA) and App Lock inside Settings → Privacy &amp; Security on all devices.
+        Please do not disclose suspected security bugs in public GitHub Issues or community chats before a fix ships. Send a private report either via{' '}
+        <a href="https://github.com/MootSasa/theaver-frontend/security/advisories/new">GitHub Security Advisories</a>{' '}
+        or by emailing <a href="mailto:security@theaver.app">security@theaver.app</a>.
+      </p>
+      <p>
+        Include clear reproduction steps, affected platform or endpoint, and potential impact. We aim to acknowledge reports within 72 hours and will not pursue legal action against researchers who test strictly against their own accounts without disrupting other users or exfiltrating data.
       </p>
     </>
   )}
 
   {doc === 'security' && locale === 'ru' && (
     <>
-      <h2>1. Порядок сообщения об уязвимостях</h2>
+      <h2>1. Как устроена защита в Theaver</h2>
       <p>
-        Пожалуйста, не публикуйте детали найденных уязвимостей в открытых чатах и публичных Issue до выхода исправления. Передайте отчёт конфиденциально через{' '}
-        <a href="https://github.com/MootSasa/theaver-frontend/security/advisories/new">
-          GitHub Security Advisories
-        </a>.
+        Весь обмен данными между клиентом и сервером (запросы API, сообщения WebSocket, загрузка файлов и медиапотоки звонков) передаётся по шифрованным TLS-каналам. Облачная архитектура синхронизирует ваши чаты между устройствами, а сквозное шифрование (E2EE) для отдельных секретных чатов находится в разработке.
+      </p>
+      <p>
+        На устройстве ключи авторизации сохраняются в защищённом хранилище операционной системы (Keychain, Android Keystore и системных аналогах), а встроенные Mini Apps изолированы друг от друга по аккаунтам. Для дополнительной защиты можно включить локальный PIN или биометрию (App Lock), поставить облачный пароль 2FA с резервными кодами и контролировать активные сессии: новое устройство в первые 24 часа не может завершить старые доверенные сеансы.
       </p>
 
-      <h2>2. Проверка подписей сборок</h2>
+      <h2>2. Проверка подлинности сборок</h2>
+      <p>
+        Исходный код клиента открыт в репозитории{' '}
+        <a href="https://github.com/MootSasa/theaver-frontend">MootSasa/theaver-frontend</a>. Каждая официальная сборка публикуется с контрольной суммой <code>SHA-256</code> и цифровой подписью, чтобы вы могли проверить файл до установки:
+      </p>
       <ul>
         <li>Публичный GPG-ключ для Linux: <a href="/signing/theaver-release-public.asc">theaver-release-public.asc</a></li>
         <li>Корневой сертификат Windows: <a href="/signing/theaver-windows-root.cer">theaver-windows-root.cer</a></li>
+        <li>Пошаговая инструкция: <a href={localizePath('/docs/guide/verify-downloads', locale)}>Проверка подписей и SHA-256</a></li>
         <li>Файл стандарта RFC 9116: <a href="/.well-known/security.txt">/.well-known/security.txt</a></li>
       </ul>
 
-      <h2>3. Рекомендации по защите аккаунта</h2>
+      <h2>3. Ответственное раскрытие уязвимостей</h2>
       <p>
-        Включите двухфакторную аутентификацию (2FA) и локальный код-пароль приложения в настройках безопасности, а также периодически проверяйте список активных устройств.
+        Не публикуйте детали найденных уязвимостей в открытых чатах или публичных Issue до выхода исправления. Передайте отчёт приватно через{' '}
+        <a href="https://github.com/MootSasa/theaver-frontend/security/advisories/new">GitHub Security Advisories</a>{' '}
+        или на почту <a href="mailto:security@theaver.app">security@theaver.app</a>.
+      </p>
+      <p>
+        Опишите шаги воспроизведения, затронутую платформу и возможный эффект. Мы стараемся отвечать на обращения в течение 72 часов и приветствуем добросовестные проверки на собственных тестовых аккаунтах без вреда другим пользователям и инфраструктуре.
       </p>
     </>
   )}

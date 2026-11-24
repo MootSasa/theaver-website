@@ -9,8 +9,16 @@ interface Props {
 }
 
 const { title, description, updatedAt } = Astro.props;
-const locale = getLocaleFromPath(Astro.url.pathname);
+const currentPath = Astro.url.pathname;
+const locale = getLocaleFromPath(currentPath);
 const updatedLabel = locale === 'ru' ? 'Обновлено:' : 'Last updated:';
+
+const legalLinks = [
+  { href: localizePath('/privacy', locale), label: locale === 'ru' ? 'Конфиденциальность' : 'Privacy Policy' },
+  { href: localizePath('/terms', locale), label: locale === 'ru' ? 'Условия использования' : 'Terms of Service' },
+  { href: localizePath('/security', locale), label: locale === 'ru' ? 'Безопасность' : 'Security' },
+  { href: localizePath('/delete-account', locale), label: locale === 'ru' ? 'Удаление аккаунта' : 'Delete Account' },
+];
 ---
 
 <MarketingLayout title={`${title} — Theaver`} description={description}>
@@ -21,22 +29,29 @@ const updatedLabel = locale === 'ru' ? 'Обновлено:' : 'Last updated:';
           <p class="font-mono text-[12px] text-[var(--text-muted)]">
             {updatedLabel} {updatedAt}
           </p>
-          <h1 class="mt-2 text-[32px] font-medium leading-[1.15] text-[var(--text-primary)] sm:text-[36px]">
+          <h1 class="mt-2 text-[32px] font-semibold leading-[1.15] text-[var(--text-primary)] sm:text-[36px]">
             {title}
           </h1>
-          <div class="mt-4 flex flex-wrap gap-3 text-[13px] text-[var(--text-secondary)]">
-            <a href={localizePath('/privacy', locale)} class="hover:text-[var(--accent)]">
-              {locale === 'ru' ? 'Конфиденциальность' : 'Privacy Policy'}
-            </a>
-            <span>·</span>
-            <a href={localizePath('/terms', locale)} class="hover:text-[var(--accent)]">
-              {locale === 'ru' ? 'Условия использования' : 'Terms of Service'}
-            </a>
-            <span>·</span>
-            <a href={localizePath('/security', locale)} class="hover:text-[var(--accent)]">
-              {locale === 'ru' ? 'Безопасность' : 'Security'}
-            </a>
-          </div>
+          <nav aria-label={locale === 'ru' ? 'Правовые документы' : 'Legal documents'} class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] text-[var(--text-secondary)]">
+            {legalLinks.map((item, idx) => {
+              const active = currentPath.replace(/\/+$/, '') === item.href.replace(/\/+$/, '');
+              return (
+                <>
+                  {idx > 0 && <span aria-hidden="true" class="text-[var(--text-muted)]">·</span>}
+                  <a
+                    href={item.href}
+                    aria-current={active ? 'page' : undefined}
+                    class:list={[
+                      'hover:text-[var(--accent)]',
+                      active && 'font-semibold text-[var(--accent)]',
+                    ]}
+                  >
+                    {item.label}
+                  </a>
+                </>
+              );
+            })}
+          </nav>
         </div>
 
         <article class="docs-prose">

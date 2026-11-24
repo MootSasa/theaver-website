@@ -1,38 +1,37 @@
 ---
 title: Getting Started
-description: Install Theaver on desktop, mobile, or open the Web client, sign in across devices, and pick your release channel.
+description: Install Theaver on desktop, mobile, or open the web client, sign in across devices, and switch update channels.
 track: guide
 order: 1
 ---
 
-Theaver runs across Windows, macOS, Linux, Android, iOS, and modern browsers. All apps connect to the same account and synchronize chats, read markers, drafts, and media automatically.
+Theaver runs on Windows, macOS, Linux, Android, iOS, and right in your browser. Your chats, drafts, read markers, and media stay tied to your account and show up across every device you sign in on.
 
-## 1. Choose your client
+## 1. Pick your app
 
-Download a verified build from [Downloads](/downloads) or launch the browser client directly at [app.theaver.app](https://app.theaver.app):
+Grab an installer from [Downloads](/downloads) or open the web client at [app.theaver.app](https://app.theaver.app):
 
-- **Windows (x64):** Setup installer (`.exe`) or portable `.zip` archive.
-- **macOS (Apple Silicon / Intel):** Universal `.zip` bundle as well as architecture-specific slices.
-- **Linux (x64):** Standalone `.tar.gz` archive with a detached `.asc` GPG signature.
-- **Android:** `arm64-v8a`, `armeabi-v7a`, `x86_64`, or Universal `.apk`.
-- **iOS:** Sideloadable `.ipa` package.
+- **Windows:** standard `.exe` installer or portable `.zip` archive.
+- **macOS:** universal `.zip` bundle as well as Apple Silicon and Intel builds.
+- **Linux:** standalone `.tar.gz` archive paired with a `.asc` GPG signature.
+- **Android & iOS:** `.apk` packages (per-ABI or universal) and `.ipa` builds.
 
 <Callout type="tip" title="Release channels">
-  Theaver publishes updates on three channels: **Stable** (`app.theaver.app`), **Beta** (`beta.theaver.app`), and **Alpha** (`alpha.theaver.app`). You can switch your native update channel inside **Settings → About Theaver**.
+  Updates ship on three channels: **Stable** (`app.theaver.app`), **Beta** (`beta.theaver.app`), and **Alpha** (`alpha.theaver.app`). Switch channels anytime in **Settings → About Theaver**.
 </Callout>
 
 ## 2. Sign in and link devices
 
-1. **New accounts:** Register with an email address, verify the one-time code, and choose a unique `@username`.
-2. **Existing accounts:** Sign in with your username/email and password (plus your Two-Factor Authentication password if enabled).
-3. **QR Login on Desktop & Web:** Open **Settings → Devices** on an already signed-in mobile phone and scan the QR code displayed by your desktop or browser session.
+To create a new account, enter your email, confirm it with the one-time code, and pick a unique `@username`. Existing users sign in with their username or email and password (plus their cloud 2FA password if enabled).
 
-## 3. Sharing profile and channel links
+On desktop or in a browser, you can skip typing your password altogether: open **Settings → Devices** on a phone that is already signed in and scan the QR code on screen.
 
-Every public profile, bot, channel, and invite uses short links on `theaver.app`:
+## 3. Short links on `theaver.app`
 
-- Profile or bot link: `https://theaver.app/u/<username>`
+Public profiles, bots, channels, and group invites use clean short links:
+
+- Profile or bot: `https://theaver.app/u/<username>`
 - Public channel or group: `https://theaver.app/c/<slug>`
-- Chat or community invite: `https://theaver.app/join/<code>`
+- Invite link: `https://theaver.app/join/<code>`
 
-Opening any of these links in a browser renders a preview card with one-click buttons to launch the native client (`theaver://`) or open the thread on `app.theaver.app`.
+Opening any of them in a browser shows a preview card with buttons to jump into the native app (`theaver://`) or continue on `app.theaver.app`.
