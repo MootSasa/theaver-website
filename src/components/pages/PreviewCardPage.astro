@@ -70,7 +70,7 @@ const pageDesc = data
     ? copy.expiredBody
     : copy.notFoundBody;
 
-const ogImage = data?.avatar_url || 'https://theaver.app/app-icon.png';
+const ogImage = data?.avatar_url || 'https://theaver.app/og-image.png';
 
 function badgeFor(entityType: string): string {
   switch (entityType) {
@@ -128,7 +128,7 @@ function initialsOf(title: string): string {
             <span>{badgeFor(data.entity_type)}</span>
           </div>
 
-          <h1 class="mt-3 flex items-center justify-center gap-2 text-[24px] font-medium text-[var(--text-primary)]">
+          <h1 class="mt-3 flex items-center justify-center gap-2 text-[24px] font-semibold text-[var(--text-primary)]">
             <span>{data.title}</span>
             {data.is_verified && (
               <Icon name="verified" size={19} class="text-[var(--accent)]" />

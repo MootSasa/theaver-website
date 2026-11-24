@@ -18,6 +18,12 @@ interface Props {
 
 const { locale } = Astro.props;
 const initialReleases = await fetchPublicReleases();
+const rawHeroVer =
+  initialReleases.channels.stable?.latest_version ||
+  initialReleases.channels.beta?.latest_version ||
+  '1.20';
+const heroVersionTag = rawHeroVer.startsWith('v') ? rawHeroVer : `v${rawHeroVer}`;
+const channelPill = locale === 'ru' ? `Релиз ${heroVersionTag}` : `Release ${heroVersionTag}`;
 
 const aiogramSample = `from aiogram import Bot
 from aiogram.client.session.aiohttp import AiohttpSession
@@ -57,9 +63,9 @@ const c = locale === 'ru'
       section2Title: 'Голос, видеокружки и экран в 1080p60',
       section2Body: 'Звонки один на один и групповые комнаты работают через LiveKit SFU и Coturn на порту TLS 443, проходя корпоративные сети без ручной настройки.',
       section2List: [
-        'Захват окна или всего экрана с аппаратным кодированием до 60 fps',
-        'Голосовые сообщения Opus и круглые видеозаметки с синхронизацией прослушивания',
-        'Стримы через RTMP и WHIP для OBS Studio в сообществах',
+        'Захват окна или всего экрана до 60 fps',
+        'Голосовые Opus и видеокружки с общей позицией',
+        'Стримы RTMP и WHIP для OBS Studio',
       ],
       callsAlt: 'Окно группового звонка и демонстрации экрана в Theaver',
       section3Label: 'Десктоп и медиа',
@@ -81,7 +87,7 @@ const c = locale === 'ru'
           body: 'Адаптивная светлая и тёмная тема, настройка акцентов и обмен пользовательскими темами по короткой ссылке.',
         },
       ],
-      section4Label: 'Платформа разработчиков',
+      section4Badge: '@BotMother · Bot API & Mini Apps v8',
       section4Title: 'Перенесите Telegram-бота за одну строку',
       section4Body: 'Создайте бота у @BotMother и укажите базовый URL api.theaver.app в aiogram, grammY или python-telegram-bot. Доступны Long Polling, Webhooks, inline-режим, Mini Apps v8 и переводы в THV.',
       readBotDocs: 'Документация Bot API',
@@ -115,8 +121,8 @@ const c = locale === 'ru'
       section2Body: 'Direct calls and multi-participant voice rooms route through LiveKit SFU with Coturn over TLS port 443 to traverse strict firewalls reliably.',
       section2List: [
         'Low-latency window and display sharing up to 60 fps',
-        'Opus voice messages and round video notes with cross-device playback state',
-        'RTMP and WHIP stream ingress for OBS Studio inside communities',
+        'Opus voice notes and round video messages synced across devices',
+        'RTMP and WHIP stream ingress for OBS Studio in communities',
       ],
       callsAlt: 'Theaver LiveKit group call and screen sharing window',
       section3Label: 'Desktop & Media',
@@ -138,7 +144,7 @@ const c = locale === 'ru'
           body: 'Tinted light and dark surfaces, custom bubble styles, and shareable theme links across devices.',
         },
       ],
-      section4Label: 'Developer Platform',
+      section4Badge: '@BotMother · Bot API & Mini Apps v8',
       section4Title: 'Migrate your Telegram bot in one line',
       section4Body: 'Register a bot via @BotMother and point aiogram, grammY, or python-telegram-bot at api.theaver.app. Supports Long Polling, Webhooks, inline queries, Mini Apps v8, and THV wallet payments.',
       readBotDocs: 'Read Bot API Docs',
@@ -154,53 +160,64 @@ const c = locale === 'ru'
 ---
 
 <MarketingLayout title={c.metaTitle} description={c.metaDesc}>
-  <!-- Hero -->
-  <section class="border-b border-[var(--border-hairline)] pt-12 pb-16 lg:pt-20 lg:pb-24">
+  <!-- Tile 1: Centered Gallery Hero (Canvas) -->
+  <section class="bg-[var(--bg-page)] pt-14 pb-16 lg:pt-20 lg:pb-24">
     <div class="container-page">
-      <div class="grid items-center gap-12 lg:grid-cols-12">
-        <div class="min-w-0 lg:col-span-5">
-          <h1 class="text-[36px] font-medium leading-[1.06] tracking-[-0.03em] text-[var(--text-primary)] sm:text-[48px] lg:text-[52px]">
-            {c.heroTitle}
-          </h1>
-          <p class="mt-5 max-w-lg text-[17px] leading-[1.6] text-[var(--text-secondary)]">
-            {c.heroSub}
-          </p>
+      <div class="mx-auto max-w-3xl text-center">
+        <span class="badge-warm tabular">{channelPill}</span>
+        <h1 class="mt-4 text-[36px] font-semibold leading-[1.07] tracking-[-0.022em] text-[var(--text-primary)] sm:text-[48px] lg:text-[56px]">
+          {c.heroTitle}
+        </h1>
+        <p class="mx-auto mt-4 max-w-2xl text-[17px] font-normal leading-[1.47] text-[var(--text-secondary)] sm:text-[21px] sm:leading-[1.35]">
+          {c.heroSub}
+        </p>
 
-          <div class="mt-8">
-            <SmartDownloadButton locale={locale} initialReleases={initialReleases}>
-              <a
-                slot="secondary"
-                href={WEB_APP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="btn-secondary"
-              >
-                <span>{c.openBrowser}</span>
-                <Icon name="arrow-up-right" size={16} />
-              </a>
-            </SmartDownloadButton>
-          </div>
+        <div class="mt-8">
+          <SmartDownloadButton locale={locale} initialReleases={initialReleases} align="center">
+            <a
+              slot="secondary"
+              href={WEB_APP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-secondary"
+            >
+              <span>{c.openBrowser}</span>
+              <Icon name="arrow-up-right" size={16} />
+            </a>
+          </SmartDownloadButton>
         </div>
+      </div>
 
-        <div class="min-w-0 lg:col-span-7">
-          <ScreenshotFrame
-            name="hero-desktop"
-            alt={c.heroAlt}
-            width={960}
-            height={600}
-            priority={true}
-          />
-        </div>
+      <div class="mx-auto mt-12 max-w-[980px] lg:mt-16">
+        <ScreenshotFrame
+          name="hero-desktop"
+          alt={c.heroAlt}
+          width={960}
+          height={600}
+          priority={true}
+        />
       </div>
     </div>
   </section>
 
-  <!-- Section 1: Chats & Offline Sync -->
-  <section id="features" class="border-b border-[var(--border-hairline)] py-20 lg:py-24">
+  <!-- Tile 2: Sync & Channels (Parchment) -->
+  <section id="features" class="bg-[var(--bg-alt)] py-14 lg:py-20">
     <div class="container-page">
-      <div class="grid items-center gap-12 lg:grid-cols-12">
+      <div class="mx-auto max-w-3xl text-center">
+        <p class="font-mono text-[12.5px] font-semibold tracking-tight text-[var(--accent)]">
+          {c.section1Label}
+        </p>
+        <h2 class="mt-2 text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[40px]">
+          {c.section1Title}
+        </h2>
+        <p class="mx-auto mt-4 max-w-2xl text-[17px] leading-[1.47] text-[var(--text-secondary)]">
+          {c.section1Body}
+        </p>
+      </div>
+
+      <div class="mx-auto mt-12 grid max-w-5xl items-center gap-12 lg:grid-cols-12">
         <div class="min-w-0 lg:col-span-5">
-          <div class="mx-auto max-w-[340px]">
+          <div class="mx-auto max-w-[320px]">
             <ScreenshotFrame
               name="chats-mobile"
               alt={c.chatsAlt}
@@ -211,18 +228,10 @@ const c = locale === 'ru'
         </div>
 
         <div class="min-w-0 lg:col-span-7">
-          <p class="font-mono text-[12.5px] text-[var(--accent)]">{c.section1Label}</p>
-          <h2 class="mt-2 text-[28px] font-medium leading-[1.15] text-[var(--text-primary)] sm:text-[34px]">
-            {c.section1Title}
-          </h2>
-          <p class="mt-4 max-w-2xl text-[15.5px] leading-[1.65] text-[var(--text-secondary)]">
-            {c.section1Body}
-          </p>
-
-          <ul class="mt-6 flex flex-col gap-3 text-[14.5px] text-[var(--text-secondary)]">
+          <ul class="flex flex-col gap-3.5 text-[16px] leading-[1.47] text-[var(--text-secondary)]">
             {c.section1List.map((item) => (
               <li class="flex items-start gap-2.5">
-                <Icon name="check" size={18} class="mt-0.5 text-[var(--positive)]" />
+                <Icon name="check" size={18} class="mt-1 shrink-0 text-[var(--positive)]" />
                 <span>{item}</span>
               </li>
             ))}
@@ -236,71 +245,70 @@ const c = locale === 'ru'
     </div>
   </section>
 
-  <!-- Section 2: Calls & Streams -->
-  <section class="border-b border-[var(--border-hairline)] py-20 lg:py-24">
+  <!-- Tile 3: Voice, Video & Streams (Canvas) -->
+  <section class="bg-[var(--bg-page)] py-14 lg:py-20">
     <div class="container-page">
-      <div class="grid items-center gap-12 lg:grid-cols-12">
-        <div class="order-2 min-w-0 lg:order-1 lg:col-span-6">
-          <p class="font-mono text-[12.5px] text-[var(--accent)]">{c.section2Label}</p>
-          <h2 class="mt-2 text-[28px] font-medium leading-[1.15] text-[var(--text-primary)] sm:text-[34px]">
-            {c.section2Title}
-          </h2>
-          <p class="mt-4 max-w-xl text-[15.5px] leading-[1.65] text-[var(--text-secondary)]">
-            {c.section2Body}
-          </p>
+      <div class="mx-auto max-w-3xl text-center">
+        <p class="font-mono text-[12.5px] font-semibold tracking-tight text-[var(--accent)]">
+          {c.section2Label}
+        </p>
+        <h2 class="mt-2 text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[40px]">
+          {c.section2Title}
+        </h2>
+        <p class="mx-auto mt-4 max-w-2xl text-[17px] leading-[1.47] text-[var(--text-secondary)]">
+          {c.section2Body}
+        </p>
+      </div>
 
-          <ul class="mt-6 flex flex-col gap-3 text-[14.5px] text-[var(--text-secondary)]">
-            {c.section2List.map((item) => (
-              <li class="flex items-start gap-2.5">
-                <Icon name="phone" size={17} class="mt-0.5 text-[var(--accent)]" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
+      <div class="mx-auto mt-12 max-w-[820px]">
+        <ScreenshotFrame
+          name="calls-stream"
+          alt={c.callsAlt}
+          width={720}
+          height={460}
+        />
+      </div>
 
-          <div class="mt-8">
-            <CallMediaDiagram locale={locale} />
-          </div>
+      <div class="mx-auto mt-10 max-w-4xl">
+        <div class="grid gap-4 text-[15px] leading-[1.47] text-[var(--text-secondary)] sm:grid-cols-3">
+          {c.section2List.map((item) => (
+            <div class="ink-card flex items-start gap-2.5 p-4">
+              <Icon name="phone" size={17} class="mt-0.5 shrink-0 text-[var(--accent)]" />
+              <span>{item}</span>
+            </div>
+          ))}
         </div>
 
-        <div class="order-1 min-w-0 lg:order-2 lg:col-span-6">
-          <ScreenshotFrame
-            name="calls-stream"
-            alt={c.callsAlt}
-            width={720}
-            height={460}
-          />
+        <div class="mt-8">
+          <CallMediaDiagram locale={locale} />
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Section 3: Desktop & Media -->
-  <section class="border-b border-[var(--border-hairline)] py-20 lg:py-24">
+  <!-- Tile 4: Desktop & Media Utility Grid (Parchment) -->
+  <section class="bg-[var(--bg-alt)] py-14 lg:py-20">
     <div class="container-page">
-      <div class="max-w-2xl">
-        <p class="font-mono text-[12.5px] text-[var(--accent)]">{c.section3Label}</p>
-        <h2 class="mt-2 text-[28px] font-medium leading-[1.15] text-[var(--text-primary)] sm:text-[34px]">
+      <div class="mx-auto max-w-3xl text-center">
+        <p class="font-mono text-[12.5px] font-semibold tracking-tight text-[var(--accent)]">
+          {c.section3Label}
+        </p>
+        <h2 class="mt-2 text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[40px]">
           {c.section3Title}
         </h2>
       </div>
 
-      <div class="mt-10 grid gap-6 md:grid-cols-12">
-        {c.desktopCards.map((card, index) => (
-          <div
-            class:list={[
-              'ink-card flex flex-col justify-between p-6',
-              index === 0 ? 'md:col-span-6' : 'md:col-span-3',
-            ]}
-          >
+      <div class="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-3">
+        {c.desktopCards.map((card) => (
+          <div class="ink-card flex flex-col justify-between p-7">
             <div>
               <div class="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-raised)] text-[var(--accent)]">
                 <Icon name={card.icon} size={19} />
               </div>
-              <h3 class="mt-5 text-[18px] font-medium text-[var(--text-primary)]">
+              <h3 class="mt-5 text-[19px] font-semibold leading-[1.24] text-[var(--text-primary)]">
                 {card.title}
               </h3>
-              <p class="mt-2 text-[14.5px] leading-relaxed text-[var(--text-secondary)]">
+              <p class="mt-2.5 text-[15px] leading-[1.5] text-[var(--text-secondary)]">
                 {card.body}
               </p>
             </div>
@@ -310,35 +318,34 @@ const c = locale === 'ru'
     </div>
   </section>
 
-  <!-- Section 4: Bots, Mini Apps & Walt -->
-  <section class="border-b border-[var(--border-hairline)] py-20 lg:py-24">
+  <!-- Tile 5: Featured Dark Contrast Spotlight — Bots, Mini Apps & Walt -->
+  <section class="tile-contrast-dark py-14 lg:py-20">
     <div class="container-page">
-      <div class="grid items-start gap-12 lg:grid-cols-12">
-        <div class="min-w-0 lg:col-span-6">
-          <p class="font-mono text-[12.5px] text-[var(--accent)]">{c.section4Label}</p>
-          <h2 class="mt-2 text-[28px] font-medium leading-[1.15] text-[var(--text-primary)] sm:text-[34px]">
-            {c.section4Title}
-          </h2>
-          <p class="mt-4 text-[15.5px] leading-[1.65] text-[var(--text-secondary)]">
-            {c.section4Body}
-          </p>
+      <div class="mx-auto max-w-3xl text-center">
+        <span class="badge-warm">{c.section4Badge}</span>
+        <h2 class="mt-4 text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[40px]">
+          {c.section4Title}
+        </h2>
+        <p class="mx-auto mt-4 max-w-2xl text-[17px] leading-[1.47] text-[var(--text-secondary)]">
+          {c.section4Body}
+        </p>
+        <div class="mt-7 flex justify-center">
+          <a
+            href={localizePath('/docs/bots/overview-botmother', locale)}
+            class="btn-primary"
+          >
+            <Icon name="code" size={17} />
+            <span>{c.readBotDocs}</span>
+          </a>
+        </div>
+      </div>
 
-          <div class="mt-6">
-            <a
-              href={localizePath('/docs/bots/overview-botmother', locale)}
-              class="btn-secondary"
-            >
-              <Icon name="code" size={17} />
-              <span>{c.readBotDocs}</span>
-            </a>
-          </div>
-
-          <div class="mt-8">
-            <BotPlatformDiagram locale={locale} />
-          </div>
+      <div class="mx-auto mt-12 grid max-w-5xl items-start gap-8 lg:grid-cols-12">
+        <div class="min-w-0 lg:col-span-5">
+          <BotPlatformDiagram locale={locale} />
         </div>
 
-        <div class="min-w-0 lg:col-span-6">
+        <div class="min-w-0 lg:col-span-7">
           <CodeTabs tabs={['Python (aiogram 3)', 'TypeScript (grammY)']}>
             <div class="min-w-0 max-w-full overflow-x-auto">
               <Code code={aiogramSample} lang="python" themes={{ light: 'github-light-default', dark: 'github-dark-default' }} />
@@ -352,51 +359,44 @@ const c = locale === 'ru'
     </div>
   </section>
 
-  <!-- Section 5: Verifiable Open Client -->
-  <section class="border-b border-[var(--border-hairline)] py-20 lg:py-24">
+  <!-- Tile 6: Verifiable Open Client & Final Downloads CTA (Canvas) -->
+  <section class="bg-[var(--bg-page)] py-14 lg:py-20">
     <div class="container-page">
-      <div class="grid items-center gap-12 lg:grid-cols-12">
-        <div class="min-w-0 lg:col-span-5">
-          <p class="font-mono text-[12.5px] text-[var(--accent)]">{c.section5Label}</p>
-          <h2 class="mt-2 text-[28px] font-medium leading-[1.15] text-[var(--text-primary)] sm:text-[34px]">
-            {c.section5Title}
-          </h2>
-          <p class="mt-4 text-[15.5px] leading-[1.65] text-[var(--text-secondary)]">
-            {c.section5Body}
-          </p>
-          <div class="mt-6 flex flex-wrap gap-3">
-            <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" class="btn-secondary">
-              <Icon name="github" size={17} />
-              <span>{c.viewSource}</span>
-            </a>
-            <a href={localizePath('/docs/guide/verify-downloads', locale)} class="btn-secondary">
-              <Icon name="shield" size={17} />
-              <span>{c.verifyGuide}</span>
-            </a>
-          </div>
-        </div>
+      <div class="mx-auto max-w-3xl text-center">
+        <p class="font-mono text-[12.5px] font-semibold tracking-tight text-[var(--accent)]">
+          {c.section5Label}
+        </p>
+        <h2 class="mt-2 text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[40px]">
+          {c.section5Title}
+        </h2>
+        <p class="mx-auto mt-4 max-w-2xl text-[17px] leading-[1.47] text-[var(--text-secondary)]">
+          {c.section5Body}
+        </p>
 
-        <div class="min-w-0 lg:col-span-7">
-          <SignatureVerifyDiagram locale={locale} />
+        <div class="mt-7 flex flex-wrap justify-center gap-3">
+          <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" class="btn-secondary">
+            <Icon name="github" size={17} />
+            <span>{c.viewSource}</span>
+          </a>
+          <a href={localizePath('/docs/guide/verify-downloads', locale)} class="btn-secondary">
+            <Icon name="shield" size={17} />
+            <span>{c.verifyGuide}</span>
+          </a>
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- Bottom Downloads Strip -->
-  <section class="py-16 lg:py-20">
-    <div class="container-page">
-      <div class="ink-card flex flex-col items-start justify-between gap-8 p-8 lg:flex-row lg:items-center">
-        <div>
-          <h2 class="text-[24px] font-medium text-[var(--text-primary)] sm:text-[28px]">
-            {c.ctaTitle}
-          </h2>
-          <p class="mt-2 text-[15px] text-[var(--text-secondary)]">
-            {c.ctaSub}
-          </p>
-        </div>
+      <div class="mx-auto mt-10 max-w-3xl">
+        <SignatureVerifyDiagram locale={locale} />
+      </div>
 
-        <div class="flex flex-wrap items-center gap-3">
+      <div class="mx-auto mt-16 max-w-2xl text-center">
+        <h2 class="text-[28px] font-semibold leading-[1.15] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[34px]">
+          {c.ctaTitle}
+        </h2>
+        <p class="mt-3 text-[17px] leading-[1.47] text-[var(--text-secondary)]">
+          {c.ctaSub}
+        </p>
+        <div class="mt-6 flex flex-wrap justify-center gap-3">
           <a href={localizePath('/downloads', locale)} class="btn-primary">
             <Icon name="download" size={17} />
             <span>{c.allPlatformsBtn}</span>

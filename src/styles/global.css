@@ -22,15 +22,17 @@
     min-height: 100vh;
     background-color: var(--bg-page);
     color: var(--text-primary);
-    font-size: 15px;
-    line-height: 1.55;
+    font-size: 17px;
+    line-height: 1.47;
+    letter-spacing: -0.01em;
+    font-feature-settings: "ss03";
     overflow-x: hidden;
   }
 
   h1, h2, h3, h4 {
     color: var(--text-primary);
-    font-weight: 500;
-    letter-spacing: -0.02em;
+    font-weight: 600;
+    letter-spacing: -0.022em;
     margin: 0;
   }
 
@@ -51,7 +53,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--accent-focus);
     outline-offset: 2px;
   }
 
@@ -67,13 +69,21 @@
 
   .container-page {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1120px;
+    margin-inline: auto;
+    padding-inline: 24px;
+  }
+
+  .container-wide {
+    width: 100%;
+    max-width: 1280px;
     margin-inline: auto;
     padding-inline: 24px;
   }
 
   @media (max-width: 640px) {
-    .container-page {
+    .container-page,
+    .container-wide {
       padding-inline: 16px;
     }
   }
@@ -82,7 +92,7 @@
     background-color: var(--bg-card);
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-card);
-    box-shadow: var(--card-highlight);
+    box-shadow: none;
   }
 
   .btn-primary {
@@ -91,20 +101,26 @@
     justify-content: center;
     gap: 8px;
     min-height: 44px;
-    padding: 0 20px;
-    border-radius: var(--radius-control);
+    padding: 11px 22px;
+    border-radius: var(--radius-pill);
     background-color: var(--accent-fill);
     color: var(--accent-on-fill);
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
     border: 1px solid transparent;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    box-shadow: none;
     transition: background-color var(--duration-fast) var(--ease-standard),
-      opacity var(--duration-fast) var(--ease-standard);
+      transform var(--duration-fast) var(--ease-standard);
   }
 
   .btn-primary:hover {
     background-color: var(--accent-fill-hover);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.95);
   }
 
   .btn-secondary {
@@ -113,19 +129,41 @@
     justify-content: center;
     gap: 8px;
     min-height: 44px;
-    padding: 0 20px;
-    border-radius: var(--radius-control);
-    background-color: var(--bg-raised);
-    color: var(--text-primary);
-    font-size: 14px;
-    font-weight: 500;
-    border: 1px solid var(--border-hairline);
+    padding: 11px 22px;
+    border-radius: var(--radius-pill);
+    background-color: transparent;
+    color: var(--accent);
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    border: 1px solid var(--accent);
+    box-shadow: none;
     transition: background-color var(--duration-fast) var(--ease-standard),
-      border-color var(--duration-fast) var(--ease-standard);
+      transform var(--duration-fast) var(--ease-standard);
   }
 
   .btn-secondary:hover {
-    border-color: var(--border-strong);
+    background-color: var(--accent-soft);
+  }
+
+  .btn-secondary:active {
+    transform: scale(0.95);
+  }
+
+  .badge-warm {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    background-color: var(--badge-warm-bg);
+    color: var(--badge-warm-text);
+    border: 1px solid var(--badge-warm-border);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
   }
 
   .keycap {
@@ -141,11 +179,11 @@
     color: var(--text-muted);
     background-color: var(--bg-raised);
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-chip);
+    border-radius: 6px;
   }
 }
 
-/* Shiki dual-theme switching */
+/* Shiki dual-theme switching (including dark spotlight tiles in light mode) */
 .astro-code {
   background-color: var(--bg-deep) !important;
   border: 1px solid var(--border-hairline);
@@ -157,7 +195,9 @@
 }
 
 html[data-theme="dark"] .astro-code,
-html[data-theme="dark"] .astro-code span {
+html[data-theme="dark"] .astro-code span,
+.tile-contrast-dark .astro-code,
+.tile-contrast-dark .astro-code span {
   color: var(--shiki-dark) !important;
   background-color: transparent !important;
 }
@@ -166,14 +206,14 @@ html[data-theme="dark"] .astro-code span {
 .docs-prose {
   max-width: 72ch;
   color: var(--text-secondary);
-  font-size: 15px;
-  line-height: 1.65;
+  font-size: 16px;
+  line-height: 1.62;
 }
 
 .docs-prose h1 {
-  font-size: 32px;
+  font-size: 34px;
   line-height: 1.15;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 12px;
 }
@@ -181,23 +221,23 @@ html[data-theme="dark"] .astro-code span {
 .docs-prose h2 {
   font-size: 22px;
   line-height: 1.25;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
   margin-top: 40px;
   margin-bottom: 12px;
   padding-top: 16px;
   border-top: 1px solid var(--border-hairline);
-  scroll-margin-top: 84px;
+  scroll-margin-top: 72px;
 }
 
 .docs-prose h3 {
   font-size: 17px;
   line-height: 1.35;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
   margin-top: 28px;
   margin-bottom: 8px;
-  scroll-margin-top: 84px;
+  scroll-margin-top: 72px;
 }
 
 .docs-prose p + p,
@@ -258,7 +298,7 @@ html[data-theme="dark"] .astro-code span {
 
 .docs-prose th {
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 600;
   background-color: var(--bg-deep);
 }
 

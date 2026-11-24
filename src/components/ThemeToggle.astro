@@ -4,27 +4,32 @@ import { UI_STRINGS, type Locale } from '../lib/i18n';
 
 interface Props {
   locale: Locale;
+  variant?: 'nav' | 'default';
 }
 
-const { locale } = Astro.props;
+const { locale, variant = 'default' } = Astro.props;
 const t = UI_STRINGS[locale].theme;
+const btnClasses =
+  variant === 'nav'
+    ? 'inline-flex h-7 items-center gap-1.5 rounded-[7px] border border-white/15 bg-white/[0.08] px-2 text-[12px] font-normal text-[#d2d2d7] transition-colors duration-150 hover:bg-white/[0.14] hover:text-white active:scale-95'
+    : 'inline-flex h-9 items-center gap-2 rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-card)] px-2.5 text-[13px] font-normal text-[var(--text-secondary)] transition-colors duration-150 hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]';
 ---
 
 <button
   type="button"
   data-theme-toggle
-  class="inline-flex h-9 items-center gap-2 rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-card)] px-2.5 text-[13px] font-medium text-[var(--text-secondary)] transition-colors duration-150 hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
+  class={btnClasses}
   aria-label={t.toggleLabel}
   title={t.toggleLabel}
 >
   <span data-theme-icon="system" class="inline-flex items-center">
-    <Icon name="monitor" size={16} />
+    <Icon name="monitor" size={14} />
   </span>
   <span data-theme-icon="dark" class="hidden items-center">
-    <Icon name="moon" size={16} />
+    <Icon name="moon" size={14} />
   </span>
   <span data-theme-icon="light" class="hidden items-center">
-    <Icon name="sun" size={16} />
+    <Icon name="sun" size={14} />
   </span>
   <span class="hidden sm:inline" data-theme-label data-label-system={t.system} data-label-dark={t.dark} data-label-light={t.light}>
     {t.system}
@@ -65,7 +70,6 @@ const t = UI_STRINGS[locale].theme;
       if (!btn) return;
       const curResolved = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
       const curPref = localStorage.getItem('theaver-theme') || 'system';
-      // Flip visible theme immediately on first click; cycling back through system
       let next;
       if (curPref === 'system') {
         next = curResolved === 'dark' ? 'light' : 'dark';

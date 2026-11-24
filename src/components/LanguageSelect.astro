@@ -5,19 +5,24 @@ import { localizePath, type Locale } from '../lib/i18n';
 interface Props {
   locale: Locale;
   currentPath: string;
+  variant?: 'nav' | 'default';
 }
 
-const { locale, currentPath } = Astro.props;
+const { locale, currentPath, variant = 'default' } = Astro.props;
 const targetLocale: Locale = locale === 'en' ? 'ru' : 'en';
 const targetHref = localizePath(currentPath, targetLocale);
+const linkClasses =
+  variant === 'nav'
+    ? 'inline-flex h-7 items-center gap-1 rounded-[7px] border border-white/15 bg-white/[0.08] px-2 text-[12px] font-normal text-[#d2d2d7] transition-colors duration-150 hover:bg-white/[0.14] hover:text-white active:scale-95'
+    : 'inline-flex h-9 items-center gap-1.5 rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-card)] px-2.5 text-[13px] font-normal text-[var(--text-secondary)] transition-colors duration-150 hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]';
 ---
 
 <a
   href={targetHref}
-  class="inline-flex h-9 items-center gap-1.5 rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-card)] px-2.5 text-[13px] font-medium text-[var(--text-secondary)] transition-colors duration-150 hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
+  class={linkClasses}
   hreflang={targetLocale}
   aria-label={targetLocale === 'ru' ? 'Переключить язык на русский' : 'Switch language to English'}
 >
-  <Icon name="globe" size={16} />
+  <Icon name="globe" size={14} />
   <span class="tabular">{targetLocale === 'ru' ? 'RU' : 'EN'}</span>
 </a>

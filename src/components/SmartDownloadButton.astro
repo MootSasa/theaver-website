@@ -7,9 +7,10 @@ import { PUBLIC_API_URL, type PublicReleasesPayload } from '../lib/releases';
 interface Props {
   locale: Locale;
   initialReleases: PublicReleasesPayload;
+  align?: 'center' | 'start';
 }
 
-const { locale, initialReleases } = Astro.props;
+const { locale, initialReleases, align = 'start' } = Astro.props;
 const downloadsHref = localizePath('/downloads', locale);
 const defaultLabel = locale === 'ru' ? 'Скачать Theaver' : 'Download Theaver';
 const subFallback = locale === 'ru' ? 'Все платформы' : 'All platforms';
@@ -20,8 +21,8 @@ const rawInitialVer =
 const initialVersionLabel = rawInitialVer.startsWith('v') ? rawInitialVer : `v${rawInitialVer}`;
 ---
 
-<div class="flex flex-col gap-2">
-  <div class="flex flex-wrap items-center gap-3">
+<div class:list={['flex flex-col gap-2.5', align === 'center' && 'items-center text-center']}>
+  <div class:list={['flex flex-wrap items-center gap-3', align === 'center' && 'justify-center']}>
     <a
       href={downloadsHref}
       data-smart-download
