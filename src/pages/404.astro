@@ -10,13 +10,11 @@ import Icon from '../components/Icon.astro';
   noindex={true}
   headerMode="utility"
 >
-  <section class="bg-[var(--bg-page)] py-20 lg:py-28" data-stoat-scope>
+  <section class="bg-[var(--bg-page)] py-20 lg:py-28">
     <div class="container-page">
       <div class="ink-card mx-auto max-w-lg p-8 text-center sm:p-10">
         <div class="mx-auto flex w-fit flex-col items-center">
-          <div class="stoat-peek-404">
-            <BrandMark size={86} interactive={true} />
-          </div>
+          <BrandMark size={86} interactive={true} />
           <span class="badge-warm tabular mt-3">404</span>
         </div>
 
@@ -41,19 +39,6 @@ import Icon from '../components/Icon.astro';
     </div>
   </section>
 </MarketingLayout>
-
-<style is:global>
-  @keyframes theaver-stoat-peek {
-    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
-    50% { transform: translate3d(0, -4px, 0) rotate(-3deg); }
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .stoat-peek-404 {
-      animation: theaver-stoat-peek 3.6s var(--ease-standard) 2;
-    }
-  }
-</style>
 
 <script is:inline>
   (() => {

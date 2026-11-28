@@ -13,8 +13,8 @@ const targetLocale: Locale = locale === 'en' ? 'ru' : 'en';
 const targetHref = localizePath(currentPath, targetLocale);
 const linkClasses =
   variant === 'nav'
-    ? 'inline-flex h-7 items-center gap-1 rounded-[7px] border border-white/15 bg-white/[0.08] px-2 text-[12px] font-normal text-[#d2d2d7] transition-colors duration-150 hover:bg-white/[0.14] hover:text-white active:scale-95'
-    : 'inline-flex h-9 items-center gap-1.5 rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-card)] px-2.5 text-[13px] font-normal text-[var(--text-secondary)] transition-colors duration-150 hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]';
+    ? 'inline-flex h-7 shrink-0 items-center gap-1 whitespace-nowrap rounded-[7px] border border-[var(--nav-chip-border)] bg-[var(--nav-chip-bg)] px-2 text-[12px] font-normal text-[var(--nav-muted)] transition-colors duration-150 hover:bg-[var(--nav-chip-hover)] hover:text-[var(--nav-text)] active:scale-95'
+    : 'inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-card)] px-2.5 text-[13px] font-normal text-[var(--text-secondary)] transition-colors duration-150 hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]';
 ---
 
 <a
