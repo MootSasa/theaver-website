@@ -1,0 +1,8 @@
+---
+import NotFoundPage from '../../components/pages/NotFoundPage.astro';
+
+export const prerender = false;
+Astro.response.status = 404;
+---
+
+<NotFoundPage locale="ru" />

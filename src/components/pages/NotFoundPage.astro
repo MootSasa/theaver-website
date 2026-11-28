@@ -1,0 +1,95 @@
+---
+import MarketingLayout from '../../layouts/MarketingLayout.astro';
+import StoatBurrow404 from '../interactive/StoatBurrow404.astro';
+import Icon from '../Icon.astro';
+import { localizePath, type Locale } from '../../lib/i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const copy =
+  locale === 'ru'
+    ? {
+        title: '404 — Ласка не нашла страницу · Theaver',
+        description: 'Похоже, эта страница спряталась. Возвращайся на главную или открывай документацию.',
+        heading: 'Страница юркнула в норку',
+        body: 'Похоже, ссылка устарела или в адресе закралась опечатка. Можно вернуться на главную или заглянуть в документацию.',
+        homeCta: 'На главную',
+        docsCta: 'Открыть документацию',
+      }
+    : {
+        title: '404 — Page Not Found · Theaver',
+        description: 'This page ducked out of sight. Jump back to Theaver home or explore documentation.',
+        heading: 'This page ducked into a burrow',
+        body: 'The link does not exist or moved to another page. Jump back to the main screen or explore the developer portal.',
+        homeCta: 'Back to Theaver',
+        docsCta: 'Open Docs',
+      };
+
+const homeHref = localizePath('/', locale);
+const docsHref = localizePath('/docs', locale);
+---
+
+<MarketingLayout
+  title={copy.title}
+  description={copy.description}
+  noindex={true}
+  headerMode="utility"
+>
+  <section class="bg-[var(--bg-page)] py-16 lg:py-24">
+    <div class="container-page">
+      <div class="ink-card mx-auto max-w-xl p-6 text-center sm:p-10">
+        <span class="badge-warm tabular mb-4">404</span>
+
+        <StoatBurrow404 locale={locale} />
+
+        <h1
+          id="not-found-title"
+          class="mt-6 text-[28px] font-semibold leading-[1.15] text-[var(--text-primary)] sm:text-[34px]"
+        >
+          {copy.heading}
+        </h1>
+        <p
+          id="not-found-body"
+          class="mx-auto mt-3 max-w-md text-[15.5px] leading-[1.55] text-[var(--text-secondary)]"
+        >
+          {copy.body}
+        </p>
+
+        <div class="mt-7 flex flex-wrap justify-center gap-3">
+          <a id="not-found-home" href={homeHref} class="btn-primary">
+            <Icon name="arrow-right" size={16} />
+            <span id="not-found-home-lbl">{copy.homeCta}</span>
+          </a>
+          <a id="not-found-docs" href={docsHref} class="btn-secondary">
+            <Icon name="book" size={16} />
+            <span id="not-found-docs-lbl">{copy.docsCta}</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</MarketingLayout>
+
+<script is:inline>
+  (() => {
+    const isRu = window.location.pathname.startsWith('/ru');
+    if (!isRu || document.documentElement.lang === 'ru') return;
+    document.documentElement.lang = 'ru';
+    const title = document.getElementById('not-found-title');
+    const body = document.getElementById('not-found-body');
+    const home = document.getElementById('not-found-home');
+    const homeLbl = document.getElementById('not-found-home-lbl');
+    const docs = document.getElementById('not-found-docs');
+    const docsLbl = document.getElementById('not-found-docs-lbl');
+    if (title) title.textContent = 'Страница юркнула в норку';
+    if (body) body.textContent = 'Похоже, ссылка устарела или в адресе закралась опечатка. Можно вернуться на главную или заглянуть в документацию.';
+    if (home instanceof HTMLAnchorElement) home.href = '/ru/';
+    if (homeLbl) homeLbl.textContent = 'На главную';
+    if (docs instanceof HTMLAnchorElement) docs.href = '/ru/docs';
+    if (docsLbl) docsLbl.textContent = 'Открыть документацию';
+  })();
+</script>
