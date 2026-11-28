@@ -57,23 +57,31 @@ const navItems = [
 
 <header
   data-header-mode={resolvedMode}
+  data-nav-fit="wide"
   class:list={[
-    'theaver-header z-40 text-[#f5f5f7]',
+    'theaver-header z-40 text-[var(--nav-text)]',
     resolvedMode === 'marketing'
       ? 'theaver-header-marketing fixed inset-x-0 top-0 pointer-events-none'
-      : 'theaver-header-utility sticky top-0 border-b border-white/[0.08] bg-[rgba(12,12,14,0.88)] backdrop-blur-xl backdrop-saturate-[180%]',
+      : 'theaver-header-utility sticky top-0',
   ]}
 >
-  <div class="theaver-header-shell pointer-events-auto relative mx-auto flex h-11 w-full items-center justify-between gap-2 px-4 sm:px-6 max-w-[1280px]">
-    <div class="header-capsule-bg" aria-hidden="true"></div>
+  {resolvedMode === 'marketing' && <div class="header-dock-bg" aria-hidden="true"></div>}
 
-    <div class="relative z-10 flex min-w-0 items-center gap-4 lg:gap-5">
-      <a href={homeHref} class="inline-flex shrink-0 items-center gap-2 text-white">
+  <div
+    class:list={[
+      'theaver-header-capsule pointer-events-auto relative mx-auto flex h-12 items-center justify-between gap-3 px-4 sm:px-5',
+      resolvedMode === 'marketing' ? 'w-[min(calc(100%-24px),1180px)]' : 'w-full max-w-[1280px]',
+    ]}
+  >
+    {resolvedMode === 'marketing' && <div class="header-pill-bg" aria-hidden="true"></div>}
+
+    <div class="header-primary-group relative z-10 flex shrink-0 items-center gap-3 lg:gap-4">
+      <a href={homeHref} class="brand-logo-link inline-flex shrink-0 items-center gap-2 whitespace-nowrap text-[var(--nav-text)]">
         <BrandMark size={22} />
         <span class="text-[13.5px] font-semibold tracking-[-0.01em]">Theaver</span>
       </a>
 
-      <nav aria-label="Main navigation" class="hidden md:block">
+      <nav aria-label="Main navigation" class="header-inline-nav">
         <ul class="nav-links relative flex items-center gap-0.5 whitespace-nowrap">
           {navItems.map((item) => (
             <li class:list={[item.active && 'active']}>
@@ -82,7 +90,7 @@ const navItems = [
                 aria-current={item.active ? 'page' : undefined}
                 class:list={[
                   'inline-flex items-center rounded-[6px] px-2.5 py-1 text-[12px] tracking-[-0.01em] transition-colors duration-150',
-                  item.active ? 'text-white' : 'text-[#d2d2d7] hover:text-white',
+                  item.active ? 'font-semibold text-[var(--nav-text)]' : 'text-[var(--nav-muted)] hover:text-[var(--nav-text)]',
                 ]}
               >
                 {item.label}
@@ -94,7 +102,7 @@ const navItems = [
               href={GITHUB_REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-1 rounded-[6px] px-2.5 py-1 text-[12px] tracking-[-0.01em] text-[#d2d2d7] transition-colors duration-150 hover:text-white"
+              class="inline-flex items-center gap-1 rounded-[6px] px-2.5 py-1 text-[12px] tracking-[-0.01em] text-[var(--nav-muted)] transition-colors duration-150 hover:text-[var(--nav-text)]"
             >
               <Icon name="github" size={14} />
               <span>{t.github}</span>
@@ -104,16 +112,16 @@ const navItems = [
       </nav>
     </div>
 
-    <div class="relative z-10 flex shrink-0 items-center gap-1.5 whitespace-nowrap">
+    <div class="header-actions-group relative z-10 flex shrink-0 items-center gap-1.5 whitespace-nowrap">
       <button
         type="button"
         data-open-search
         aria-label={t.searchButton}
-        class="inline-flex h-7 w-7 items-center justify-center gap-1.5 rounded-[7px] border border-white/15 bg-white/[0.08] text-[12px] text-[#d2d2d7] transition-colors duration-150 hover:bg-white/[0.14] hover:text-white active:scale-95 sm:w-auto sm:px-2"
+        class="inline-flex h-7 w-7 shrink-0 items-center justify-center gap-1.5 rounded-[7px] border border-[var(--nav-chip-border)] bg-[var(--nav-chip-bg)] text-[12px] text-[var(--nav-muted)] transition-colors duration-150 hover:bg-[var(--nav-chip-hover)] hover:text-[var(--nav-text)] active:scale-95 xl:w-auto xl:px-2"
       >
         <Icon name="search" size={14} />
         <span class="hidden xl:inline">{t.searchButton}</span>
-        <kbd class="hidden rounded-[4px] border border-white/15 bg-white/10 px-1 py-px font-mono text-[10px] leading-none text-[#a1a1a6] xl:inline-flex">⌘K</kbd>
+        <kbd class="hidden rounded-[4px] border border-[var(--nav-chip-border)] bg-[var(--nav-chip-bg)] px-1 py-px font-mono text-[10px] leading-none text-[var(--nav-muted)] xl:inline-flex">⌘K</kbd>
       </button>
 
       <LanguageSelect locale={locale} currentPath={currentPath} variant="nav" />
@@ -123,14 +131,14 @@ const navItems = [
         href={WEB_APP_URL}
         target="_blank"
         rel="noopener noreferrer"
-        class="hidden whitespace-nowrap px-2 text-[12px] tracking-[-0.01em] text-[#d2d2d7] transition-colors duration-150 hover:text-white lg:inline-flex"
+        class="header-open-web whitespace-nowrap px-2 text-[12px] tracking-[-0.01em] text-[var(--nav-muted)] transition-colors duration-150 hover:text-[var(--nav-text)]"
       >
         {t.openWeb}
       </a>
 
       <a
         href={downloadsHref}
-        class="hidden h-7 items-center gap-1.5 whitespace-nowrap rounded-full bg-[#00558f] px-3 text-[12px] font-normal tracking-[-0.01em] text-white transition-[background-color,transform] duration-150 hover:bg-[#006bb3] active:scale-95 sm:inline-flex"
+        class="hidden h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-[#00558f] px-3 text-[12px] font-semibold tracking-[-0.01em] text-white transition-[background-color,transform] duration-150 hover:bg-[#006bb3] active:scale-95 sm:inline-flex"
       >
         <Icon name="download" size={13} />
         <span>{t.download}</span>
@@ -140,7 +148,7 @@ const navItems = [
         type="button"
         id="mobile-menu-open"
         aria-label="Open menu"
-        class="inline-flex h-8 w-8 items-center justify-center rounded-[7px] border border-white/15 bg-white/[0.08] text-white md:hidden"
+        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] border border-[var(--nav-chip-border)] bg-[var(--nav-chip-bg)] text-[var(--nav-text)] hover:bg-[var(--nav-chip-hover)]"
       >
         <Icon name="menu" size={17} />
       </button>
@@ -149,7 +157,7 @@ const navItems = [
 </header>
 
 {resolvedMode === 'marketing' && (
-  <div class="h-11 shrink-0" aria-hidden="true"></div>
+  <div class="h-12 shrink-0" aria-hidden="true"></div>
 )}
 
 {locale === 'en' && (
@@ -240,6 +248,80 @@ const navItems = [
 <SearchDialog locale={locale} />
 
 <style is:global>
+  /* Theme-aware surface & ink variables for header chrome */
+  .theaver-header {
+    --nav-dock-bg: rgba(12, 12, 14, 0.84);
+    --nav-pill-bg: rgba(20, 20, 24, 0.88);
+    --nav-border: rgba(255, 255, 255, 0.12);
+    --nav-text: #f5f5f7;
+    --nav-muted: #d2d2d7;
+    --nav-chip-bg: rgba(255, 255, 255, 0.08);
+    --nav-chip-border: rgba(255, 255, 255, 0.14);
+    --nav-chip-hover: rgba(255, 255, 255, 0.15);
+    --nav-indicator: #ffb37f;
+  }
+
+  html[data-theme="light"] .theaver-header {
+    --nav-dock-bg: rgba(255, 255, 255, 0.86);
+    --nav-pill-bg: rgba(255, 255, 255, 0.92);
+    --nav-border: rgba(0, 0, 0, 0.10);
+    --nav-text: #1d1d1f;
+    --nav-muted: #424245;
+    --nav-chip-bg: rgba(0, 0, 0, 0.045);
+    --nav-chip-border: rgba(0, 0, 0, 0.10);
+    --nav-chip-hover: rgba(0, 0, 0, 0.09);
+    --nav-indicator: #00558f;
+  }
+
+  .theaver-header-utility {
+    background-color: var(--nav-dock-bg);
+    border-bottom: 1px solid var(--nav-border);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  /* Keep natural inline row measurable without premature wrapping */
+  .theaver-header-capsule > * {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .theaver-header.is-measuring * {
+    transition: none !important;
+  }
+
+  .header-inline-nav {
+    display: block;
+  }
+
+  .header-open-web {
+    display: inline-flex;
+  }
+
+  #mobile-menu-open {
+    display: none;
+  }
+
+  @media (max-width: 1023.98px) {
+    .header-inline-nav,
+    .header-open-web {
+      display: none;
+    }
+
+    #mobile-menu-open {
+      display: inline-flex;
+    }
+  }
+
+  .theaver-header[data-nav-fit="compact"] .header-inline-nav,
+  .theaver-header[data-nav-fit="compact"] .header-open-web {
+    display: none;
+  }
+
+  .theaver-header[data-nav-fit="compact"] #mobile-menu-open {
+    display: inline-flex;
+  }
+
   /* Anchor-positioned active nav underline with progressive enhancement + forced-colors border */
   ul.nav-links li {
     position: relative;
@@ -253,10 +335,10 @@ const navItems = [
     content: "";
     position: absolute;
     position-anchor: --active-nav;
-    inset-block-start: calc(anchor(self-end) + 2px);
-    inset-inline-start: anchor(self-start);
-    inset-inline-end: anchor(self-end);
-    border-block-end: 2px solid var(--brand-gold);
+    inset-block-start: anchor(bottom);
+    inset-inline-start: anchor(start);
+    inset-inline-end: anchor(end);
+    border-block-end: 2px solid var(--nav-indicator);
     pointer-events: none;
   }
 
@@ -272,58 +354,83 @@ const navItems = [
     }
 
     ul.nav-links li.active {
-      border-block-end: 2px solid var(--brand-gold);
+      border-block-end: 2px solid var(--nav-indicator);
     }
   }
 
-  /* Dynamic Island marketing header on compositor properties */
-  .theaver-header-marketing .theaver-header-shell {
-    transition: transform 0.22s var(--ease-standard);
-  }
-
-  .theaver-header-marketing .header-capsule-bg {
-    position: fixed;
+  /* Marketing top bar -> floating capsule morph using compositor properties only */
+  .theaver-header-marketing .header-dock-bg {
+    position: absolute;
     inset-block-start: 0;
     inset-inline: 0;
-    height: 44px;
-    background-color: rgba(12, 12, 14, 0.86);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    height: 48px;
+    background-color: var(--nav-dock-bg);
+    border-bottom: 1px solid var(--nav-border);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     pointer-events: none;
+    z-index: 0;
   }
 
-  .theaver-header-utility .header-capsule-bg {
-    display: none;
+  .theaver-header-marketing .header-pill-bg {
+    position: absolute;
+    inset: 2px 0;
+    border-radius: 9999px;
+    background-color: var(--nav-pill-bg);
+    border: 1px solid var(--nav-border);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1;
   }
 
-  @keyframes theaver-header-shell-shrink {
+  @keyframes theaver-dock-fade {
+    from {
+      opacity: 1;
+    }
     to {
-      transform: translate3d(0, 10px, 0) scale(0.985);
+      opacity: 0;
     }
   }
 
-  @keyframes theaver-header-pill-clip {
+  @keyframes theaver-capsule-drop {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
     to {
-      transform: translate3d(0, 10px, 0);
-      clip-path: inset(0 max(14px, calc(50vw - 560px)) 0 max(14px, calc(50vw - 560px)) round 9999px);
-      background-color: rgba(18, 18, 22, 0.82);
+      transform: translate3d(0, 8px, 0);
+    }
+  }
+
+  @keyframes theaver-pill-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
     }
   }
 
   @media (prefers-reduced-motion: no-preference) {
     @supports ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {
-      .theaver-header-marketing .theaver-header-shell {
-        animation: theaver-header-shell-shrink auto linear both;
+      .theaver-header-marketing .header-dock-bg {
+        animation: theaver-dock-fade auto linear both;
         animation-timeline: scroll(block root);
-        animation-range: 0px 140px;
+        animation-range: 0px 110px;
       }
 
-      .theaver-header-marketing .header-capsule-bg {
-        clip-path: inset(0 0 0 0 round 0px);
-        animation: theaver-header-pill-clip auto linear both;
+      .theaver-header-marketing .theaver-header-capsule {
+        animation: theaver-capsule-drop auto linear both;
         animation-timeline: scroll(block root);
-        animation-range: 0px 140px;
+        animation-range: 0px 110px;
+      }
+
+      .theaver-header-marketing .header-pill-bg {
+        animation: theaver-pill-fade auto linear both;
+        animation-timeline: scroll(block root);
+        animation-range: 0px 110px;
       }
     }
   }
@@ -363,25 +470,64 @@ const navItems = [
       });
     }
 
-    // Fallback for browsers lacking CSS scroll-driven animation-range support
+    // Intrinsic inline-vs-compact navigation fit measurement (prevents overflow across locales)
+    const header = document.querySelector('header.theaver-header');
+    const capsule = header?.querySelector('.theaver-header-capsule');
+    const navList = header?.querySelector('.nav-links');
+    if (header instanceof HTMLElement && capsule instanceof HTMLElement) {
+      let lastCompactWidth = 0;
+
+      const measureHeaderFit = () => {
+        if (window.innerWidth < 1024) {
+          header.dataset.navFit = 'compact';
+          lastCompactWidth = 0;
+          return;
+        }
+        const currentWidth = capsule.clientWidth;
+        if (header.dataset.navFit === 'compact' && currentWidth <= lastCompactWidth) {
+          return;
+        }
+
+        header.classList.add('is-measuring');
+        header.dataset.navFit = 'wide';
+        const fits = capsule.scrollWidth <= capsule.clientWidth;
+        header.dataset.navFit = fits ? 'wide' : 'compact';
+        lastCompactWidth = fits ? 0 : capsule.clientWidth;
+        requestAnimationFrame(() => header.classList.remove('is-measuring'));
+      };
+
+      const ro = new ResizeObserver(measureHeaderFit);
+      ro.observe(header);
+      ro.observe(capsule);
+      if (navList instanceof HTMLElement) ro.observe(navList);
+      window.addEventListener('resize', measureHeaderFit, { passive: true });
+      if (document.fonts && document.fonts.ready) {
+        void document.fonts.ready.then(measureHeaderFit);
+      }
+      measureHeaderFit();
+    }
+
+    // Compositor-only scroll fallback for browsers without animation-range support
     const marketingHeader = document.querySelector('.theaver-header-marketing');
     if (
       marketingHeader &&
       !CSS.supports('(animation-timeline: scroll()) and (animation-range: 0% 100%)') &&
       window.matchMedia('(prefers-reduced-motion: no-preference)').matches
     ) {
-      const shell = marketingHeader.querySelector('.theaver-header-shell');
-      const bg = marketingHeader.querySelector('.header-capsule-bg');
+      const dock = marketingHeader.querySelector('.header-dock-bg');
+      const cap = marketingHeader.querySelector('.theaver-header-capsule');
+      const pill = marketingHeader.querySelector('.header-pill-bg');
       const updateHeader = () => {
-        if (!(shell instanceof HTMLElement) || !(bg instanceof HTMLElement)) return;
-        const p = Math.min(1, Math.max(0, window.scrollY / 140));
-        const scale = 1 - p * 0.015;
-        const ty = p * 10;
-        const insetX = Math.max(14, window.innerWidth / 2 - 560) * p;
-        const radius = p * 9999;
-        shell.style.transform = `translate3d(0, ${ty}px, 0) scale(${scale})`;
-        bg.style.transform = `translate3d(0, ${ty}px, 0)`;
-        bg.style.clipPath = `inset(0 ${insetX}px 0 ${insetX}px round ${radius}px)`;
+        const p = Math.min(1, Math.max(0, window.scrollY / 110));
+        if (dock instanceof HTMLElement) {
+          dock.style.opacity = String(1 - p);
+        }
+        if (cap instanceof HTMLElement) {
+          cap.style.transform = `translate3d(0, ${8 * p}px, 0)`;
+        }
+        if (pill instanceof HTMLElement) {
+          pill.style.opacity = String(p);
+        }
       };
       window.addEventListener('scroll', updateHeader, { passive: true });
       window.addEventListener('resize', updateHeader, { passive: true });
