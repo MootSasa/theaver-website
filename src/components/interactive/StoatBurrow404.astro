@@ -1,0 +1,795 @@
+---
+import type { Locale } from '../../lib/i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const copy = {
+  en: {
+    ariaLabel: 'Interactive stoat peeking out of its burrow',
+    idleHint: 'Move gently to play, or whisk the cursor quickly to startle it',
+    startleHint: 'Whoa! Dived into the burrow — wait a second...',
+    peekHint: 'Peeking out carefully...',
+    swatCatch: 'Gotcha! Caught your cursor!',
+    swatDodge: 'Too fast — your cursor dodged!',
+    pausedHint: 'Motion paused — stoat is chilling on the rim',
+    caughtLabel: 'Caught',
+    dodgedLabel: 'Dodged',
+    pauseLabel: 'Pause',
+    resumeLabel: 'Resume',
+  },
+  ru: {
+    ariaLabel: 'Интерактивная ласка, выглядывающая из норки',
+    idleHint: 'Подведи курсор поближе, чтобы поиграть — или резко дёрни мышкой',
+    startleHint: 'Ой! Спряталась в норку — сейчас осторожно выглянет...',
+    peekHint: 'Аккуратно выглядывает из норки...',
+    swatCatch: 'Цап! Поймала твой курсор лапкой!',
+    swatDodge: 'Не попала — курсор успел увернуться!',
+    pausedHint: 'Анимация на паузе — ласка спокойно сидит у края',
+    caughtLabel: 'Поймано',
+    dodgedLabel: 'Уворотов',
+    pauseLabel: 'Пауза',
+    resumeLabel: 'Оживить',
+  },
+};
+
+const initial = copy[locale];
+---
+
+<div
+  class="stoat-burrow-stage mx-auto w-full max-w-[440px]"
+  data-stoat-burrow
+  data-burrow-state="idle"
+  data-burrow-paused="false"
+  data-initial-locale={locale}
+  data-i18n-json={JSON.stringify(copy)}
+>
+  <svg
+    data-burrow-svg
+    viewBox="0 0 460 272"
+    role="img"
+    aria-label={initial.ariaLabel}
+    class="mx-auto block h-auto w-full max-w-[400px] cursor-pointer select-none overflow-visible touch-manipulation"
+  >
+    <defs>
+      <clipPath id="stoat-burrow-clip">
+        <path d="M 0,0 H 460 V 214 L 322,214 C 322,230 282,238 230,238 C 178,238 138,230 138,214 L 0,214 Z" />
+      </clipPath>
+    </defs>
+
+    <!-- Horizon guides & back burrow lip -->
+    <g aria-hidden="true">
+      <path d="M 38,216 H 116" stroke="var(--border-hairline)" stroke-width="1.5" stroke-linecap="round" />
+      <path d="M 344,216 H 422" stroke="var(--border-hairline)" stroke-width="1.5" stroke-linecap="round" />
+      <ellipse
+        cx="230"
+        cy="214"
+        rx="104"
+        ry="27"
+        fill="var(--bg-raised)"
+        stroke="var(--border-strong)"
+        stroke-width="1.5"
+      />
+      <ellipse cx="230" cy="214" rx="88" ry="20" fill="#090c12" />
+    </g>
+
+    <!-- Articulated stoat clipped inside burrow floor -->
+    <g clip-path="url(#stoat-burrow-clip)">
+      <g data-stoat-character>
+        <!-- Alert marks above head on rapid mouse motion -->
+        <g data-startle-marks opacity="0" style="visibility: hidden;">
+          <path d="M 230,52 L 230,38" stroke="var(--stoat-fx, #ffb37f)" stroke-width="3" stroke-linecap="round" />
+          <path d="M 209,57 L 199,45" stroke="var(--stoat-fx, #ffb37f)" stroke-width="3" stroke-linecap="round" />
+          <path d="M 251,57 L 261,45" stroke="var(--stoat-fx, #ffb37f)" stroke-width="3" stroke-linecap="round" />
+        </g>
+
+        <!-- Tail with classic dark ermine tip -->
+        <g data-stoat-tail>
+          <path
+            d="M 255,228 C 288,220 315,198 318,168 C 320,147 308,136 297,140 C 288,144 291,158 294,169 C 296,184 282,202 256,211 Z"
+            class="stoat-outline"
+            fill="#ffb37f"
+          />
+          <path
+            d="M 262,223 C 287,215 305,197 308,174 C 304,187 288,204 261,213 Z"
+            fill="#f7ecca"
+          />
+          <path
+            d="M 318,167 C 320,147 308,136 297,140 C 290,143 291,152 293,160 C 300,159 310,161 318,167 Z"
+            fill="#002a49"
+          />
+        </g>
+
+        <!-- Vertical torso & cream bib -->
+        <g data-stoat-torso>
+          <path
+            d="M 192,250 C 192,198 198,156 205,124 C 214,114 246,114 255,124 C 262,156 268,198 268,250 Z"
+            class="stoat-outline"
+            fill="#ffb37f"
+          />
+          <path
+            d="M 206,250 C 207,204 211,164 216,134 C 223,127 237,127 244,134 C 249,164 253,204 254,250 Z"
+            fill="#f7ecca"
+          />
+
+          <!-- Head, ears, pupils, eyelids & whiskers -->
+          <g data-stoat-head>
+            <g data-ear-left>
+              <circle cx="195" cy="90" r="15.5" class="stoat-outline" fill="#ffb37f" />
+              <circle cx="195" cy="91" r="8.5" fill="#f7ecca" />
+            </g>
+            <g data-ear-right>
+              <circle cx="265" cy="90" r="15.5" class="stoat-outline" fill="#ffb37f" />
+              <circle cx="265" cy="91" r="8.5" fill="#f7ecca" />
+            </g>
+
+            <path
+              d="M 190,112 C 188,86 206,72 230,72 C 254,72 272,86 270,112 C 269,132 252,144 230,144 C 208,144 191,132 190,112 Z"
+              class="stoat-outline"
+              fill="#ffb37f"
+            />
+            <path
+              d="M 196,118 C 202,108 216,106 230,106 C 244,106 258,108 264,118 C 260,135 246,144 230,144 C 214,144 200,135 196,118 Z"
+              fill="#f7ecca"
+            />
+
+            <!-- Eye whites subtle backplate + dark ermine pupils -->
+            <ellipse cx="213" cy="106" rx="7.2" ry="7.6" fill="#f7ecca" />
+            <ellipse cx="247" cy="106" rx="7.2" ry="7.6" fill="#f7ecca" />
+
+            <g data-pupils>
+              <ellipse cx="213" cy="106" rx="5.8" ry="6.4" fill="#002a49" />
+              <circle cx="211" cy="103.6" r="2" fill="#f7ecca" />
+              <ellipse cx="247" cy="106" rx="5.8" ry="6.4" fill="#002a49" />
+              <circle cx="245" cy="103.6" r="2" fill="#f7ecca" />
+            </g>
+
+            <!-- Upper eyelids sweeping down from y=98 -->
+            <g data-eyelids>
+              <rect x="204.5" y="98" width="17" height="16" rx="8" fill="#ffb37f" />
+              <rect x="238.5" y="98" width="17" height="16" rx="8" fill="#ffb37f" />
+            </g>
+
+            <!-- Nose & smile -->
+            <path
+              d="M 224,117 C 224,114 236,114 236,117 C 236,121 232,124 230,124 C 228,124 224,121 224,117 Z"
+              fill="#002a49"
+            />
+            <path
+              d="M 223,127 Q 226.5,130.5 230,126.5 Q 233.5,130.5 237,127"
+              fill="none"
+              stroke="#002a49"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+
+            <!-- Whiskers -->
+            <g data-whiskers stroke="var(--text-muted)" stroke-width="1.4" stroke-linecap="round">
+              <path d="M 194,120 L 171,116" />
+              <path d="M 194,125 L 172,127" />
+              <path d="M 266,120 L 289,116" />
+              <path d="M 266,125 L 288,127" />
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+
+    <!-- Front lip of burrow (unclipped, cleanly seals lower torso seam) -->
+    <g aria-hidden="true">
+      <path
+        d="M 134,214 C 134,230 176,238 230,238 C 284,238 326,230 326,214 C 326,236 284,246 230,246 C 176,246 134,236 134,214 Z"
+        fill="var(--bg-raised)"
+      />
+      <path
+        d="M 126,214 C 126,233 172,243 230,243 C 288,243 334,233 334,214"
+        fill="none"
+        stroke="var(--border-strong)"
+        stroke-width="2"
+        stroke-linecap="round"
+      />
+    </g>
+
+    <!-- Resting paws over the front burrow rim -->
+    <g data-rim-paw-left>
+      <ellipse cx="188" cy="232" rx="16" ry="10.5" class="stoat-outline" fill="#ffb37f" />
+      <ellipse cx="188" cy="233.5" rx="13" ry="8" fill="#f7ecca" />
+      <path d="M 183,238 V 241 M 192,238 V 241" stroke="#9a4a16" stroke-width="1.4" stroke-linecap="round" />
+    </g>
+
+    <g data-rim-paw-right>
+      <ellipse cx="272" cy="232" rx="16" ry="10.5" class="stoat-outline" fill="#ffb37f" />
+      <ellipse cx="272" cy="233.5" rx="13" ry="8" fill="#f7ecca" />
+      <path d="M 268,238 V 241 M 277,238 V 241" stroke="#9a4a16" stroke-width="1.4" stroke-linecap="round" />
+    </g>
+
+    <!-- Foreground playful swat arm + impact FX -->
+    <g data-swat-arm opacity="0" style="visibility: hidden;" aria-hidden="true">
+      <line
+        data-swat-limb-outer
+        x1="254"
+        y1="216"
+        x2="254"
+        y2="216"
+        stroke="#ffb37f"
+        stroke-width="20"
+        stroke-linecap="round"
+      />
+      <line
+        data-swat-limb-inner
+        x1="254"
+        y1="216"
+        x2="254"
+        y2="216"
+        stroke="#f7ecca"
+        stroke-width="9"
+        stroke-linecap="round"
+      />
+      <g data-swat-paw-tip>
+        <circle cx="0" cy="0" r="13.5" fill="#f7ecca" stroke="#ffb37f" stroke-width="3" />
+        <ellipse cx="0" cy="2.5" rx="5.2" ry="4" fill="#9a4a16" />
+        <circle cx="-5.2" cy="-5.2" r="2.2" fill="#9a4a16" />
+        <circle cx="0" cy="-7" r="2.2" fill="#9a4a16" />
+        <circle cx="5.2" cy="-5.2" r="2.2" fill="#9a4a16" />
+        <path
+          d="M -5,-12 L -6,-16 M 0,-13.5 L 0,-17.5 M 5,-12 L 6,-16"
+          stroke="#002a49"
+          stroke-width="1.5"
+          stroke-linecap="round"
+        />
+      </g>
+    </g>
+
+    <path
+      data-swat-slash
+      d="M -22,-6 Q 0,-22 22,-6"
+      fill="none"
+      stroke="var(--stoat-fx, #ffb37f)"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      opacity="0"
+      style="visibility: hidden;"
+    />
+    <circle
+      data-swat-ring
+      cx="0"
+      cy="0"
+      r="14"
+      fill="none"
+      stroke="var(--stoat-fx, #ffb37f)"
+      stroke-width="2"
+      opacity="0"
+      style="visibility: hidden;"
+    />
+  </svg>
+
+  <!-- Interactive status & controls -->
+  <div class="mt-2 flex flex-col items-center gap-3">
+    <p
+      data-burrow-hint
+      class="min-h-[20px] text-center text-[13px] text-[var(--text-secondary)]"
+    >
+      {initial.idleHint}
+    </p>
+
+    <div class="flex flex-wrap items-center justify-center gap-2 text-[12px]">
+      <span
+        data-catch-badge
+        class="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-hairline)] bg-[var(--bg-alt)] px-3 py-1 font-semibold text-[var(--text-secondary)]"
+      >
+        <span data-catch-label>{initial.caughtLabel}</span>
+        <span class="tabular font-mono text-[var(--text-primary)]" data-catch-count>0</span>
+      </span>
+
+      <span
+        data-dodge-badge
+        class="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-hairline)] bg-[var(--bg-alt)] px-3 py-1 font-semibold text-[var(--text-secondary)]"
+      >
+        <span data-dodge-label>{initial.dodgedLabel}</span>
+        <span class="tabular font-mono text-[var(--text-primary)]" data-dodge-count>0</span>
+      </span>
+
+      <button
+        type="button"
+        data-burrow-pause
+        class="inline-flex min-h-[28px] items-center rounded-full border border-[var(--border-strong)] bg-[var(--bg-card)] px-3 py-1 text-[12px] font-semibold text-[var(--text-primary)] transition-colors duration-150 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+      >
+        {initial.pauseLabel}
+      </button>
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  .stoat-burrow-stage {
+    --stoat-fx: #ffb37f;
+  }
+
+  html[data-theme="light"] .stoat-burrow-stage {
+    --stoat-fx: #9a4a16;
+  }
+
+  .stoat-burrow-stage [data-stoat-character],
+  .stoat-burrow-stage [data-stoat-head],
+  .stoat-burrow-stage [data-stoat-torso],
+  .stoat-burrow-stage [data-stoat-tail],
+  .stoat-burrow-stage [data-pupils],
+  .stoat-burrow-stage [data-eyelids] {
+    will-change: transform;
+  }
+</style>
+
+<script>
+  import gsap from 'gsap';
+
+  type BurrowLocale = 'en' | 'ru';
+
+  interface LocaleStrings {
+    ariaLabel: string;
+    idleHint: string;
+    startleHint: string;
+    peekHint: string;
+    swatCatch: string;
+    swatDodge: string;
+    pausedHint: string;
+    caughtLabel: string;
+    dodgedLabel: string;
+    pauseLabel: string;
+    resumeLabel: string;
+  }
+
+  function initStoatBurrows() {
+    document.querySelectorAll<HTMLElement>('[data-stoat-burrow]').forEach((root) => {
+      if (root.dataset.burrowBound === '1') return;
+      root.dataset.burrowBound = '1';
+
+      const svg = root.querySelector<SVGSVGElement>('[data-burrow-svg]');
+      const character = root.querySelector<SVGGElement>('[data-stoat-character]');
+      const torso = root.querySelector<SVGGElement>('[data-stoat-torso]');
+      const head = root.querySelector<SVGGElement>('[data-stoat-head]');
+      const earLeft = root.querySelector<SVGGElement>('[data-ear-left]');
+      const earRight = root.querySelector<SVGGElement>('[data-ear-right]');
+      const tail = root.querySelector<SVGGElement>('[data-stoat-tail]');
+      const pupils = root.querySelector<SVGGElement>('[data-pupils]');
+      const eyelids = root.querySelector<SVGGElement>('[data-eyelids]');
+      const startleMarks = root.querySelector<SVGGElement>('[data-startle-marks]');
+      const rimPawLeft = root.querySelector<SVGGElement>('[data-rim-paw-left]');
+      const rimPawRight = root.querySelector<SVGGElement>('[data-rim-paw-right]');
+      const swatArm = root.querySelector<SVGGElement>('[data-swat-arm]');
+      const swatLimbOuter = root.querySelector<SVGLineElement>('[data-swat-limb-outer]');
+      const swatLimbInner = root.querySelector<SVGLineElement>('[data-swat-limb-inner]');
+      const swatPawTip = root.querySelector<SVGGElement>('[data-swat-paw-tip]');
+      const swatSlash = root.querySelector<SVGPathElement>('[data-swat-slash]');
+      const swatRing = root.querySelector<SVGCircleElement>('[data-swat-ring]');
+      const hintEl = root.querySelector<HTMLElement>('[data-burrow-hint]');
+      const catchLabelEl = root.querySelector<HTMLElement>('[data-catch-label]');
+      const catchCountEl = root.querySelector<HTMLElement>('[data-catch-count]');
+      const dodgeLabelEl = root.querySelector<HTMLElement>('[data-dodge-label]');
+      const dodgeCountEl = root.querySelector<HTMLElement>('[data-dodge-count]');
+      const pauseBtn = root.querySelector<HTMLButtonElement>('[data-burrow-pause]');
+
+      if (
+        !svg ||
+        !character ||
+        !torso ||
+        !head ||
+        !earLeft ||
+        !earRight ||
+        !tail ||
+        !pupils ||
+        !eyelids ||
+        !startleMarks ||
+        !rimPawLeft ||
+        !rimPawRight ||
+        !swatArm ||
+        !swatLimbOuter ||
+        !swatLimbInner ||
+        !swatPawTip ||
+        !swatSlash ||
+        !swatRing
+      ) {
+        return;
+      }
+
+      const rawMap = root.dataset.i18nJson ? (JSON.parse(root.dataset.i18nJson) as Record<BurrowLocale, LocaleStrings>) : null;
+      const getStrings = (): LocaleStrings => {
+        const isRu = window.location.pathname.startsWith('/ru') || root.dataset.initialLocale === 'ru';
+        const dict = rawMap?.[isRu ? 'ru' : 'en'];
+        return (
+          dict || {
+            ariaLabel: 'Interactive stoat in burrow',
+            idleHint: 'Move closer or flick quickly',
+            startleHint: 'Dived into the burrow!',
+            peekHint: 'Peeking out carefully...',
+            swatCatch: 'Caught!',
+            swatDodge: 'Dodged!',
+            pausedHint: 'Paused',
+            caughtLabel: 'Caught',
+            dodgedLabel: 'Dodged',
+            pauseLabel: 'Pause',
+            resumeLabel: 'Resume',
+          }
+        );
+      };
+
+      const applyLocalizedChrome = () => {
+        const s = getStrings();
+        svg.setAttribute('aria-label', s.ariaLabel);
+        if (catchLabelEl) catchLabelEl.textContent = s.caughtLabel;
+        if (dodgeLabelEl) dodgeLabelEl.textContent = s.dodgedLabel;
+        const isPaused = root.dataset.burrowPaused === 'true';
+        if (pauseBtn) pauseBtn.textContent = isPaused ? s.resumeLabel : s.pauseLabel;
+        if (hintEl && root.dataset.burrowState === 'idle') {
+          hintEl.textContent = isPaused ? s.pausedHint : s.idleHint;
+        }
+      };
+
+      applyLocalizedChrome();
+
+      const mm = gsap.matchMedia();
+
+      mm.add(
+        {
+          motion: '(prefers-reduced-motion: no-preference)',
+          reduced: '(prefers-reduced-motion: reduce)',
+        },
+        (context) => {
+          const reduced = Boolean(context.conditions?.reduced);
+
+          gsap.set([character, torso, head, tail, pupils], { clearProps: 'all' });
+          gsap.set(character, { y: 0, scaleX: 1, scaleY: 1, svgOrigin: '230 220' });
+          gsap.set(torso, { svgOrigin: '230 232' });
+          gsap.set(head, { svgOrigin: '230 126' });
+          gsap.set(earLeft, { svgOrigin: '202 100' });
+          gsap.set(earRight, { svgOrigin: '258 100' });
+          gsap.set(tail, { svgOrigin: '262 224' });
+          gsap.set(eyelids, { scaleY: 0, svgOrigin: '230 98' });
+          gsap.set([startleMarks, swatArm, swatSlash, swatRing], { autoAlpha: 0 });
+          gsap.set([rimPawLeft, rimPawRight], { y: 0, autoAlpha: 1 });
+
+          if (reduced) {
+            root.dataset.burrowState = 'idle';
+            if (pauseBtn) pauseBtn.hidden = true;
+            return;
+          }
+          if (pauseBtn) pauseBtn.hidden = false;
+
+          let state: 'idle' | 'hiding' | 'peeking' | 'stalking' | 'swatting' = 'idle';
+          let paused = root.dataset.burrowPaused === 'true';
+          let caught = Number(catchCountEl?.textContent || '0') || 0;
+          let dodged = Number(dodgeCountEl?.textContent || '0') || 0;
+          let lastSwatEnd = 0;
+
+          let lastClientX: number | null = null;
+          let lastClientY: number | null = null;
+          let lastTime = 0;
+          let liveSvgX = 230;
+          let liveSvgY = 140;
+
+          let activeSeq: gsap.core.Timeline | null = null;
+
+          const setHint = (text: string) => {
+            if (hintEl) hintEl.textContent = text;
+          };
+
+          const setState = (next: typeof state) => {
+            state = next;
+            root.dataset.burrowState = next;
+          };
+
+          // Smooth quickTo followers for curious head/pupil/tail tracking
+          const qTorsoX = gsap.quickTo(torso, 'x', { duration: 0.4, ease: 'power3.out' });
+          const qTorsoRot = gsap.quickTo(torso, 'rotation', { duration: 0.4, ease: 'power3.out' });
+          const qHeadX = gsap.quickTo(head, 'x', { duration: 0.28, ease: 'power3.out' });
+          const qHeadY = gsap.quickTo(head, 'y', { duration: 0.28, ease: 'power3.out' });
+          const qHeadRot = gsap.quickTo(head, 'rotation', { duration: 0.3, ease: 'power3.out' });
+          const qPupilX = gsap.quickTo(pupils, 'x', { duration: 0.16, ease: 'power2.out' });
+          const qPupilY = gsap.quickTo(pupils, 'y', { duration: 0.16, ease: 'power2.out' });
+          const qEarL = gsap.quickTo(earLeft, 'rotation', { duration: 0.34, ease: 'power2.out' });
+          const qEarR = gsap.quickTo(earRight, 'rotation', { duration: 0.34, ease: 'power2.out' });
+          const qTailBase = gsap.quickTo(tail, 'rotation', { duration: 0.5, ease: 'power2.out' });
+
+          // Ambient eye blinks & subtle breathing
+          const blinkTl = gsap.timeline({ repeat: -1, repeatDelay: 3.6, paused });
+          blinkTl
+            .to(eyelids, { scaleY: 1, duration: 0.075, ease: 'power2.in' })
+            .to(eyelids, { scaleY: 0, duration: 0.1, ease: 'power2.out' });
+
+          const swayTl = gsap.timeline({ repeat: -1, yoyo: true, paused });
+          swayTl.to(tail, { x: 2.5, y: -1.5, duration: 1.6, ease: 'sine.inOut' });
+
+          const resetTrackingPose = () => {
+            qTorsoX(0);
+            qTorsoRot(0);
+            qHeadX(0);
+            qHeadY(0);
+            qHeadRot(0);
+            qPupilX(0);
+            qPupilY(0);
+            qEarL(0);
+            qEarR(0);
+            qTailBase(0);
+          };
+
+          const toSvgCoords = (clientX: number, clientY: number) => {
+            const rect = svg.getBoundingClientRect();
+            const scaleX = rect.width > 0 ? 460 / rect.width : 1;
+            const scaleY = rect.height > 0 ? 272 / rect.height : 1;
+            return {
+              x: (clientX - rect.left) * scaleX,
+              y: (clientY - rect.top) * scaleY,
+            };
+          };
+
+          const hideAllSwatArm = () => {
+            gsap.set([swatArm, swatSlash, swatRing], { autoAlpha: 0 });
+            gsap.set([rimPawLeft, rimPawRight], { y: 0, autoAlpha: 1 });
+          };
+
+          const startleHide = () => {
+            if (paused || state === 'hiding' || state === 'swatting') return;
+            activeSeq?.kill();
+            hideAllSwatArm();
+            setState('hiding');
+            resetTrackingPose();
+            setHint(getStrings().startleHint);
+
+            const tl = gsap.timeline({
+              onComplete: () => {
+                setState('idle');
+                if (!paused) setHint(getStrings().idleHint);
+              },
+            });
+            activeSeq = tl;
+
+            tl.set(startleMarks, { autoAlpha: 1, scale: 0.75, svgOrigin: '230 52' })
+              .to(startleMarks, { scale: 1.15, duration: 0.14, ease: 'back.out(2)' }, 0)
+              .to(startleMarks, { autoAlpha: 0, duration: 0.14 }, 0.16)
+              .to(eyelids, { scaleY: 0, duration: 0.08 }, 0)
+              .to([rimPawLeft, rimPawRight], { y: 12, autoAlpha: 0, duration: 0.14, ease: 'power2.in' }, 0)
+              .to(character, { y: 184, scaleY: 1.1, scaleX: 0.88, duration: 0.19, ease: 'power3.in' }, 0.04)
+              // Hold briefly hidden inside the burrow
+              .add(() => {
+                setState('peeking');
+                setHint(getStrings().peekHint);
+              }, '+=0.55')
+              // Cautiously raise ears & eyes right above the rim
+              .to(character, { y: 86, scaleY: 0.98, scaleX: 1.02, duration: 0.42, ease: 'power2.out' })
+              .to(pupils, { x: -4.5, y: -1, duration: 0.22, ease: 'power2.inOut' })
+              .to(pupils, { x: 4.5, y: -1, duration: 0.26, ease: 'power2.inOut' }, '+=0.08')
+              .to(pupils, { x: 0, y: 0, duration: 0.18, ease: 'power2.out' })
+              // Coast clear — spring right back up
+              .to(character, { y: 0, scaleX: 1, scaleY: 1, duration: 0.36, ease: 'back.out(1.6)' })
+              .to([rimPawLeft, rimPawRight], { y: 0, autoAlpha: 1, duration: 0.22, ease: 'power2.out' }, '<0.1');
+          };
+
+          const executeSwat = (targetX: number, targetY: number, isDirectTap: boolean) => {
+            if (paused || state === 'hiding' || state === 'swatting') return;
+            activeSeq?.kill();
+            setState('stalking');
+
+            const isLeft = targetX < 230;
+            const shoulderX = isLeft ? 206 : 254;
+            const shoulderY = 216;
+            const activeRimPaw = isLeft ? rimPawLeft : rimPawRight;
+
+            // Clamp strike target to natural paw reach in SVG coords
+            const dx = targetX - shoulderX;
+            const dy = targetY - shoulderY;
+            const dist = Math.hypot(dx, dy) || 1;
+            const clampedDist = gsap.utils.clamp(38, 150, dist);
+            const tx = shoulderX + (dx / dist) * clampedDist;
+            const ty = gsap.utils.clamp(46, 206, shoulderY + (dy / dist) * clampedDist);
+            const angleDeg = (Math.atan2(ty - shoulderY, tx - shoulderX) * 180) / Math.PI + 90;
+
+            const proxy = { px: shoulderX, py: shoulderY };
+            const syncLimb = () => {
+              swatLimbOuter.setAttribute('x1', String(shoulderX));
+              swatLimbOuter.setAttribute('y1', String(shoulderY));
+              swatLimbOuter.setAttribute('x2', String(proxy.px));
+              swatLimbOuter.setAttribute('y2', String(proxy.py));
+              swatLimbInner.setAttribute('x1', String(shoulderX));
+              swatLimbInner.setAttribute('y1', String(shoulderY));
+              swatLimbInner.setAttribute('x2', String(proxy.px));
+              swatLimbInner.setAttribute('y2', String(proxy.py));
+              gsap.set(swatPawTip, {
+                x: proxy.px,
+                y: proxy.py,
+                rotation: angleDeg,
+                transformOrigin: '0px 0px',
+              });
+            };
+
+            const windupDuration = isDirectTap ? 0.08 : 0.18;
+
+            const tl = gsap.timeline({
+              onComplete: () => {
+                hideAllSwatArm();
+                lastSwatEnd = performance.now();
+                setState('idle');
+              },
+            });
+            activeSeq = tl;
+
+            // Crouch wind-up & narrow eyes playfully
+            tl.to(character, { y: 9, scaleY: 0.94, scaleX: 1.05, duration: windupDuration, ease: 'power2.inOut' }, 0)
+              .to(eyelids, { scaleY: 0.42, duration: windupDuration * 0.8 }, 0)
+              .to(tail, { rotation: isLeft ? 14 : -14, duration: windupDuration }, 0)
+              .add(() => {
+                // Abort politely if user pulled cursor far away before lunge (unless direct tap)
+                if (!isDirectTap && Math.hypot(liveSvgX - 230, liveSvgY - 150) > 195) {
+                  tl.kill();
+                  gsap.to(character, { y: 0, scaleX: 1, scaleY: 1, duration: 0.22, ease: 'power2.out' });
+                  gsap.to(eyelids, { scaleY: 0, duration: 0.15 });
+                  gsap.to(tail, { rotation: 0, duration: 0.25 });
+                  setState('idle');
+                  return;
+                }
+                setState('swatting');
+                gsap.set(activeRimPaw, { autoAlpha: 0 });
+                gsap.set(swatArm, { autoAlpha: 1 });
+                gsap.set(swatPawTip, { scale: 1, transformOrigin: '0px 0px' });
+                syncLimb();
+              })
+              // Fast paw lunge toward cursor
+              .to(character, { y: -4, scaleY: 1.03, scaleX: 0.98, duration: 0.11, ease: 'power4.out' })
+              .to(
+                proxy,
+                {
+                  px: tx,
+                  py: ty,
+                  duration: 0.11,
+                  ease: 'power4.out',
+                  onUpdate: syncLimb,
+                },
+                '<',
+              )
+              .add(() => {
+                // Slash & hit detection at strike moment
+                gsap.set(swatSlash, {
+                  x: tx,
+                  y: ty,
+                  rotation: angleDeg,
+                  scale: 0.7,
+                  autoAlpha: 1,
+                  transformOrigin: '0px 0px',
+                });
+                gsap.to(swatSlash, { scale: 1.25, autoAlpha: 0, duration: 0.24, ease: 'power2.out' });
+
+                const hit = isDirectTap || Math.hypot(liveSvgX - tx, liveSvgY - ty) <= 36;
+                if (hit) {
+                  caught += 1;
+                  if (catchCountEl) catchCountEl.textContent = String(caught);
+                  setHint(getStrings().swatCatch);
+                  gsap.set(swatRing, { attr: { cx: tx, cy: ty }, scale: 0.5, autoAlpha: 0.95, svgOrigin: `${tx} ${ty}` });
+                  gsap.to(swatRing, { scale: 1.7, autoAlpha: 0, duration: 0.34, ease: 'power2.out' });
+                  gsap.fromTo(swatPawTip, { scale: 0.85 }, { scale: 1.08, duration: 0.14, yoyo: true, repeat: 1 });
+                } else {
+                  dodged += 1;
+                  if (dodgeCountEl) dodgeCountEl.textContent = String(dodged);
+                  setHint(getStrings().swatDodge);
+                }
+              })
+              .to(
+                proxy,
+                {
+                  px: shoulderX,
+                  py: shoulderY,
+                  duration: 0.22,
+                  delay: 0.08,
+                  ease: 'back.in(1.3)',
+                  onUpdate: syncLimb,
+                },
+              )
+              .to(swatArm, { autoAlpha: 0, duration: 0.08 }, '>-0.06')
+              .to(activeRimPaw, { autoAlpha: 1, duration: 0.14, ease: 'power2.out' }, '<')
+              .to(eyelids, { scaleY: 0, duration: 0.15 }, '<')
+              .to(character, { y: 0, scaleX: 1, scaleY: 1, duration: 0.26, ease: 'back.out(1.5)' }, '<')
+              .to(tail, { rotation: 0, duration: 0.28, ease: 'power2.out' }, '<');
+          };
+
+          const handlePointerMove = (e: PointerEvent) => {
+            if (paused) return;
+            const now = performance.now();
+            const pt = toSvgCoords(e.clientX, e.clientY);
+            liveSvgX = pt.x;
+            liveSvgY = pt.y;
+
+            let speed = 0;
+            if (lastClientX !== null && lastClientY !== null) {
+              const dt = Math.max(now - lastTime, 6);
+              const movePx = Math.hypot(e.clientX - lastClientX, e.clientY - lastClientY);
+              if (movePx >= 26) {
+                speed = (movePx / dt) * 1000;
+              }
+            }
+            lastClientX = e.clientX;
+            lastClientY = e.clientY;
+            lastTime = now;
+
+            const distToFace = Math.hypot(pt.x - 230, pt.y - 145);
+
+            // 1. Sudden rapid swipe near burrow -> startle & hide!
+            if (speed > 1250 && distToFace < 340 && state !== 'hiding' && state !== 'swatting') {
+              startleHide();
+              return;
+            }
+
+            if (state !== 'idle') return;
+
+            // 2. Smooth head/eyes tracking toward pointer
+            const dxNorm = gsap.utils.clamp(-1, 1, (pt.x - 230) / 180);
+            const dyNorm = gsap.utils.clamp(-1, 1, (pt.y - 125) / 140);
+
+            qTorsoX(dxNorm * 5);
+            qTorsoRot(dxNorm * 4);
+            qHeadX(dxNorm * 6);
+            qHeadY(dyNorm * 3.5);
+            qHeadRot(dxNorm * 7);
+            qPupilX(dxNorm * 5.2);
+            qPupilY(dyNorm * 3.2);
+            qEarL(dxNorm * 5 - Math.abs(dxNorm) * 4);
+            qEarR(dxNorm * 5 + Math.abs(dxNorm) * 4);
+            qTailBase(-dxNorm * 8);
+
+            // 3. Pointer lingered gently close to burrow -> pounce & swat paw!
+            if (distToFace < 126 && now - lastSwatEnd > 650) {
+              executeSwat(pt.x, pt.y, false);
+            }
+          };
+
+          const handleStageClick = (e: PointerEvent) => {
+            if (paused) return;
+            const pt = toSvgCoords(e.clientX, e.clientY);
+            liveSvgX = pt.x;
+            liveSvgY = pt.y;
+            if (state === 'idle' || state === 'stalking') {
+              executeSwat(pt.x, pt.y, true);
+            } else if (state === 'peeking') {
+              startleHide();
+            }
+          };
+
+          const handlePauseClick = () => {
+            paused = !paused;
+            root.dataset.burrowPaused = paused ? 'true' : 'false';
+            const s = getStrings();
+            if (pauseBtn) pauseBtn.textContent = paused ? s.resumeLabel : s.pauseLabel;
+            if (paused) {
+              activeSeq?.kill();
+              blinkTl.pause();
+              swayTl.pause();
+              hideAllSwatArm();
+              gsap.to([character, torso, head, tail, pupils], { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1, duration: 0.2 });
+              gsap.set(eyelids, { scaleY: 0 });
+              setState('idle');
+              setHint(s.pausedHint);
+            } else {
+              blinkTl.play();
+              swayTl.play();
+              setHint(s.idleHint);
+            }
+          };
+
+          window.addEventListener('pointermove', handlePointerMove, { passive: true });
+          svg.addEventListener('pointerdown', handleStageClick);
+          pauseBtn?.addEventListener('click', handlePauseClick);
+
+          return () => {
+            window.removeEventListener('pointermove', handlePointerMove);
+            svg.removeEventListener('pointerdown', handleStageClick);
+            pauseBtn?.removeEventListener('click', handlePauseClick);
+            activeSeq?.kill();
+            blinkTl.kill();
+            swayTl.kill();
+          };
+        },
+      );
+    });
+  }
+
+  initStoatBurrows();
+</script>
