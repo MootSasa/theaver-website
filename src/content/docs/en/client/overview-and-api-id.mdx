@@ -1,0 +1,66 @@
+---
+title: Client Protocol Overview & api_id
+description: Protocol architecture, official vs custom client credentials (api_id / api_hash), required device headers, and Feistel entity IDs.
+track: client
+order: 1
+---
+
+Theaver provides an open, documented protocol for building third-party desktop, mobile, CLI, and automation clients against the live platform backend. Every official and community client talks to the same HTTP REST and WebSocket endpoints.
+
+## Base endpoints
+
+| Surface | URL | Transport |
+|---|---|---|
+| Client REST API | `https://api.theaver.app/api/*` | HTTPS JSON & multipart |
+| Realtime WebSocket RPC | `wss://api.theaver.app/api/ws` | Persistent WebSocket (JSON frames) |
+| Protected media & avatars | `https://api.theaver.app/api/files/download/*` | HTTPS with Bearer JWT or `?mt=` HMAC ticket |
+| Machine-readable schema | [`/openapi.json`](/openapi.json) | OpenAPI 3.1.0 JSON |
+
+<Callout type="info" title="30-bit Feistel entity IDs">
+  Users, chats, channels, attachments, folders, and poll IDs live in `100 000 000` – `2 147 483 647` (signed 32-bit safe). IDs are non-sequential Feistel integers — never increment an ID to guess neighboring records.
+</Callout>
+
+## Client credentials: `api_id` and `api_hash`
+
+Third-party clients identify themselves with a registered pair issued from either:
+
+1. **Web Developer Console:** [Apps console (`/developers/apps`)](/developers/apps) (email OTP or QR login).
+2. **In-app bot studio:** send `/newclient` to **`@BotMother`** or open the **Client Apps** tab in its Mini App.
+
+Each account can own up to **10 active custom apps** (`api_id >= 100000`) plus the built-in official client slots (`1..6`):
+
+| `X-Api-Id` | Platform / Owner | Notes |
+|---|---|---|
+| `1` | Official Android client | Reserved platform slot |
+| `2` | Official iOS client | Reserved platform slot |
+| `3` | Official Windows client | Reserved platform slot |
+| `4` | Official macOS client | Reserved platform slot |
+| `5` | Official Linux client | Reserved platform slot |
+| `6` | Official Web client (`app.theaver.app`) | Reserved platform slot |
+| `>= 100000` | Custom community / personal client | Requires `X-Api-Hash` on auth flows; default `600 RPM` |
+
+### Header enforcement rules
+
+- Pass `X-Api-Id` and `X-Api-Hash` (`64`-char hex secret shown **once** on creation or hash rotation) on authentication routes (`/api/auth/register/*`, `/api/auth/login`, `/api/auth/qr/*`, `/api/auth/oauth/*`).
+- Authenticated sessions store the resolved `api_app_id`, so active sessions display your custom app's name, platform badge, and publisher in **Settings → Devices**.
+- Sending an unknown or revoked custom `X-Api-Id` fails with `400`/`401` `API_ID_INVALID`. Sending a mismatched secret for a custom ID fails with `401` `API_HASH_INVALID`.
+- Omitting `X-Api-Id` on general calls falls back smoothly to an inferred official client app, whereas custom `api_id >= 100000` clients **must** send their valid `X-Api-Hash`.
+
+## Recommended client headers
+
+Include stable device headers on every auth and REST request so sessions render cleanly in the device list and push preferences behave predictably:
+
+```http
+Authorization: Bearer <jwt_token>
+X-Api-Id: 100420
+X-Api-Hash: 4f9a7d...64_hex_chars
+X-Device-ID: my-client-device-uuid-v4
+X-Device-Name: Acme CLI 1.0 (ThinkPad X1)
+X-Device-Type: cli
+X-OS-Name: Linux
+X-OS-Version: 6.12
+X-App-Version: 1.0.0
+X-App-Locale: en
+```
+
+Valid `X-Device-Type` values are `android`, `ios`, `windows`, `macos`, `linux`, `web`, `desktop`, `cli`, and `other`. Note that developer portal JWTs carry `scope: "developer_portal"` and are strictly isolated — client endpoints (`/api/chats`, `/api/updates`, `/api/ws`) reject portal tokens with `401`.

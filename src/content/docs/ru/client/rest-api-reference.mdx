@@ -1,77 +1,69 @@
 ---
-title: Клиентский REST API
-description: Авторизация, QR-вход, чаты, сообщения, дельта-обновления, чанковая загрузка файлов и контракт ошибок клиентского API.
+title: Справочник Client REST API
+description: "Полная карта маршрутов REST API: авторизация, консоль разработчика, синхронизация since_usn, чаты, сообщества, файлы и звонки."
 track: client
-order: 3
+order: 8
 ---
 
-Все защищённые клиентские маршруты используют JWT-токен, привязанный к сессии устройства (`session_id`):
+Все авторизованные клиентские маршруты требуют `Authorization: Bearer <jwt>` пользовательской сессии устройства (токены портала разработчиков с `scope: "developer_portal"` здесь отклоняются). Передавайте `X-Api-Id` (`1..6` или кастомный `>= 100000` в паре с `X-Api-Hash`). Машиночитаемая спецификация доступна в [`/openapi.json`](/openapi.json).
 
-- Рекомендуемый заголовок: `Authorization: Bearer <jwt_token>`
-- WebSocket и прямые медиа-ссылки: `?token=<jwt_token>`
+## Авторизация и подтверждение (`/api/auth/*`)
 
-## Идентификаторы и единый формат ошибок
-
-Идентификаторы пользователей, чатов, папок, сессий, вложений и опросов генерируются 30-битным шифром Фейстеля (`100 000 000` – `2 147 483 647`) и умещаются в знаковый 32-битный integer.
-
-Ошибки возвращаются в едином контракте:
-
-```json
-{
-  "ok": false,
-  "success": false,
-  "error": "BAD_REQUEST",
-  "error_code": 400,
-  "description": "Описание причины ошибки"
-}
-```
-
-| HTTP Статус | Код `error` | Значение |
-|---|---|---|
-| `400` | `BAD_REQUEST` | Ошибка параметров или тела запроса |
-| `401` | `UNAUTHORIZED` / `SESSION_REVOKED` / `TWO_FACTOR_REQUIRED` | Токен истёк, сессия завершена или нужен пароль 2FA |
-| `403` | `FORBIDDEN` / `USER_PRIVACY_RESTRICTED` / `USER_IS_BLOCKED` | Недостаточно прав или ограничение приватности |
-| `404` | `NOT_FOUND` | Сущность не найдена |
-| `409` | `CONFLICT` / `USERNAME_OCCUPIED` | Конфликт состояния или занятый username |
-| `429` | `FLOOD_WAIT` / `SLOWMODE_WAIT` | Превышен лимит запросов или активен slow mode |
-
-## Авторизация и управление сессиями
-
-<ApiEndpoint method="POST" path="/api/auth/login" auth="Public" />
+<ApiEndpoint method="GET" path="/api/auth/providers" auth="Public" />
+<ApiEndpoint method="GET" path="/api/auth/challenge?purpose=register" auth="Public" />
+<ApiEndpoint method="POST" path="/api/auth/register/start" auth="Public" />
+<ApiEndpoint method="POST" path="/api/auth/register/verify" auth="Public" />
 <ApiEndpoint method="POST" path="/api/auth/register" auth="Public" />
+<ApiEndpoint method="POST" path="/api/auth/login" auth="Public" />
 <ApiEndpoint method="POST" path="/api/auth/qr/create" auth="Public" />
-<ApiEndpoint method="GET" path="/api/auth/qr/status/:token" auth="Public" />
-<ApiEndpoint method="POST" path="/api/auth/qr/confirm" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/auth/qr/status/:token" auth="X-QR-Secret" />
+<ApiEndpoint method="POST" path="/api/auth/sessions/qr/confirm" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/auth/qr/verify-2fa" auth="X-QR-Secret" />
 <ApiEndpoint method="GET" path="/api/auth/sessions" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/auth/refresh" auth="Public" />
+<ApiEndpoint method="POST" path="/api/auth/logout" auth="JWT" />
 
-- **Вход и 2FA:** если включён облачный пароль 2FA, `/api/auth/login` возвращает `requires_2fa: true` и временный токен.
-- **Сессии устройств:** список активных входов доступен по `GET /api/auth/sessions`, удалённое завершение — через `POST /api/auth/logout-device` и `POST /api/auth/terminate-others`.
+Дополнительные маршруты: `GET /api/auth/check-username`, `GET /api/auth/phone-verify/:id/status`, `POST /api/auth/sessions/qr/grant`, `POST /api/auth/qr/claim`, OAuth (`/api/auth/oauth/:provider/start`, `/callback`, `/session/:id/status`, `/session/:id/verify-2fa`, `/confirm-link`), восстановление (`/api/auth/recover`, `/password/send-code`, `/password/reset`, `/2fa/reset/send-code`, `/2fa/reset/confirm`), `PATCH /api/auth/sessions/:deviceId/rename`, `POST /api/auth/logout-device`, `POST /api/auth/terminate-others`, `GET`/`PUT /api/auth/sessions/ttl` и удаление аккаунта (`/api/auth/account/delete/{send-code,confirm}` и `/api/security/account/delete/{send-code,confirm}`).
 
-## Чаты, сообщения и дельта-синхронизация
+## Консоль разработчика (`/api/developers/*`)
 
-<ApiEndpoint method="GET" path="/api/chats" auth="JWT" />
-<ApiEndpoint method="GET" path="/api/chats/:id/messages?limit=50&before_id=..." auth="JWT" />
-<ApiEndpoint method="POST" path="/api/chats/:id/messages" auth="JWT" />
-<ApiEndpoint method="GET" path="/api/updates?pts=0&limit=200" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/developers/auth/send-code" auth="Public" />
+<ApiEndpoint method="POST" path="/api/developers/auth/verify" auth="Public" />
+<ApiEndpoint method="GET" path="/api/developers/me" auth="Developer JWT" />
+<ApiEndpoint method="GET" path="/api/developers/apps" auth="Developer JWT" />
+<ApiEndpoint method="POST" path="/api/developers/apps" auth="Developer JWT" />
+<ApiEndpoint method="PATCH" path="/api/developers/apps/:apiId" auth="Developer JWT" />
+<ApiEndpoint method="POST" path="/api/developers/apps/:apiId/rotate-hash" auth="Developer JWT" />
+<ApiEndpoint method="DELETE" path="/api/developers/apps/:apiId" auth="Developer JWT" />
+
+## Синхронизация, чаты и сообщения
+
+<ApiEndpoint method="GET" path="/api/updates?since_usn=0&limit=200" auth="JWT" />
 <ApiEndpoint method="GET" path="/api/search?q=query&type=all" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/chats" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/chats" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/chats/:id" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/chats/:id/messages?limit=50&until_message_id=..." auth="JWT" />
+<ApiEndpoint method="POST" path="/api/chats/:id/messages" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/chats/:id/messages/album" auth="JWT" />
+<ApiEndpoint method="PUT" path="/api/chats/:id/messages/:messageId" auth="JWT" />
+<ApiEndpoint method="DELETE" path="/api/chats/:id/messages/:messageId" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/chats/:id/messages/read-up-to" auth="JWT" />
+<ApiEndpoint method="PUT" path="/api/chats/:id/draft" auth="JWT" />
 
-- Передавайте `local_id` (`client_message_id`) в `POST /api/chats/:id/messages` для безопасных повторных отправок.
-- `GET /api/updates` возвращает `new_messages`, `edited_messages`, `deleted_messages`, `chats`, `next_pts` и `has_more`.
+Полный набор маршрутов включает `/api/chats/saved*`, `/api/chats/invite/:code`, `/api/chats/join/:code`, `/api/chats/:id/pinned-messages`, `/api/chats/:id/scheduled*`, `/api/chats/:id/polls*`, `/api/chats/:id/members*`, `/api/chats/:id/invite-links`, `/api/chats/:id/join-requests*`, `/api/folders/*` и `/api/communities/*`.
 
-## Загрузка файлов и публичные релизы
+## Файлы, стикеры, звонки и публичное API
 
 <ApiEndpoint method="POST" path="/api/files/upload" auth="JWT" />
-<ApiEndpoint method="POST" path="/api/files/upload/init" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/files/upload/chunked/init" auth="JWT" />
+<ApiEndpoint method="PUT" path="/api/files/upload/chunked/part?upload_id=...&part_number=1" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/files/upload/chunked/complete" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/files/download/*objectName" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/files/avatar/*objectName?mt=..." auth="JWT / Media Ticket" />
+<ApiEndpoint method="GET" path="/api/calls/ice-servers" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/calls/start" auth="JWT" />
 <ApiEndpoint method="GET" path="/api/app/check-update" auth="Public" />
 <ApiEndpoint method="GET" path="/api/public/releases" auth="Public" />
-
-Крупные файлы поддерживают возобновляемую загрузку по частям (`upload/init` → загрузка чанков → `complete`) с дедупликацией по `SHA-256`. Актуальную матрицу клиентских сборок можно получить без авторизации на `/api/public/releases`.
-
-## Удаление аккаунта
-
-<ApiEndpoint method="POST" path="/api/auth/account/delete/send-code" auth="Public" />
-<ApiEndpoint method="POST" path="/api/auth/account/delete/confirm" auth="Public" />
-<ApiEndpoint method="POST" path="/api/security/account/delete/send-code" auth="JWT" />
-<ApiEndpoint method="POST" path="/api/security/account/delete/confirm" auth="JWT" />
-
-Подтверждение удаления сразу отзывает все активные сессии устройств и ставит аккаунт в очередь на полное удаление через 7 дней (`grace_period_days: 7`). Повторный вход по логину или QR до истечения этого срока автоматически отменяет удаление.
+<ApiEndpoint method="GET" path="/api/public/preview/:kind/:target" auth="Public" />
+<ApiEndpoint method="GET" path="/api/public/avatar/:kind/:target" auth="Public" />

@@ -1,0 +1,63 @@
+---
+title: Delta Sync, USN & Offline Storage
+description: Incremental sync with GET /api/updates?since_usn=..., outbox idempotency via local_id, High-Water Mark read pointers, and local cache recovery.
+track: client
+order: 3
+---
+
+Instead of refetching full chat histories on every reconnect, Theaver maintains a monotonic per-user **Update Sequence Number (`usn`)** log plus server-enforced idempotency and High-Water Mark read state.
+
+<SyncFlowDiagram locale="en" />
+
+## Incremental updates with `since_usn`
+
+<ApiEndpoint method="GET" path="/api/updates?since_usn=0&limit=200" auth="JWT" />
+
+Query parameters:
+
+| Parameter | Type | Range / Default | Meaning |
+|---|---|---|---|
+| `since_usn` | `int64` | `>= 0` (default `0`) | Last `usn` safely committed to your local database |
+| `limit` | `int` | `1..500` (default `200`) | Maximum number of events to return per page |
+
+Response payload:
+
+```json
+{
+  "success": true,
+  "too_long": false,
+  "events": [
+    {
+      "usn": 48219,
+      "event_type": "new_message",
+      "chat_id": 849201432,
+      "payload": { "...": "..." },
+      "created_at": "2026-11-28T10:14:22Z"
+    }
+  ],
+  "max_usn": 48219,
+  "has_more": false
+}
+```
+
+### Handling gaps and `too_long: true`
+
+- Loop `GET /api/updates?since_usn=<max_usn>` until `has_more === false`, saving `max_usn` transactionally alongside applied events.
+- Update events are retained on the server for **14 days**. If the client was offline longer than retention (or submits a corrupted cursor before the oldest stored event), the backend returns `too_long: true`.
+- When `too_long` is `true`, reset local sync cursor, pull the active dialog snapshot from `GET /api/chats`, refresh visible chat message pages via `GET /api/chats/:id/messages`, and save the returned `max_usn`.
+
+## Idempotent message outbox (`local_id`)
+
+Before transmitting a newly composed message, persist it locally with a client-generated UUID/token in `local_id` (`client_message_id` is an accepted alias). Pass the same `local_id` in REST `POST /api/chats/:id/messages` or WebSocket RPC `send_message`.
+
+- PostgreSQL enforces `UNIQUE (chat_id, sender_id, client_message_id)`.
+- If the network drops after the server saves the message and your client retries with the same `local_id`, the server returns `{ "ok": true, "deduplicated": true, "message": { ... } }` rather than inserting a duplicate.
+
+## High-Water Mark read pointers
+
+Each chat participant record stores two monotonic message ID cursors instead of per-message read booleans:
+
+- `last_read_inbox_message_id`: highest incoming message ID the signed-in user has read (drives unread badge count).
+- `last_read_outbox_message_id`: highest message ID sent by the signed-in user that a recipient has read (drives read checkmarks in direct chats and small groups).
+
+Advance your inbox cursor over REST (`POST /api/chats/:id/messages/read` or `POST /api/chats/:id/messages/read-up-to` with `{ max_id }`) or low-latency WebSocket RPC `read_history`. The backend only moves pointers forward and broadcasts `message_read` / `unread_count_updated` across all signed-in devices.

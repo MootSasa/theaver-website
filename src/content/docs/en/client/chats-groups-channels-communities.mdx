@@ -1,0 +1,43 @@
+---
+title: Chats, Groups, Channels & Communities
+description: Dialog list, Saved Messages, folders, group permissions, invite links, join requests, forum topics, channel links, and Discord-like communities.
+track: client
+order: 5
+---
+
+Theaver unifies 1:1 chats, Saved Messages, multi-admin groups, forum topics, broadcast channels with linked discussion groups, and structured multi-channel communities.
+
+## Dialogs, Saved Messages & organization
+
+<ApiEndpoint method="GET" path="/api/chats" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/chats" auth="JWT" />
+
+- **Saved Messages:** `GET /api/chats/saved`, `GET /api/chats/saved/tags`, `GET /api/chats/saved/peers`, `POST/DELETE /api/chats/saved/messages/:messageId/tags`, `PUT /api/chats/saved/tags/:tag/label`.
+- **Pin, archive & mark unread:** `POST /api/chats/:id/pin`, `POST /api/chats/:id/unpin`, `POST/DELETE /api/chats/:id/archive`, `POST/DELETE /api/chats/:id/mark-unread`, `PUT /api/chats/:id/auto-delete`.
+- **Chat folders:** `/api/folders/*` organizes dialogs into custom tabs with included/excluded peers and chat types.
+
+## Groups, channels & membership
+
+| Operation | Route |
+|---|---|
+| Fetch single chat / join public chat | `GET /api/chats/:id`, `POST /api/chats/:id/join` |
+| Check / join invite link | `GET /api/chats/invite/:code`, `POST /api/chats/join/:code` |
+| Group settings & member roles | `GET/PUT /api/chats/:id/group-settings`, `GET/POST /api/chats/:id/members`, `PUT .../members/:userId/role`, `DELETE .../members/:userId` |
+| Invite links & join requests | `GET/POST /api/chats/:id/invite-links`, `GET /api/chats/:id/join-requests`, `POST .../approve`, `POST .../decline` |
+| Forum topics | Create, edit, pin, close, reopen, or delete topics inside forum-enabled groups |
+| Channel avatars & per-chat theme | `POST/DELETE /api/chats/:id/avatar`, `GET/PUT/DELETE /api/chats/:id/appearance` |
+| Leave, transfer ownership, delete | `POST /api/chats/:id/leave`, `POST /api/chats/:id/transfer-ownership`, `DELETE /api/chats/:id` |
+
+Public channels enforce forwarding restrictions when enabled by admins — attempting to forward or copy restricted posts returns `403` `CHAT_FORWARDS_RESTRICTED`.
+
+## Structured Communities (`/api/communities/*`)
+
+Communities extend groups with nested text, voice, stage, and announcement channels arranged under collapsible categories:
+
+- **Hierarchy:** create and reorder categories, then attach text/voice/stage channels with independent channel/category permission overwrites.
+- **Role-based RBAC:** assign color-coded roles, capability bitmasks, and per-category or per-channel overrides (`allow` / `deny`).
+- **Moderation & audio:** member directory, timed/permanent bans, scoped invite links, and per-community soundboards for voice rooms.
+
+## Global search & user directory
+
+Use `GET /api/search?q=<query>&type=all` to search peers, channels, bots, and accessible message history in a single pass. Resolve profile rules, blocks, and contacts via `/api/users/*` and `/api/contacts/*`.

@@ -1,39 +1,39 @@
 ---
-title: Payments & Walt Wallet (THV)
-description: Accept THV payments in bots and Mini Apps with sendInvoice, createInvoiceLink, and successful_payment updates.
+title: Payments & Walt Ledger (THV)
+description: Accept in-platform THV payments inside bots and Mini Apps with sendInvoice, createInvoiceLink, and successful_payment updates.
 track: bots
 order: 5
 ---
 
-Theaver includes the **Walt** (`@walt`) ledger for in-app transfers and bot or Mini App payments using internal virtual **`THV`** units (`XTR` is also accepted as a currency alias for Telegram Stars compatibility).
+Theaver includes a built-in **Walt** ledger (`@walt`) for virtual internal **`THV`** units inside bots and Mini Apps. For legacy currency-code aliases when porting existing checkout flows, see [Migrating Bots](/docs/bots/migrating-from-telegram).
 
 ## Creating invoices via Bot API
 
-Use either `sendInvoice` (posts a payment card directly into a chat) or `createInvoiceLink` (returns a reusable `invoice_url` that can be opened with `Telegram.WebApp.openInvoice(url)`).
+Use `sendInvoice` to post an interactive payment card into chat, or `createInvoiceLink` to obtain an `invoice_url` that opens in-app via `window.Theaver.WebApp.openInvoice(url)`:
 
 <ApiEndpoint method="POST" path="/bot<token>/sendInvoice" auth="Bot Token" />
 
 ```json
 {
   "chat_id": 849201432,
-  "title": "Pro Plan (1 Month)",
-  "description": "Unlocks extended workspace templates inside the bot.",
+  "title": "Pro Plan — 1 Month",
+  "description": "Unlock custom automation templates and priority queue processing.",
   "payload": "order_pro_30d_user42",
   "currency": "THV",
   "prices": [
-    { "label": "Monthly access", "amount": 50 }
+    { "label": "30-day access", "amount": 50 }
   ]
 }
 ```
 
-If you provide a custom `reply_markup` without a `pay: true` button, Theaver automatically prepends an inline payment button (`Pay 50 THV`) linked to the generated invoice.
+If `reply_markup` does not specify a `pay: true` button, the backend automatically prepends a native payment button (`Pay 50 THV`).
 
-## Receiving `successful_payment` updates
+## Handling `successful_payment`
 
-When the user completes the payment in Walt:
+When a user completes payment in Walt:
 
-1. The ledger settles the `THV` transfer atomically into the bot's balance.
-2. Your bot receives a `message` update containing a `successful_payment` object via `getUpdates` or your configured webhook:
+1. `THV` balances settle atomically from the buyer to the bot ledger.
+2. Your bot receives an `Update` containing `message.successful_payment` via `getUpdates` or webhook:
 
 ```json
 {
@@ -53,8 +53,8 @@ When the user completes the payment in Walt:
 
 ## Withdrawing earned `THV`
 
-Bot owners can inspect bot balances and withdraw earned `THV` directly inside the **`@BotMother`** Studio Mini App or transfer funds through `@walt`.
+Bot owners inspect earnings and withdraw accrued `THV` to their personal `@walt` account directly inside the **`@BotMother`** Studio Mini App.
 
-<Callout type="info" title="Verify invoice payload before fulfillment">
-  Always match `successful_payment.invoice_payload` and `total_amount` against your own database order record before granting digital goods or subscriptions.
+<Callout type="info" title="Verify invoice_payload server-side">
+  Always match `successful_payment.invoice_payload` and `total_amount` against an open order record in your database before provisioning perks or digital goods.
 </Callout>

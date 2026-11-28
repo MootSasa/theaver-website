@@ -1,0 +1,137 @@
+---
+title: Авторизация и управление сессиями
+description: Обнаружение провайдеров, SHA-256 Proof-of-Work, 3-шаговая регистрация, вход с паролем и 2FA, QR-авторизация, OAuth и сессии устройств.
+track: client
+order: 2
+---
+
+Все публичные точки входа в аккаунт находятся под `/api/auth/*`. При использовании собственного клиента (`api_id >= 100000`) передавайте оба заголовка `X-Api-Id` и `X-Api-Hash` на каждом шаге.
+
+## 1. Провайдеры и Proof-of-Work
+
+Перед регистрацией запросите текущую политику региона и решите краткоживущую SHA-256 задачу:
+
+<ApiEndpoint method="GET" path="/api/auth/providers" auth="Public" />
+<ApiEndpoint method="GET" path="/api/auth/challenge?purpose=register" auth="Public" />
+<ApiEndpoint method="GET" path="/api/auth/check-username?username=alice" auth="Public" />
+
+`GET /api/auth/challenge` возвращает `{ "challenge": "<ts>.<diff>.<purpose>.<rndHex>.<hmacHex>", "difficulty_bits": 18, "expires_in_seconds": 300 }`. Подберите целое число `nonce` в виде строки так, чтобы `SHA256(utf8(challenge + ":" + nonce))` содержал не менее `difficulty_bits` нулевых старших битов.
+
+<CodeTabs tabs={['TypeScript', 'Python', 'Go']}>
+```ts
+import { createHash } from 'node:crypto';
+
+export function solvePoW(challenge: string, difficultyBits: number): string {
+  for (let nonce = 0; ; nonce++) {
+    const digest = createHash('sha256')
+      .update(`${challenge}:${nonce}`, 'utf8')
+      .digest();
+    if (hasLeadingZeroBits(digest, difficultyBits)) return String(nonce);
+  }
+}
+
+function hasLeadingZeroBits(buf: Uint8Array, bits: number): boolean {
+  let rem = bits;
+  for (const byte of buf) {
+    if (rem <= 0) return true;
+    if (rem >= 8) {
+      if (byte !== 0) return false;
+      rem -= 8;
+    } else {
+      return (byte >> (8 - rem)) === 0;
+    }
+  }
+  return rem <= 0;
+}
+```
+
+```python
+import hashlib
+
+def solve_pow(challenge: str, difficulty_bits: int) -> str:
+    nonce = 0
+    while True:
+        digest = hashlib.sha256(f"{challenge}:{nonce}".encode("utf-8")).digest()
+        leading = 0
+        for b in digest:
+            if b == 0:
+                leading += 8
+            else:
+                leading += (8 - b.bit_length())
+                break
+        if leading >= difficulty_bits:
+            return str(nonce)
+        nonce += 1
+```
+
+```go
+package main
+
+import (
+	"crypto/sha256"
+	"math/bits"
+	"strconv"
+)
+
+func SolvePoW(challenge string, difficultyBits int) string {
+	for nonce := 0; ; nonce++ {
+		sum := sha256.Sum256([]byte(challenge + ":" + strconv.Itoa(nonce)))
+		leading := 0
+		for _, b := range sum {
+			if b == 0 {
+				leading += 8
+				continue
+			}
+			leading += bits.LeadingZeros8(b)
+			break
+		}
+		if leading >= difficultyBits {
+			return strconv.Itoa(nonce)
+		}
+	}
+}
+```
+</CodeTabs>
+
+## 2. Трёхшаговая регистрация
+
+1. **Запуск проверки:** `POST /api/auth/register/start` с телом `{ email, phone, country_code, pow_challenge, pow_nonce, oauth_registration_token?, locale, device_id }`. Отправляет код на email и, если требуется политикой региона, открывает Reverse-SMS проверку (`GET /api/auth/phone-verify/:id/status`, формат `THV-XXXXXX`).
+2. **Подтверждение кодов:** `POST /api/auth/register/verify` с `{ email, phone, country_code, email_code, phone_verification_id?, oauth_registration_token? }`. Возвращает одноразовый `registration_ticket`.
+3. **Создание аккаунта:** `POST /api/auth/register` с `{ username, password, display_name, first_name, last_name, phone, country_code, registration_ticket, device_id, device_name, device_type, os_name, os_version, app_version }`. Возвращает `{ token, refresh_token, user, device_id }`.
+
+## 3. Вход по паролю и облачному 2FA
+
+<ApiEndpoint method="POST" path="/api/auth/login" auth="Public" />
+
+Отправьте `{ identifier, password, two_factor_password?, recovery_code?, country_code?, device_id, device_name, device_type, os_name, os_version, app_version }` (также принимается псевдоним `username_or_email`).
+
+- Если на аккаунте включён облачный пароль 2FA, сервер вернёт `requires_2fa: true` и подсказку (`two_factor_hint`). Повторите запрос с полем `two_factor_password` или одноразовым `recovery_code`.
+- Если пользователь ранее запускал удаление аккаунта в 7-дневный льготный период, успешный вход автоматически отменит удаление.
+
+## 4. Вход по QR-коду и передача сессии
+
+| Шаг | Маршрут | Кто вызывает | Примечание |
+|---|---|---|---|
+| Создать сессию | `POST /api/auth/qr/create` | Новый клиент | Опционально `scope: "developer_portal"`; возвращает `{ token, short_code, qr_secret, qr_url ("theaver://qr-login?token=..."), expires_at }` |
+| Поллинг статуса | `GET /api/auth/qr/status/:token` | Новый клиент | Заголовок `X-QR-Secret: <qr_secret>`; статусы: `pending`, `awaiting_2fa`, `confirmed`, `expired` |
+| Подтвердить скан | `POST /api/auth/sessions/qr/confirm` | Авторизованный клиент (JWT) | Тело `{ token }` или `{ short_code }` |
+| Завершить 2FA | `POST /api/auth/qr/verify-2fa` | Новый клиент | Заголовок `X-QR-Secret` + `{ token, two_factor_password?, recovery_code? }` |
+
+Также поддерживается выпуск токена с активного устройства (`POST /api/auth/sessions/qr/grant`) и активация на новом (`POST /api/auth/qr/claim`).
+
+## 5. OAuth и восстановление доступа
+
+- **OAuth-вход:** `POST /api/auth/oauth/:provider/start` → редирект в браузере → `GET`/`POST /api/auth/oauth/:provider/callback` → `GET /api/auth/oauth/session/:id/status` → `POST .../verify-2fa` или `POST /api/auth/oauth/confirm-link`.
+- **Сброс пароля и 2FA:** `POST /api/auth/password/send-code` + `POST /api/auth/password/reset`, `POST /api/auth/2fa/reset/send-code` + `POST /api/auth/2fa/reset/confirm`, вход по коду восстановления `POST /api/auth/recover`.
+
+## 6. Сессии и обновление токена
+
+| Маршрут | Авторизация | Назначение |
+|---|---|---|
+| `GET /api/auth/sessions` | JWT | Список устройств (`device_id`, `device_name`, `device_type`, `api_app_id`, IP, время активности) |
+| `POST /api/auth/refresh` | Public (`refresh_token`) | Выдача нового access JWT |
+| `PATCH /api/auth/sessions/:deviceId/rename` | JWT | Переименование сессии устройства |
+| `POST /api/auth/logout` | JWT | Завершение текущей сессии |
+| `POST /api/auth/logout-device` | JWT | Закрытие сессии другого устройства по `device_id` |
+| `POST /api/auth/terminate-others` | JWT | Завершение всех остальных сессий |
+| `GET` / `PUT /api/auth/sessions/ttl` | JWT | Автозавершение неактивных сессий |

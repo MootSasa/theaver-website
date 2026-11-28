@@ -1,0 +1,74 @@
+---
+title: Messages, Entities & Formatting
+description: Message pagination cursors, sending text/media/quotes/spoilers/TTL messages, albums, editing, pins, reactions, drafts, polls, and scheduled posts.
+track: client
+order: 4
+---
+
+Messages support rich structured formatting (`entities`), albums (`grouped_id`), forum topic routing (`topic_id`), quotes, spoilers, view-once & self-destructing timers, reactions, polls, and cloud drafts.
+
+## Fetching message history
+
+<ApiEndpoint method="GET" path="/api/chats/:id/messages?limit=50" auth="JWT" />
+
+| Query Param | Type | Description |
+|---|---|---|
+| `limit` | `int` | Page size (default `50`) |
+| `until_message_id` | `int` | Load older messages strictly before this ID |
+| `after_message_id` | `int` | Load newer messages strictly after this ID |
+| `around_message_id` | `int` | Jump directly to a window centered on a target message ID |
+| `topic_id` | `int` | Filter messages to a specific forum topic |
+| `tag` / `saved_peer_key` | `string` | Filter Saved Messages by tag or original source peer |
+
+Additional history utilities: `GET /api/chats/:id/shared-media`, `GET /api/chats/:id/calendar`, `GET /api/chats/:id/pinned-messages`, and `GET /api/chats/:id/unread-info`.
+
+## Sending messages & albums
+
+<ApiEndpoint method="POST" path="/api/chats/:id/messages" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/chats/:id/messages/album" auth="JWT" />
+
+Key JSON fields on `POST /api/chats/:id/messages`:
+
+- **Core payload:** `content`, `message_type` (`text`, `image`, `video`, `voice`, `audio`, `document`, `sticker`, `gif`, `location`, `contact`), `local_id`, `file_url`, `file_name`.
+- **Media metadata:** `is_round` (video circle with `message_type: "video"`), `has_media_spoiler`, `invert_media`, `waveform`, `duration`, `grouped_id`.
+- **Ephemerality & effects:** `is_silent`, `is_view_once`, `ttl_seconds` (`0..60`, media messages in non-channel chats), `effect_id`.
+- **Replies, quotes & topics:** `reply_to_message_id`, `topic_id`, `is_quote`, `quote_text`, `quote_offset`, `quote_length`.
+- **Sender identity:** `send_as_mode`, `send_as_chat_id`, `send_as_anonymous` (group admins posting anonymously or via linked channel).
+- **Rich geo/contact:** `latitude`, `longitude`, `live_period`, `contact`. Update active live location via `PATCH /api/chats/:id/messages/:messageId/live-location`.
+
+## Formatted `entities` array
+
+Render formatting using UTF-16 code-unit `offset` and `length` ranges alongside plaintext `content`:
+
+```json
+{
+  "content": "Ship v1.21 today! #release",
+  "entities": [
+    { "type": "bold", "offset": 0, "length": 11 },
+    { "type": "custom_emoji", "offset": 17, "length": 2, "custom_emoji_id": "9012482" },
+    { "type": "hashtag", "offset": 18, "length": 8 }
+  ],
+  "link_preview_options": {
+    "is_disabled": false,
+    "prefer_large_media": true
+  }
+}
+```
+
+Supported entity types include `bold`, `italic`, `underline`, `strikethrough`, `spoiler`, `code`, `pre`, `blockquote`, `expandable_blockquote`, `text_link`, `url`, `mention`, `hashtag`, `bot_command`, and `custom_emoji`.
+
+## Edits, deletions, reactions, pins & drafts
+
+| Action | Endpoint |
+|---|---|
+| Edit text / entities | `PUT /api/chats/:id/messages/:messageId` |
+| Delete single message | `DELETE /api/chats/:id/messages/:messageId` |
+| Batch delete / clear history | `POST /api/chats/:id/messages/delete`, `DELETE /api/chats/:id/messages` |
+| Forward messages | `POST /api/chats/:id/messages/forward` |
+| Pin / Unpin / Unpin all | `POST/DELETE /api/chats/:id/messages/:messageId/pin`, `DELETE /api/chats/:id/pinned-messages` |
+| Reactions (up to 3 per message) | `POST /api/chats/:id/messages/:messageId/reactions` |
+| Consume view-once / report screenshot | `POST /api/chats/:id/messages/:messageId/consume-view-once`, `POST /api/chats/:id/screenshot` |
+| Cloud draft | `PUT /api/chats/:id/draft` |
+| Scheduled messages | `GET/POST /api/chats/:id/scheduled`, `PUT/DELETE /api/chats/:id/scheduled/:schedId`, `POST .../send-now` |
+| Polls & quizzes | `POST /api/chats/:id/polls`, `POST .../vote`, `POST .../close`, `GET .../results` |
+| On-demand translation | `POST /api/chats/:id/messages/:messageId/translate` |

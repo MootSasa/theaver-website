@@ -1,0 +1,55 @@
+---
+title: Error Codes & Rate Limits
+description: Canonical JSON error contract, HTTP status mappings, custom api_id RPM quotas, and FLOOD_WAIT / SLOWMODE_WAIT backoff handling.
+track: client
+order: 10
+---
+
+All REST and WebSocket RPC errors use a consistent structured JSON schema and uppercase symbolic `error` string so clients never need to parse human-readable descriptions.
+
+## Canonical error envelope
+
+```json
+{
+  "ok": false,
+  "success": false,
+  "error_code": 429,
+  "error": "FLOOD_WAIT",
+  "description": "Rate limit exceeded. Retry in 14 seconds.",
+  "message": "Rate limit exceeded. Retry in 14 seconds.",
+  "parameters": {
+    "retry_after": 14
+  },
+  "retry_after": 14
+}
+```
+
+HTTP responses triggered by `429` limits also include a standard `Retry-After` response header.
+
+## Error code reference
+
+| HTTP Status | `error` | Meaning & Client Handling |
+|---|---|---|
+| `400` | `BAD_REQUEST` | Invalid parameter format or constraint violation |
+| `400` / `401` | `API_ID_INVALID` | `X-Api-Id` is malformed, unknown, or revoked |
+| `401` | `API_HASH_INVALID` | Missing or invalid `X-Api-Hash` for a custom `api_id >= 100000` |
+| `401` | `UNAUTHORIZED` | Missing, malformed, expired, or wrong-scope JWT |
+| `401` | `SESSION_REVOKED` | Session terminated remotely; wipe local credentials and prompt re-login |
+| `401` | `TWO_FACTOR_REQUIRED` | Cloud 2FA password required to finish sign-in |
+| `403` | `FORBIDDEN` | Insufficient permissions for the target resource |
+| `403` | `CHAT_WRITE_FORBIDDEN` | Not a member, muted, or restricted from sending media in chat |
+| `403` | `CHAT_FORWARDS_RESTRICTED` | Forwarding/copying disabled by channel or group admins |
+| `403` | `USER_PRIVACY_RESTRICTED` | Action blocked by recipient's privacy rules |
+| `403` | `USER_IS_BLOCKED` | Sender is blocked by the recipient |
+| `404` | `NOT_FOUND` | Chat, message, user, or invite code does not exist |
+| `409` | `CONFLICT` / `USERNAME_OCCUPIED` | Uniqueness or state conflict (choose another username) |
+| `429` | `FLOOD_WAIT` | Per-IP, auth, or per-`api_id` sliding-window RPM limit exceeded |
+| `429` | `SLOWMODE_WAIT` | Chat slowmode cooldown still active; sleep `parameters.retry_after` seconds |
+| `400` / `500` | `UNKNOWN_METHOD` / `INTERNAL_ERROR` | Unsupported WS RPC `type` or transient server error |
+| `503` | `SERVICE_UNAVAILABLE` | Storage, database, or upstream worker temporarily busy |
+
+## Custom app rate limits & backoff rules
+
+- Every newly created custom app (`api_id >= 100000`) starts with a default quota of **`600 RPM`** across authenticated requests plus anti-abuse caps on unauthenticated `/api/auth/*` endpoints.
+- **Retry strategy:** on `429` (`FLOOD_WAIT` or `SLOWMODE_WAIT`), read `parameters.retry_after` (falling back to the `Retry-After` HTTP header), pause queued retries on that endpoint/chat for `retry_after + 0.25s` jitter, and never tight-loop retry auth or login calls.
+- On `401 SESSION_REVOKED`, do not call `/api/auth/refresh` in a loop — drop local session tokens immediately.

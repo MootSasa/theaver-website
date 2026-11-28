@@ -1,13 +1,13 @@
 ---
 title: Migrating from Telegram Bot API
-description: Run existing aiogram, grammY, python-telegram-bot, or telegraf bots on Theaver by changing only the base API URL.
+description: Run existing aiogram, grammY, python-telegram-bot, or telegraf bots and Telegram WebApps on Theaver with zero code rewrites.
 track: bots
 order: 2
 ---
 
-Because Theaver implements the standard `/bot<token>/<method>` contract, response envelope (`{"ok": true, "result": ...}`), `Update` payload fields, and `reply_markup` types, existing bots usually require only pointing the library's API base URL to `https://api.theaver.app`.
+Because Theaver implements the standard `/bot<token>/<method>` contract, response envelope (`{"ok": true, "result": ...}`), `Update` payload fields, Mini App v8 JS bridge aliases, and `reply_markup` types, existing Telegram bots and Mini Apps typically require only changing the API base URL to `https://api.theaver.app`.
 
-## Library examples
+## Bot library examples
 
 <CodeTabs tabs={['Python (aiogram 3)', 'TypeScript (grammY)', 'Python (PTB v21)', 'Node (Telegraf)']}>
 ```python
@@ -81,7 +81,17 @@ bot.launch();
 ```
 </CodeTabs>
 
-## Compatibility notes
+## Consolidated compatibility aliases
+
+Theaver keeps these drop-in compatibility shims alongside native Theaver naming:
+
+| Surface | Native Theaver | Compatibility Alias |
+|---|---|---|
+| Mini Apps global | `window.Theaver.WebApp` | `window.Telegram.WebApp` |
+| Mini App init header | `X-Theaver-Init-Data` | `X-Telegram-Init-Data` |
+| Webhook secret header | `X-Theaver-Bot-Api-Secret-Token` | `X-Telegram-Bot-Api-Secret-Token` |
+| Payment currency | `THV` | `XTR` (mapped 1:1 to `THV` for Telegram Stars bots) |
+| External sticker import | `POST /api/stickers/import-pack` | `POST /api/stickers/import-telegram` |
 
 - **Chat IDs:** Theaver uses non-sequential 30-bit Feistel IDs (`100 000 000` – `2 147 483 647`). Group and channel `chat_id` parameters accept raw IDs (`849201432`), `-100849201432` prefixed IDs, and `@username`.
 - **Parse modes:** Supports `MarkdownV2`, `Markdown`, `HTML`, and explicit `entities` arrays.

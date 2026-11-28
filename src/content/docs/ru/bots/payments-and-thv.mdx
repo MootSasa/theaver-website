@@ -5,11 +5,11 @@ track: bots
 order: 5
 ---
 
-В Theaver встроен реестр **Walt** (`@walt`) для расчётов во внутренних виртуальных единицах **`THV`** (для совместимости с Telegram Stars также принимается код валюты `XTR`).
+В Theaver встроен реестр **Walt** (`@walt`) для расчётов во внутренних виртуальных единицах **`THV`** внутри ботов и Mini Apps. Устаревшие псевдонимы кодов валюты описаны в [Миграции ботов](/ru/docs/bots/migrating-from-telegram).
 
 ## Выставление счетов через Bot API
 
-Используйте `sendInvoice` (отправляет карточку оплаты в чат) или `createInvoiceLink` (генерирует ссылку `invoice_url` для открытия через `Telegram.WebApp.openInvoice(url)`).
+Используйте `sendInvoice` (отправляет карточку оплаты в чат) или `createInvoiceLink` (генерирует ссылку `invoice_url` для открытия через `window.Theaver.WebApp.openInvoice(url)`):
 
 <ApiEndpoint method="POST" path="/bot<token>/sendInvoice" auth="Bot Token" />
 

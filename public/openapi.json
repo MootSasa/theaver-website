@@ -1,0 +1,486 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Theaver Client & Developer API",
+    "version": "1.21.0",
+    "description": "Verified REST contract for third-party Theaver clients (X-Api-Id / X-Api-Hash), Developer Console, incremental sync (since_usn), chats, messages, chunked uploads, communities, calls, and public release endpoints. Realtime streaming & signaling live at wss://api.theaver.app/api/ws."
+  },
+  "servers": [
+    {
+      "url": "https://api.theaver.app",
+      "description": "Production API"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Client session JWT (developer_portal scoped tokens are rejected on client endpoints)."
+      },
+      "DeveloperPortalAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Developer portal scoped JWT (scope=developer_portal) accepted only by /api/developers/*."
+      },
+      "ApiIdHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Api-Id",
+        "description": "Official client slot (1..6) or registered custom developer app id (>= 100000)."
+      },
+      "ApiHashHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Api-Hash",
+        "description": "64-char hex secret paired with custom X-Api-Id >= 100000."
+      },
+      "QRSecretHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-QR-Secret",
+        "description": "Secret issued by POST /api/auth/qr/create for status polling and 2FA completion."
+      }
+    },
+    "schemas": {
+      "TheaverError": {
+        "type": "object",
+        "required": ["ok", "success", "error_code", "error"],
+        "properties": {
+          "ok": { "type": "boolean", "const": false },
+          "success": { "type": "boolean", "const": false },
+          "error_code": { "type": "integer", "example": 429 },
+          "error": {
+            "type": "string",
+            "enum": [
+              "BAD_REQUEST",
+              "UNAUTHORIZED",
+              "SESSION_REVOKED",
+              "TWO_FACTOR_REQUIRED",
+              "API_ID_INVALID",
+              "API_HASH_INVALID",
+              "FORBIDDEN",
+              "CHAT_WRITE_FORBIDDEN",
+              "CHAT_FORWARDS_RESTRICTED",
+              "USER_PRIVACY_RESTRICTED",
+              "USER_IS_BLOCKED",
+              "NOT_FOUND",
+              "CONFLICT",
+              "USERNAME_OCCUPIED",
+              "FLOOD_WAIT",
+              "SLOWMODE_WAIT",
+              "UNKNOWN_METHOD",
+              "INTERNAL_ERROR",
+              "SERVICE_UNAVAILABLE"
+            ]
+          },
+          "description": { "type": "string" },
+          "message": { "type": "string" },
+          "retry_after": { "type": "integer" },
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "retry_after": { "type": "integer" }
+            }
+          }
+        }
+      },
+      "UpdateEvent": {
+        "type": "object",
+        "required": ["usn", "event_type", "created_at"],
+        "properties": {
+          "usn": { "type": "integer", "format": "int64" },
+          "event_type": { "type": "string" },
+          "chat_id": { "type": "integer", "format": "int64" },
+          "payload": { "type": "object" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "UpdatesResponse": {
+        "type": "object",
+        "required": ["success", "too_long", "events", "max_usn", "has_more"],
+        "properties": {
+          "success": { "type": "boolean" },
+          "too_long": { "type": "boolean" },
+          "events": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/UpdateEvent" }
+          },
+          "max_usn": { "type": "integer", "format": "int64" },
+          "has_more": { "type": "boolean" }
+        }
+      },
+      "DeveloperClientApp": {
+        "type": "object",
+        "required": ["api_id", "app_title", "short_name", "platform", "status", "rate_limit_rpm"],
+        "properties": {
+          "api_id": { "type": "integer", "minimum": 100000 },
+          "app_title": { "type": "string" },
+          "short_name": { "type": "string" },
+          "description": { "type": "string" },
+          "platform": { "type": "string", "enum": ["android", "ios", "windows", "macos", "linux", "web", "desktop", "cli", "other"] },
+          "website_url": { "type": "string" },
+          "status": { "type": "string", "enum": ["active", "revoked", "suspended"] },
+          "rate_limit_rpm": { "type": "integer" },
+          "api_hash_preview": { "type": "string" },
+          "api_hash": { "type": "string", "description": "Returned once on create or rotate-hash." }
+        }
+      }
+    },
+    "responses": {
+      "StandardError": {
+        "description": "Structured API error",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/TheaverError" }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Service health check",
+        "responses": { "200": { "description": "Service is healthy" } }
+      }
+    },
+    "/api/auth/providers": {
+      "get": {
+        "summary": "Auth providers, locale defaults & PoW requirements",
+        "responses": { "200": { "description": "Region auth provider configuration" } }
+      }
+    },
+    "/api/auth/challenge": {
+      "get": {
+        "summary": "Mint SHA-256 Proof-of-Work challenge",
+        "parameters": [
+          { "name": "purpose", "in": "query", "schema": { "type": "string", "default": "register" } }
+        ],
+        "responses": { "200": { "description": "Challenge string and difficulty_bits" } }
+      }
+    },
+    "/api/auth/check-username": {
+      "get": {
+        "summary": "Check username availability",
+        "parameters": [
+          { "name": "username", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Availability status" } }
+      }
+    },
+    "/api/auth/register/start": {
+      "post": {
+        "summary": "Step 1: Verify email/phone with solved PoW",
+        "security": [{ "ApiIdHeader": [], "ApiHashHeader": [] }, {}],
+        "responses": { "200": { "description": "Verification started" }, "429": { "$ref": "#/components/responses/StandardError" } }
+      }
+    },
+    "/api/auth/register/verify": {
+      "post": {
+        "summary": "Step 2: Validate OTP codes to mint registration_ticket",
+        "security": [{ "ApiIdHeader": [], "ApiHashHeader": [] }, {}],
+        "responses": { "200": { "description": "Registration ticket" }, "400": { "$ref": "#/components/responses/StandardError" } }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "summary": "Step 3: Finalize account registration",
+        "security": [{ "ApiIdHeader": [], "ApiHashHeader": [] }, {}],
+        "responses": { "200": { "description": "Created user & session tokens" }, "409": { "$ref": "#/components/responses/StandardError" } }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Sign in with username/email/phone and password (+ optional 2FA)",
+        "security": [{ "ApiIdHeader": [], "ApiHashHeader": [] }, {}],
+        "responses": { "200": { "description": "Authenticated session or 2FA challenge" }, "401": { "$ref": "#/components/responses/StandardError" } }
+      }
+    },
+    "/api/auth/qr/create": {
+      "post": {
+        "summary": "Create QR login token (client or developer_portal scope)",
+        "security": [{ "ApiIdHeader": [], "ApiHashHeader": [] }, {}],
+        "responses": { "200": { "description": "QR payload and X-QR-Secret" } }
+      }
+    },
+    "/api/auth/qr/status/{token}": {
+      "get": {
+        "summary": "Poll QR authorization state",
+        "security": [{ "QRSecretHeader": [] }],
+        "parameters": [{ "name": "token", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "pending | awaiting_2fa | confirmed | expired" } }
+      }
+    },
+    "/api/auth/sessions/qr/confirm": {
+      "post": {
+        "summary": "Confirm QR scan from an active signed-in client",
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "QR session confirmed" } }
+      }
+    },
+    "/api/auth/qr/verify-2fa": {
+      "post": {
+        "summary": "Complete QR sign-in when cloud 2FA is active",
+        "security": [{ "QRSecretHeader": [] }],
+        "responses": { "200": { "description": "Authenticated tokens" } }
+      }
+    },
+    "/api/auth/sessions": {
+      "get": {
+        "summary": "List active device sessions (includes api_app_id & custom client metadata)",
+        "security": [{ "BearerAuth": [], "ApiIdHeader": [] }],
+        "responses": { "200": { "description": "Session list" } }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "summary": "Refresh access JWT",
+        "responses": { "200": { "description": "Fresh JWT pair" } }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "summary": "Sign out current device session",
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "Logged out" } }
+      }
+    },
+    "/api/auth/logout-device": {
+      "post": {
+        "summary": "Revoke another device session by device_id",
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "Device terminated" } }
+      }
+    },
+    "/api/auth/terminate-others": {
+      "post": {
+        "summary": "Revoke all other device sessions",
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "All other sessions revoked" } }
+      }
+    },
+    "/api/developers/auth/send-code": {
+      "post": {
+        "summary": "Send email OTP to access Developer Console",
+        "responses": { "200": { "description": "Code sent" } }
+      }
+    },
+    "/api/developers/auth/verify": {
+      "post": {
+        "summary": "Verify OTP (and optional 2FA) for developer_portal JWT",
+        "responses": { "200": { "description": "Scoped developer_portal JWT" } }
+      }
+    },
+    "/api/developers/me": {
+      "get": {
+        "summary": "Inspect signed-in developer profile",
+        "security": [{ "DeveloperPortalAuth": [] }],
+        "responses": { "200": { "description": "Developer user summary" } }
+      }
+    },
+    "/api/developers/apps": {
+      "get": {
+        "summary": "List registered custom client apps",
+        "security": [{ "DeveloperPortalAuth": [] }],
+        "responses": { "200": { "description": "List of apps and quota count (max 10)" } }
+      },
+      "post": {
+        "summary": "Create custom client app and reveal one-time api_hash",
+        "security": [{ "DeveloperPortalAuth": [] }],
+        "responses": {
+          "201": {
+            "description": "Created client app",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DeveloperClientApp" } } }
+          }
+        }
+      }
+    },
+    "/api/developers/apps/{apiId}": {
+      "patch": {
+        "summary": "Update custom client app metadata",
+        "security": [{ "DeveloperPortalAuth": [] }],
+        "parameters": [{ "name": "apiId", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Updated client app" } }
+      },
+      "delete": {
+        "summary": "Revoke and remove custom client app",
+        "security": [{ "DeveloperPortalAuth": [] }],
+        "parameters": [{ "name": "apiId", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "App revoked" } }
+      }
+    },
+    "/api/developers/apps/{apiId}/rotate-hash": {
+      "post": {
+        "summary": "Rotate api_hash for custom client app",
+        "security": [{ "DeveloperPortalAuth": [] }],
+        "parameters": [{ "name": "apiId", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "New one-time api_hash" } }
+      }
+    },
+    "/api/updates": {
+      "get": {
+        "summary": "Incremental per-user delta sync via monotonic since_usn",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "since_usn", "in": "query", "schema": { "type": "integer", "format": "int64", "default": 0 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 500, "default": 200 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Delta events batch",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdatesResponse" } } }
+          }
+        }
+      }
+    },
+    "/api/search": {
+      "get": {
+        "summary": "Unified search across chats, users, channels, and messages",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "q", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "type", "in": "query", "schema": { "type": "string", "default": "all" } }
+        ],
+        "responses": { "200": { "description": "Search results" } }
+      }
+    },
+    "/api/chats": {
+      "get": {
+        "summary": "List active dialogs",
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "Chat list with last_read pointers and unread counts" } }
+      },
+      "post": {
+        "summary": "Create direct chat, group, or channel",
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "201": { "description": "Created chat" } }
+      }
+    },
+    "/api/chats/{id}": {
+      "get": {
+        "summary": "Fetch chat metadata",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Chat details" } }
+      },
+      "delete": {
+        "summary": "Delete chat or channel",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Deleted" } }
+      }
+    },
+    "/api/chats/{id}/messages": {
+      "get": {
+        "summary": "Paginate message history using until_message_id / after_message_id / around_message_id",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50 } },
+          { "name": "until_message_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "after_message_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "around_message_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "topic_id", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "Message page" } }
+      },
+      "post": {
+        "summary": "Send message with optional local_id idempotency & UTF-16 entities",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "201": { "description": "Created or deduplicated message" }, "429": { "$ref": "#/components/responses/StandardError" } }
+      }
+    },
+    "/api/chats/{id}/messages/read-up-to": {
+      "post": {
+        "summary": "Advance High-Water Mark last_read_inbox_message_id",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Updated read state" } }
+      }
+    },
+    "/api/files/upload": {
+      "post": {
+        "summary": "Upload single file attachment (multipart field: file)",
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "Uploaded file descriptor & SHA-256" } }
+      }
+    },
+    "/api/files/upload/chunked/init": {
+      "post": {
+        "summary": "Initialize 2 MiB resumable chunked upload",
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "upload_id and chunk_size (2097152)" } }
+      }
+    },
+    "/api/files/upload/chunked/part": {
+      "put": {
+        "summary": "Upload individual part of chunked upload",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "upload_id", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "part_number", "in": "query", "required": true, "schema": { "type": "integer", "minimum": 1 } }
+        ],
+        "responses": { "200": { "description": "Part stored" } }
+      }
+    },
+    "/api/files/upload/chunked/complete": {
+      "post": {
+        "summary": "Assemble and deduplicate chunked upload",
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "Final file metadata" } }
+      }
+    },
+    "/api/calls/ice-servers": {
+      "get": {
+        "summary": "Fetch STUN / Coturn TLS 443 ICE credentials",
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "ICE server list" } }
+      }
+    },
+    "/api/calls/start": {
+      "post": {
+        "summary": "Start 1:1 or group call / LiveKit SFU room",
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "Call and LiveKit connection payload" } }
+      }
+    },
+    "/api/communities": {
+      "get": {
+        "summary": "List user communities",
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "Communities list" } }
+      },
+      "post": {
+        "summary": "Create community with categories, channels, and RBAC roles",
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "201": { "description": "Created community" } }
+      }
+    },
+    "/api/app/check-update": {
+      "get": {
+        "summary": "Check latest client release for platform & channel",
+        "responses": { "200": { "description": "Latest version info" } }
+      }
+    },
+    "/api/public/releases": {
+      "get": {
+        "summary": "Release matrix with SHA-256 checksums across channels and architectures",
+        "responses": { "200": { "description": "Release artifacts grouped by channel" } }
+      }
+    },
+    "/api/public/preview/{kind}/{target}": {
+      "get": {
+        "summary": "Public SSR metadata for user, channel, or invite links",
+        "parameters": [
+          { "name": "kind", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "target", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Privacy-filtered entity preview" } }
+      }
+    }
+  }
+}

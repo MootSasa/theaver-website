@@ -1,53 +1,53 @@
 ---
 title: Updates, Messaging & Inline Mode
-description: Reference for getUpdates, webhooks, messaging methods, keyboards, group moderation, and inline queries in the Theaver Bot API.
+description: Reference for getUpdates, webhooks (X-Theaver-Bot-Api-Secret-Token), messages, inline keyboards, polls, moderation, and inline queries.
 track: bots
 order: 3
 ---
 
-## Receiving updates: Long Polling vs Webhooks
+## Receiving updates: Long Polling & Webhooks
 
 ### `getUpdates` (Long Polling)
 
 <ApiEndpoint method="POST" path="/bot<token>/getUpdates" auth="Bot Token" />
 
-| Parameter | Type | Description |
+| Field | Type | Description |
 |---|---|---|
-| `offset` | Integer | Identifier of the first update to be returned (`last_update_id + 1` acknowledges prior updates) |
-| `limit` | Integer | Maximum updates per response (`1`–`100`, default `100`) |
+| `offset` | Integer | Identifier of the first update to be returned (`last_update_id + 1` acknowledges earlier items) |
+| `limit` | Integer | Maximum updates per request (`1`–`100`, default `100`) |
 | `timeout` | Integer | Long-polling timeout in seconds (up to `50`) |
-| `allowed_updates` | Array of String | Filter update types (`message`, `edited_message`, `channel_post`, `callback_query`, `inline_query`) |
+| `allowed_updates` | Array of String | Event filter (`message`, `edited_message`, `channel_post`, `callback_query`, `inline_query`) |
 
 ### `setWebhook` / `deleteWebhook` / `getWebhookInfo`
 
 <ApiEndpoint method="POST" path="/bot<token>/setWebhook" auth="Bot Token" />
 
-Configure an HTTPS webhook URL and an optional `secret_token`. Theaver sends `secret_token` in the `X-Telegram-Bot-Api-Secret-Token` HTTP header on every webhook delivery so your server can verify request authenticity.
+Provide an HTTPS URL and an optional `secret_token`. Theaver sends `secret_token` in the `X-Theaver-Bot-Api-Secret-Token` HTTP header on every webhook delivery (alongside legacy compatibility headers noted in [Migrating Bots](/docs/bots/migrating-from-telegram)).
 
 ## Sending & editing messages
 
-| Method | Key parameters | Description |
+| Method | Key parameters | Purpose |
 |---|---|---|
-| `getMe` | — | Returns the bot `User` object (`is_bot`, `can_join_groups`, `supports_inline_queries`, `has_main_web_app`) |
-| `sendMessage` | `chat_id`, `text`, `parse_mode`, `entities`, `reply_parameters`, `reply_markup`, `disable_notification`, `message_thread_id` | Send a text message |
-| `sendMediaGroup` | `chat_id`, `media` | Send an album of photos/videos/documents |
-| `sendPhoto`, `sendDocument`, `sendVideo`, `sendAudio`, `sendVoice`, `sendVideoNote`, `sendAnimation`, `sendSticker` | `chat_id`, media field / multipart upload, `caption`, `reply_markup` | Send media attachments |
-| `sendLocation`, `sendVenue`, `sendContact` | `chat_id`, coordinates / contact details | Send location, venue, or contact cards |
-| `sendDice` | `chat_id`, `emoji` | Send randomized dice message (`dice.value`) |
-| `sendPoll`, `stopPoll` | `chat_id`, `question`, `options`, `type` (`regular` \| `quiz`) | Create or close polls and quizzes |
-| `editMessageText`, `editMessageCaption`, `editMessageReplyMarkup` | `chat_id`, `message_id` | Edit message content or inline keyboards |
-| `deleteMessage`, `deleteMessages` | `chat_id`, `message_id` / `message_ids` | Delete single or multiple messages |
-| `forwardMessage`, `forwardMessages`, `copyMessage`, `copyMessages` | `chat_id`, `from_chat_id` | Forward or copy messages without attribution |
-| `setMessageReaction` | `chat_id`, `message_id`, `reaction` | Set bot emoji reaction |
-| `sendChatAction` | `chat_id`, `action` | Broadcast typing or upload indicator |
+| `getMe` | — | Fetch bot `User` object (`is_bot`, `can_join_groups`, `supports_inline_queries`, `has_main_web_app`) |
+| `sendMessage` | `chat_id`, `text`, `parse_mode`, `entities`, `reply_parameters`, `reply_markup`, `disable_notification`, `message_thread_id` | Send formatted text message |
+| `sendMediaGroup` | `chat_id`, `media` | Send multi-item album of photos, videos, or documents |
+| `sendPhoto`, `sendDocument`, `sendVideo`, `sendAudio`, `sendVoice`, `sendVideoNote`, `sendAnimation`, `sendSticker` | `chat_id`, media field or upload, `caption`, `reply_markup` | Send rich media attachments |
+| `sendLocation`, `sendVenue`, `sendContact` | `chat_id`, coordinates / contact | Share location, venue, or phone contact |
+| `sendDice` | `chat_id`, `emoji` | Send animated dice roll (`dice.value`) |
+| `sendPoll`, `stopPoll` | `chat_id`, `question`, `options`, `type` (`regular` \| `quiz`) | Create and close polls or quizzes |
+| `editMessageText`, `editMessageCaption`, `editMessageReplyMarkup` | `chat_id`, `message_id` | Update existing message text or buttons |
+| `deleteMessage`, `deleteMessages` | `chat_id`, `message_id` / `message_ids` | Delete messages in bulk |
+| `forwardMessage`, `forwardMessages`, `copyMessage`, `copyMessages` | `chat_id`, `from_chat_id` | Forward or copy content |
+| `setMessageReaction` | `chat_id`, `message_id`, `reaction` | React to messages |
+| `sendChatAction` | `chat_id`, `action` | Broadcast typing or upload activity |
 
-## Keyboards, callbacks & inline mode
+## Keyboards, callbacks & inline queries
 
 - **`reply_markup` types:** `InlineKeyboardMarkup`, `ReplyKeyboardMarkup`, `ReplyKeyboardRemove`, `ForceReply`.
-- **`answerCallbackQuery`:** Respond to inline button presses (`callback_query_id`, `text`, `show_alert`, `url`, `cache_time`).
-- **`answerInlineQuery`:** Serve inline query results (`inline_query_id`, `results`, `next_offset`, `switch_pm_text`, `switch_pm_parameter`).
-- **`answerWebAppQuery` & `savePreparedInlineMessage`:** Send structured messages back from a Mini App session.
+- **`answerCallbackQuery`:** answer inline button taps (`callback_query_id`, `text`, `show_alert`, `url`, `cache_time`).
+- **`answerInlineQuery`:** return inline results triggered via `@bot query` (`inline_query_id`, `results`, `next_offset`, `switch_pm_text`, `switch_pm_parameter`).
+- **`answerWebAppQuery` & `savePreparedInlineMessage`:** let Mini Apps share prepared interactive messages.
 
-## Group & channel administration
+## Group & channel moderation
 
-Bots with administrator rights support `getChat`, `getChatMember`, `getChatMemberCount`, `getChatAdministrators`, `banChatMember`, `unbanChatMember`, `restrictChatMember`, `promoteChatMember`, `approveChatJoinRequest`, `declineChatJoinRequest`, `pinChatMessage`, `unpinChatMessage`, `createChatInviteLink`, `exportChatInviteLink`, and `leaveChat`.
+Admin bots support `getChat`, `getChatMember`, `getChatMemberCount`, `getChatAdministrators`, `banChatMember`, `unbanChatMember`, `restrictChatMember`, `promoteChatMember`, `approveChatJoinRequest`, `declineChatJoinRequest`, `pinChatMessage`, `unpinChatMessage`, `createChatInviteLink`, `exportChatInviteLink`, and `leaveChat`.

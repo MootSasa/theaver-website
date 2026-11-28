@@ -1,0 +1,76 @@
+---
+import MarketingLayout from '../layouts/MarketingLayout.astro';
+import BrandMark from '../components/BrandMark.astro';
+import Icon from '../components/Icon.astro';
+---
+
+<MarketingLayout
+  title="404 — Page Not Found · Theaver"
+  description="This page wandered off. Jump back to Theaver home or explore documentation."
+  noindex={true}
+  headerMode="utility"
+>
+  <section class="bg-[var(--bg-page)] py-20 lg:py-28" data-stoat-scope>
+    <div class="container-page">
+      <div class="ink-card mx-auto max-w-lg p-8 text-center sm:p-10">
+        <div class="mx-auto flex w-fit flex-col items-center">
+          <div class="stoat-peek-404">
+            <BrandMark size={86} interactive={true} />
+          </div>
+          <span class="badge-warm tabular mt-3">404</span>
+        </div>
+
+        <h1 id="not-found-title" class="mt-5 text-[28px] font-semibold leading-[1.15] text-[var(--text-primary)] sm:text-[34px]">
+          The stoat looked everywhere
+        </h1>
+        <p id="not-found-body" class="mt-3 text-[16px] leading-[1.5] text-[var(--text-secondary)]">
+          This link does not exist or moved to another page. Let us take you back to the main screen or the docs portal.
+        </p>
+
+        <div class="mt-7 flex flex-wrap justify-center gap-3">
+          <a id="not-found-home" href="/" class="btn-primary">
+            <Icon name="arrow-right" size={16} />
+            <span id="not-found-home-lbl">Back to Theaver</span>
+          </a>
+          <a id="not-found-docs" href="/docs" class="btn-secondary">
+            <Icon name="book" size={16} />
+            <span id="not-found-docs-lbl">Open Docs</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</MarketingLayout>
+
+<style is:global>
+  @keyframes theaver-stoat-peek {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+    50% { transform: translate3d(0, -4px, 0) rotate(-3deg); }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .stoat-peek-404 {
+      animation: theaver-stoat-peek 3.6s var(--ease-standard) 2;
+    }
+  }
+</style>
+
+<script is:inline>
+  (() => {
+    const isRu = window.location.pathname.startsWith('/ru');
+    if (!isRu) return;
+    document.documentElement.lang = 'ru';
+    const title = document.getElementById('not-found-title');
+    const body = document.getElementById('not-found-body');
+    const home = document.getElementById('not-found-home');
+    const homeLbl = document.getElementById('not-found-home-lbl');
+    const docs = document.getElementById('not-found-docs');
+    const docsLbl = document.getElementById('not-found-docs-lbl');
+    if (title) title.textContent = 'Горностай всё обыскал — страницы нет';
+    if (body) body.textContent = 'Похоже, ссылка устарела или в адресе закралась опечатка. Можно вернуться на главную или заглянуть в документацию.';
+    if (home instanceof HTMLAnchorElement) home.href = '/ru/';
+    if (homeLbl) homeLbl.textContent = 'На главную';
+    if (docs instanceof HTMLAnchorElement) docs.href = '/ru/docs';
+    if (docsLbl) docsLbl.textContent = 'Открыть документацию';
+  })();
+</script>

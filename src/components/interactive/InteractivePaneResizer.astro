@@ -1,0 +1,289 @@
+---
+import Icon from '../Icon.astro';
+import ScreenshotFrame from '../ScreenshotFrame.astro';
+import type { Locale } from '../../lib/i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const c = locale === 'ru'
+  ? {
+      hint: 'Потяни перегородку или нажми ← → с клавиатуры',
+      presets: [
+        { id: 'balanced', label: 'Все три панели', left: 27, right: 25 },
+        { id: 'focus', label: 'Фокус на чате', left: 21, right: 19 },
+        { id: 'sidebar', label: 'Широкие списки', left: 34, right: 29 },
+      ],
+      leftHandleLabel: 'Ширина списка чатов',
+      rightHandleLabel: 'Ширина боковой панели',
+      paneChats: 'Чаты',
+      paneDialog: 'Диалог',
+      paneInspector: 'Профиль',
+    }
+  : {
+      hint: 'Drag either divider or use ← → arrow keys',
+      presets: [
+        { id: 'balanced', label: 'All 3 panes', left: 27, right: 25 },
+        { id: 'focus', label: 'Wide chat', left: 21, right: 19 },
+        { id: 'sidebar', label: 'Spacious lists', left: 34, right: 29 },
+      ],
+      leftHandleLabel: 'Chat list width',
+      rightHandleLabel: 'Inspector panel width',
+      paneChats: 'Chats',
+      paneDialog: 'Conversation',
+      paneInspector: 'Profile',
+    };
+---
+
+<div
+  class="pane-resizer-widget"
+  data-pane-resizer
+  style="--pane-left: 27%; --pane-right: 25%;"
+>
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex flex-wrap items-center gap-2" role="group" aria-label={c.hint}>
+      {c.presets.map((p, idx) => (
+        <button
+          type="button"
+          data-pane-preset
+          data-left={p.left}
+          data-right={p.right}
+          aria-pressed={idx === 0 ? 'true' : 'false'}
+          class:list={[
+            'rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-colors duration-150',
+            idx === 0
+              ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]'
+              : 'border-[var(--border-hairline)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]',
+          ]}
+        >
+          {p.label}
+        </button>
+      ))}
+    </div>
+
+    <div class="flex items-center gap-2 text-[12.5px] text-[var(--text-muted)]">
+      <Icon name="sliders" size={14} class="text-[var(--accent)]" />
+      <span>{c.hint}</span>
+    </div>
+  </div>
+
+  <!-- Interactive 3-Pane Window -->
+  <div
+    class="relative hidden overflow-hidden rounded-[var(--radius-frame)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] shadow-[var(--frame-shadow)] md:block"
+    data-pane-stage
+  >
+    <div class="flex h-9 items-center justify-between border-b border-[var(--border-hairline)] bg-[var(--bg-card)] px-4 text-[12px] text-[var(--text-muted)]">
+      <div class="flex items-center gap-2">
+        <span class="h-2.5 w-2.5 rounded-full bg-[var(--negative)] opacity-75" aria-hidden="true"></span>
+        <span class="h-2.5 w-2.5 rounded-full bg-[var(--brand-gold)] opacity-85" aria-hidden="true"></span>
+        <span class="h-2.5 w-2.5 rounded-full bg-[var(--positive)] opacity-75" aria-hidden="true"></span>
+        <span class="ml-2 font-semibold text-[var(--text-primary)]">Theaver Desktop</span>
+      </div>
+      <div class="tabular font-mono text-[11.5px]" data-pane-readout>
+        {c.paneChats} 27% · {c.paneDialog} 48% · {c.paneInspector} 25%
+      </div>
+    </div>
+
+    <div class="relative flex h-[430px] w-full select-none items-stretch overflow-hidden lg:h-[500px]">
+      <div
+        class="h-full shrink-0 overflow-hidden bg-[var(--bg-deep)]"
+        style="width: var(--pane-left);"
+        data-pane-col="left"
+      >
+        <div class="h-full w-full [&>div]:h-full [&_picture]:h-full [&_img]:h-full [&_img]:w-full [&_img]:object-cover [&_img]:object-top">
+          <ScreenshotFrame
+            name="hero-pane-chats"
+            locale={locale}
+            alt={c.paneChats}
+            width={320}
+            height={750}
+            framed={false}
+          />
+        </div>
+      </div>
+
+      <button
+        type="button"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label={c.leftHandleLabel}
+        aria-valuemin="18"
+        aria-valuemax="38"
+        aria-valuenow="27"
+        tabindex="0"
+        data-resizer-handle="left"
+        class="group relative z-10 flex w-3 shrink-0 cursor-col-resize items-center justify-center border-x border-[var(--border-hairline)] bg-[var(--bg-card)] text-[var(--text-muted)] transition-colors duration-150 hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] focus-visible:z-20 focus-visible:bg-[var(--accent-soft)] focus-visible:text-[var(--accent)]"
+      >
+        <Icon name="grip-vertical" size={14} />
+      </button>
+
+      <div class="h-full min-w-0 flex-1 overflow-hidden bg-[var(--bg-deep)]">
+        <div class="h-full w-full [&>div]:h-full [&_picture]:h-full [&_img]:h-full [&_img]:w-full [&_img]:object-cover [&_img]:object-top">
+          <ScreenshotFrame
+            name="hero-pane-dialog"
+            locale={locale}
+            alt={c.paneDialog}
+            width={580}
+            height={750}
+            framed={false}
+          />
+        </div>
+      </div>
+
+      <button
+        type="button"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label={c.rightHandleLabel}
+        aria-valuemin="16"
+        aria-valuemax="36"
+        aria-valuenow="25"
+        tabindex="0"
+        data-resizer-handle="right"
+        class="group relative z-10 flex w-3 shrink-0 cursor-col-resize items-center justify-center border-x border-[var(--border-hairline)] bg-[var(--bg-card)] text-[var(--text-muted)] transition-colors duration-150 hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] focus-visible:z-20 focus-visible:bg-[var(--accent-soft)] focus-visible:text-[var(--accent)]"
+      >
+        <Icon name="grip-vertical" size={14} />
+      </button>
+
+      <div
+        class="h-full shrink-0 overflow-hidden bg-[var(--bg-deep)]"
+        style="width: var(--pane-right);"
+        data-pane-col="right"
+      >
+        <div class="h-full w-full [&>div]:h-full [&_picture]:h-full [&_img]:h-full [&_img]:w-full [&_img]:object-cover [&_img]:object-top">
+          <ScreenshotFrame
+            name="hero-pane-inspector"
+            locale={locale}
+            alt={c.paneInspector}
+            width={300}
+            height={750}
+            framed={false}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clean fallback preview on small mobile screens -->
+  <div class="md:hidden">
+    <ScreenshotFrame
+      name="hero-desktop"
+      locale={locale}
+      alt="Theaver multi-pane desktop workspace"
+      width={1200}
+      height={750}
+    />
+  </div>
+</div>
+
+<script is:inline>
+  (() => {
+    document.querySelectorAll('[data-pane-resizer]').forEach((root) => {
+      if (!(root instanceof HTMLElement) || root.dataset.bound === '1') return;
+      root.dataset.bound = '1';
+
+      const stage = root.querySelector('[data-pane-stage]');
+      const leftHandle = root.querySelector('[data-resizer-handle="left"]');
+      const rightHandle = root.querySelector('[data-resizer-handle="right"]');
+      const readout = root.querySelector('[data-pane-readout]');
+      const presets = Array.from(root.querySelectorAll('[data-pane-preset]'));
+
+      let leftPct = 27;
+      let rightPct = 25;
+
+      const labelChats = readout?.textContent?.split(' ')[0] || 'Chats';
+      const isRu = document.documentElement.lang === 'ru';
+      const lChats = isRu ? 'Чаты' : 'Chats';
+      const lDialog = isRu ? 'Диалог' : 'Chat';
+      const lProfile = isRu ? 'Профиль' : 'Profile';
+
+      function sync(nextLeft, nextRight) {
+        leftPct = Math.min(38, Math.max(18, Math.round(nextLeft)));
+        rightPct = Math.min(36, Math.max(16, Math.round(nextRight)));
+        const centerPct = 100 - leftPct - rightPct;
+        root.style.setProperty('--pane-left', `${leftPct}%`);
+        root.style.setProperty('--pane-right', `${rightPct}%`);
+        if (leftHandle) leftHandle.setAttribute('aria-valuenow', String(leftPct));
+        if (rightHandle) rightHandle.setAttribute('aria-valuenow', String(rightPct));
+        if (readout) {
+          readout.textContent = `${lChats} ${leftPct}% · ${lDialog} ${centerPct}% · ${lProfile} ${rightPct}%`;
+        }
+        presets.forEach((btn) => {
+          const pL = Number(btn.getAttribute('data-left'));
+          const pR = Number(btn.getAttribute('data-right'));
+          const active = pL === leftPct && pR === rightPct;
+          btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+          btn.classList.toggle('border-[var(--accent)]', active);
+          btn.classList.toggle('bg-[var(--accent-soft)]', active);
+          btn.classList.toggle('text-[var(--accent)]', active);
+          btn.classList.toggle('border-[var(--border-hairline)]', !active);
+          btn.classList.toggle('bg-[var(--bg-card)]', !active);
+          btn.classList.toggle('text-[var(--text-secondary)]', !active);
+        });
+      }
+
+      presets.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          sync(Number(btn.getAttribute('data-left') || 27), Number(btn.getAttribute('data-right') || 25));
+        });
+      });
+
+      function bindHandle(handle, side) {
+        if (!(handle instanceof HTMLElement)) return;
+        let dragging = false;
+
+        handle.addEventListener('pointerdown', (e) => {
+          dragging = true;
+          handle.setPointerCapture(e.pointerId);
+        });
+
+        handle.addEventListener('pointermove', (e) => {
+          if (!dragging || !(stage instanceof HTMLElement)) return;
+          const rect = stage.getBoundingClientRect();
+          if (rect.width <= 0) return;
+          const relX = ((e.clientX - rect.left) / rect.width) * 100;
+          if (side === 'left') {
+            sync(relX, rightPct);
+          } else {
+            sync(leftPct, 100 - relX);
+          }
+        });
+
+        const stop = (e) => {
+          if (!dragging) return;
+          dragging = false;
+          try {
+            handle.releasePointerCapture(e.pointerId);
+          } catch {}
+        };
+        handle.addEventListener('pointerup', stop);
+        handle.addEventListener('pointercancel', stop);
+
+        handle.addEventListener('dblclick', () => sync(27, 25));
+
+        handle.addEventListener('keydown', (e) => {
+          const step = e.shiftKey ? 5 : 2;
+          if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            if (side === 'left') sync(leftPct - step, rightPct);
+            else sync(leftPct, rightPct + step);
+          } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            if (side === 'left') sync(leftPct + step, rightPct);
+            else sync(leftPct, rightPct - step);
+          } else if (e.key === 'Home') {
+            e.preventDefault();
+            sync(27, 25);
+          }
+        });
+      }
+
+      bindHandle(leftHandle, 'left');
+      bindHandle(rightHandle, 'right');
+      void labelChats;
+    });
+  })();
+</script>

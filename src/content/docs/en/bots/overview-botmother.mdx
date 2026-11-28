@@ -1,47 +1,52 @@
 ---
-title: Overview & @BotMother
-description: Create bots with @BotMother, manage commands, inline mode, webhooks, and Mini Apps inside Theaver.
+title: Bot Platform Overview & @BotMother
+description: Create bots and custom client apps via @BotMother, configure commands, inline mode, webhooks, and Mini Apps on Theaver.
 track: bots
 order: 1
 ---
 
-Theaver implements a **Telegram-compatible Bot API (v7.x)** alongside **`@BotMother`** (system bot ID `100000001`) and its built-in Studio Mini App for managing bots.
+Theaver implements an **HTTP Bot API (v7.x)** alongside the built-in system bot **`@BotMother`** (`id = 100000001`) and its graphical Bot Studio Mini App for managing both bots and third-party client credentials. For compatibility aliases when porting existing bots, see [Migrating Existing Bots](/docs/bots/migrating-from-telegram).
 
 <BotPlatformDiagram locale="en" />
 
 ## Creating your first bot
 
-1. Open a chat with **`@BotMother`** in Theaver.
+1. Open a conversation with **`@BotMother`** in Theaver.
 2. Send `/newbot`.
-3. Provide a display name (for example, `Release Notifier`) and a unique username ending in `bot` (for example, `release_notify_bot`).
-4. Save the issued token (`<bot_id>:<secret>`) securely in an environment variable.
+3. Provide a display name and a unique username ending with `bot` (for example, `release_notify_bot`).
+4. Save the returned `<bot_id>:<secret>` token inside an environment variable.
 
-## `@BotMother` command reference
+## `@BotMother` commands
 
 | Command | Purpose |
 |---|---|
-| `/newbot` | Guided bot creation and token generation |
-| `/mybots` | Open interactive management menu for your bots |
-| `/token` / `/revoke` | View or rotate the bot API token |
+| `/newbot` | Interactive wizard that creates a bot and mints an API token |
+| `/mybots` | Interactive management panel for your bots and Mini Apps |
+| `/token` / `/revoke` | View or rotate a bot token immediately |
 | `/setname` | Update the bot display name |
-| `/setdescription` | Edit the full description shown before pressing Start |
-| `/setabouttext` | Edit the short bio shown in the bot profile |
-| `/setcommands` | Configure `/` command menu entries (`command - description`) |
+| `/setdescription` | Long description shown before starting the bot |
+| `/setabouttext` | Short bio displayed on the bot profile |
+| `/setcommands` | Configure command menu (`command - Description`) |
 | `/setjoingroups` | Allow or disallow adding the bot to groups |
-| `/setprivacy` | Toggle Group Privacy Mode (`Enable` = commands/mentions/replies only; `Disable` = all messages) |
-| `/setinline` | Enable inline queries (`@bot query`) and set placeholder text |
+| `/setprivacy` | Toggle group privacy (`Enable`: commands/mentions only; `Disable`: all messages) |
+| `/setinline` | Enable inline queries (`@bot query`) |
 | `/deletebot` | Permanently delete a bot |
+| `/newclient` | Register a third-party client app (`api_id` + `api_hash`) |
+| `/myclients` | Manage custom client apps, quotas, and statuses |
+| `/revokeclient` | Revoke an existing custom `api_id` credential pair |
 
-## API base URL
+You can also open the **Client Apps** tab inside `@BotMother` Studio or use the web console at [`/developers/apps`](/developers/apps).
 
-All Bot API endpoints accept `GET` or `POST` requests with `application/json`, `application/x-www-form-urlencoded`, `multipart/form-data`, or query parameters at:
+## Base Bot API endpoint
+
+All methods accept `GET` or `POST` requests with `application/json`, `application/x-www-form-urlencoded`, `multipart/form-data`, or query parameters at:
 
 ```text
 https://api.theaver.app/bot<token>/<method>
 ```
 
-The alias `/api/bot<token>/<method>` is also supported, and files retrieved via `getFile` can be downloaded from `/file/bot<token>/<file_path>`.
+Routes are also aliased under `/api/bot<token>/<method>`, and media files returned by `getFile` download via `/file/bot<token>/<file_path>`.
 
-<Callout type="warning" title="Keep bot tokens secret">
-  Treat `<bot_id>:<secret>` like a password. Never commit tokens to public repositories or embed them in client-side Mini App JavaScript. If leaked, rotate immediately with `/revoke` in `@BotMother`.
+<Callout type="warning" title="Keep tokens confidential">
+  Never embed `<bot_id>:<secret>` in client-side Mini App JavaScript or commit it to public repositories. Rotate leaked tokens immediately with `/revoke` inside `@BotMother`.
 </Callout>

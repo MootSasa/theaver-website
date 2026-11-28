@@ -1,0 +1,1555 @@
+---
+import MarketingLayout from '../../layouts/MarketingLayout.astro';
+import Icon from '../Icon.astro';
+import { localizePath, type Locale } from '../../lib/i18n';
+import { PUBLIC_API_URL } from '../../lib/releases';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const strings = locale === 'ru'
+  ? {
+      metaTitle: 'Консоль разработчика — Свои клиенты (api_id) · Theaver',
+      metaDesc: 'Регистрация сторонних клиентских приложений Theaver: получение api_id и api_hash, настройка платформы, ротация ключей и управление доступом.',
+      eyebrow: 'Платформа клиентов',
+      heading: 'Свои клиентские приложения',
+      sub: 'Выпускай api_id и api_hash для сторонних клиентов под Android, iOS, Desktop, Web или CLI. Вся авторизация консоли работает без создания лишней сессии устройства.',
+      docsBtn: 'Гайд по api_id и протоколу',
+      botmotherNoteTitle: 'Или прямо внутри Theaver через @BotMother',
+      botmotherNoteBody: 'Отправь команду /newclient боту @BotMother или открой вкладку Client Apps в Bot Studio — там доступны те же api_id вашего аккаунта.',
+
+      authHeading: 'Вход в консоль разработчика',
+      authSub: 'Выбери удобный способ: одноразовый код на привязанную почту или вход по QR-коду через клиент Theaver.',
+      authTabsLabel: 'Способ входа в консоль',
+      tabEmail: 'Код на почту',
+      tabQr: 'QR-код в приложении',
+
+      step1Title: '1. Укажи свой аккаунт',
+      identifierLabel: 'Email или @username',
+      identifierHint: 'К аккаунту должна быть привязана подтверждённая почта.',
+      identifierPlaceholder: 'dev@example.com или @username',
+      sendCodeBtn: 'Отправить 6-значный код',
+      sendingBtn: 'Отправляем...',
+
+      step2Title: '2. Введи код подтверждения',
+      otpLabel: '6-значный код из письма',
+      otpHint: 'Проверь письмо от noreply@theaver.app (действует 10 минут). Введи 6 цифр без пробелов.',
+      otpPlaceholder: '000000',
+      resendBtn: 'Отправить повторно',
+      resendWait: 'Повторно через {sec} с',
+      changeAccountBtn: 'Сменить аккаунт',
+      twoFactorSummary: 'У меня включён облачный пароль (2FA)',
+      twoFactorPwdLabel: 'Облачный пароль 2FA',
+      recoveryLabel: 'Или резервный код восстановления',
+      showPwdLabel: 'Показать пароль',
+      hidePwdLabel: 'Скрыть пароль',
+      verifyBtn: 'Войти в консоль',
+      verifyingBtn: 'Проверяем...',
+
+      qrTitle: 'Сканируй QR в мобильном или десктопном Theaver',
+      qrSteps: 'Открой «Настройки → Устройства → Подключить устройство» и наведи камеру или введи код вручную.',
+      qrShortCodeLabel: 'Короткий код',
+      qrRefreshBtn: 'Обновить QR-код',
+      qrStatusWaiting: 'Ждём подтверждения в приложении Theaver...',
+      qrStatus2FA: 'Подтверждено в приложении. Введи облачный пароль 2FA для входа:',
+      qrStatusExpired: 'Срок действия QR-кода истёк.',
+      qrSubmit2FA: 'Подтвердить 2FA и войти',
+
+      dashSignedInAs: 'Разработчик',
+      dashSignOut: 'Выйти из консоли',
+      dashQuotaLabel: 'Активных приложений',
+
+      secretBannerTitle: 'Сохрани api_hash сейчас — больше он не откроется целиком',
+      secretBannerBody: 'Сервер хранит только криптографический хэш SHA-256 этого ключа. Скопируй его в безопасное хранилище.',
+      secretClose: 'Я сохранил ключ',
+
+      listHeading: 'Твои приложения',
+      listEmptyTitle: 'Пока нет зарегистрированных клиентских приложений',
+      listEmptyBody: 'Создай первое приложение справа или через /newclient у @BotMother, чтобы получить пару api_id и api_hash.',
+      lblApiId: 'api_id',
+      lblHashPrefix: 'Префикс хэша',
+      lblRateLimit: 'Лимит запросов',
+      lblPlatform: 'Платформа',
+      lblCreated: 'Создано',
+      btnEdit: 'Изменить',
+      btnRotate: 'Сменить api_hash',
+      btnRevoke: 'Отозвать',
+
+      createHeading: 'Новое клиентское приложение',
+      createSub: 'Заполни основные данные клиента. Поле short_name должно быть уникальным.',
+      fTitle: 'Название приложения',
+      fTitleHint: 'От 2 до 64 символов. Это имя увидят пользователи в «Настройки → Устройства».',
+      fShortName: 'Короткое имя (short_name)',
+      fShortNameHint: '3–32 символа латиницей: начинается с буквы, далее буквы, цифры или _. Например: my_rust_client.',
+      fPlatform: 'Платформа',
+      fUrl: 'Сайт или репозиторий (необязательно)',
+      fDesc: 'Краткое описание (необязательно)',
+      btnCreate: 'Выпустить api_id и api_hash',
+      creatingBtn: 'Выпускаем...',
+
+      editDialogTitle: 'Редактировать приложение',
+      btnSave: 'Сохранить изменения',
+      btnCancel: 'Отмена',
+      confirmRotateTitle: 'Перевыпустить api_hash?',
+      confirmRotateBody: 'Старый api_hash перестанет работать немедленно. Все клиенты с зашитым старым хэшем не смогут логиниться до обновления.',
+      confirmRotateAction: 'Перевыпустить ключ',
+      confirmRevokeTitle: 'Отозвать приложение навсегда?',
+      confirmRevokeBody: 'Этот api_id будет отключён, а все активные пользовательские сессии этого приложения будут сразу завершены.',
+      confirmRevokeAction: 'Отозвать приложение',
+
+      copied: 'Скопировано',
+      copyFailed: 'Не скопировалось',
+      copyAriaId: 'Скопировать api_id',
+      copyAriaHash: 'Скопировать api_hash',
+      copyAriaCode: 'Скопировать короткий код',
+
+      errEmptyId: 'Введи email или @username.',
+      errInvalidOtp: 'Введи ровно 6 цифр кода.',
+      err2FARequired: 'Для этого аккаунта требуется пароль 2FA или резервный код.',
+      errInvalidShortName: 'short_name должен начинаться с латинской буквы и содержать 3–32 символа (a-z, 0-9, _).',
+      errInvalidTitle: 'Название должно содержать от 2 до 64 символов.',
+      errSessionExpired: 'Сессия консоли истекла — войди заново.',
+      errGeneric: 'Не удалось выполнить запрос. Проверь данные и попробуй снова.',
+    }
+  : {
+      metaTitle: 'Developer Console — Custom Client Apps (api_id) · Theaver',
+      metaDesc: 'Register custom Theaver client apps to obtain api_id and api_hash, manage platforms, rotate secrets, and revoke credentials.',
+      eyebrow: 'Client Platform',
+      heading: 'Custom Client Applications',
+      sub: 'Issue api_id and api_hash credentials for third-party Android, iOS, Desktop, Web, or CLI clients. Console sign-in uses a scoped token and never creates a chat device session.',
+      docsBtn: 'Read api_id & Protocol Guide',
+      botmotherNoteTitle: 'Prefer managing inside Theaver with @BotMother?',
+      botmotherNoteBody: 'Send /newclient to @BotMother or open the Client Apps tab inside Bot Studio — both sync with the same account registry.',
+
+      authHeading: 'Sign in to Developer Console',
+      authSub: 'Authenticate with a one-time email verification code or scan a QR code from any logged-in Theaver app.',
+      authTabsLabel: 'Console sign-in method',
+      tabEmail: 'Email Code',
+      tabQr: 'Scan QR in Theaver',
+
+      step1Title: '1. Identify your account',
+      identifierLabel: 'Email or @username',
+      identifierHint: 'Your account must have a linked email address.',
+      identifierPlaceholder: 'dev@example.com or @username',
+      sendCodeBtn: 'Send 6-digit code',
+      sendingBtn: 'Sending...',
+
+      step2Title: '2. Enter verification code',
+      otpLabel: '6-digit email code',
+      otpHint: 'Check the message from noreply@theaver.app (valid for 10 minutes). Enter the 6 digits with no spaces.',
+      otpPlaceholder: '000000',
+      resendBtn: 'Resend code',
+      resendWait: 'Resend in {sec}s',
+      changeAccountBtn: 'Use a different account',
+      twoFactorSummary: 'This account has a 2FA cloud password',
+      twoFactorPwdLabel: '2FA cloud password',
+      recoveryLabel: 'Or backup recovery code',
+      showPwdLabel: 'Show password',
+      hidePwdLabel: 'Hide password',
+      verifyBtn: 'Sign in to Console',
+      verifyingBtn: 'Verifying...',
+
+      qrTitle: 'Scan with Theaver on mobile or desktop',
+      qrSteps: 'Open Settings → Devices → Link Desktop Device and scan this QR code or enter the short code.',
+      qrShortCodeLabel: 'Short code',
+      qrRefreshBtn: 'Generate new QR',
+      qrStatusWaiting: 'Waiting for confirmation in Theaver...',
+      qrStatus2FA: 'Confirmed in app. Enter your 2FA cloud password to finish signing in:',
+      qrStatusExpired: 'This QR code expired.',
+      qrSubmit2FA: 'Verify 2FA & Sign In',
+
+      dashSignedInAs: 'Signed in as',
+      dashSignOut: 'Sign out',
+      dashQuotaLabel: 'Active apps',
+
+      secretBannerTitle: 'Save your api_hash now — it is shown only once',
+      secretBannerBody: 'Our servers store only a SHA-256 digest of this secret. Copy it into your environment secrets before dismissing.',
+      secretClose: 'I saved it',
+
+      listHeading: 'Your client applications',
+      listEmptyTitle: 'No custom client applications yet',
+      listEmptyBody: 'Register your first client app on the right — or send /newclient to @BotMother — to obtain your api_id and api_hash.',
+      lblApiId: 'api_id',
+      lblHashPrefix: 'Hash prefix',
+      lblRateLimit: 'Rate limit',
+      lblPlatform: 'Platform',
+      lblCreated: 'Created',
+      btnEdit: 'Edit',
+      btnRotate: 'Rotate api_hash',
+      btnRevoke: 'Revoke',
+
+      createHeading: 'Register a new client app',
+      createSub: 'Provide basic client metadata. short_name must be globally unique.',
+      fTitle: 'Application title',
+      fTitleHint: '2–64 characters. Displayed to users inside Settings → Devices.',
+      fShortName: 'Short name (short_name)',
+      fShortNameHint: '3–32 Latin chars: start with a letter, followed by letters, digits, or _ (e.g. my_rust_client).',
+      fPlatform: 'Target platform',
+      fUrl: 'Website or repository URL (optional)',
+      fDesc: 'Short description (optional)',
+      btnCreate: 'Create api_id & api_hash',
+      creatingBtn: 'Creating...',
+
+      editDialogTitle: 'Edit client app',
+      btnSave: 'Save changes',
+      btnCancel: 'Cancel',
+      confirmRotateTitle: 'Rotate api_hash?',
+      confirmRotateBody: 'The previous api_hash stops working immediately. Clients shipping the old secret will fail authentication until updated.',
+      confirmRotateAction: 'Rotate secret',
+      confirmRevokeTitle: 'Revoke this client application?',
+      confirmRevokeBody: 'This api_id will be permanently disabled and every active session created with it will be disconnected immediately.',
+      confirmRevokeAction: 'Revoke app',
+
+      copied: 'Copied',
+      copyFailed: 'Copy failed',
+      copyAriaId: 'Copy api_id',
+      copyAriaHash: 'Copy api_hash',
+      copyAriaCode: 'Copy short code',
+
+      errEmptyId: 'Enter your email address or @username.',
+      errInvalidOtp: 'Enter the exact 6-digit verification code.',
+      err2FARequired: 'A 2FA password or backup recovery code is required.',
+      errInvalidShortName: 'short_name must start with a Latin letter and contain 3–32 letters, digits, or underscores.',
+      errInvalidTitle: 'Application title must be between 2 and 64 characters.',
+      errSessionExpired: 'Your developer console session expired. Please sign in again.',
+      errGeneric: 'Request failed. Verify your input and try again.',
+    };
+
+const platforms = [
+  'desktop',
+  'android',
+  'ios',
+  'windows',
+  'macos',
+  'linux',
+  'web',
+  'cli',
+  'other',
+];
+---
+
+<MarketingLayout title={strings.metaTitle} description={strings.metaDesc} headerMode="utility">
+  <section class="bg-[var(--bg-page)] py-10 sm:py-14">
+    <div
+      id="dev-console-app"
+      class="container-page"
+      data-api-base={PUBLIC_API_URL}
+      data-locale={locale}
+      data-strings={JSON.stringify(strings)}
+    >
+      <!-- Page Header -->
+      <div class="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--border-hairline)] pb-6">
+        <div class="max-w-2xl">
+          <p class="font-mono text-[12px] font-semibold text-[var(--accent)]">
+            {strings.eyebrow}
+          </p>
+          <h1 class="mt-1.5 text-[30px] font-semibold leading-[1.12] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[38px]">
+            {strings.heading}
+          </h1>
+          <p class="mt-2.5 text-[15.5px] leading-relaxed text-[var(--text-secondary)]">
+            {strings.sub}
+          </p>
+        </div>
+
+        <a href={localizePath('/docs/client/overview-and-api-id', locale)} class="btn-secondary shrink-0 text-[14px]">
+          <Icon name="book" size={16} />
+          <span>{strings.docsBtn}</span>
+        </a>
+      </div>
+
+      <!-- Auth View -->
+      <div id="dev-auth-view" class="mx-auto mt-10 max-w-xl">
+        <div class="ink-card p-6 sm:p-8">
+          <h2 id="dev-auth-heading" tabindex="-1" class="text-[22px] font-semibold text-[var(--text-primary)] focus:outline-none">
+            {strings.authHeading}
+          </h2>
+          <p class="mt-2 text-[14.5px] leading-relaxed text-[var(--text-secondary)]">
+            {strings.authSub}
+          </p>
+
+          <!-- Accessible 2-tab Sign-in Switcher (tabs + anchor-positioning underline) -->
+          <div
+            role="tablist"
+            aria-label={strings.authTabsLabel}
+            class="dev-auth-tablist relative mt-6 flex gap-2 border-b border-[var(--border-hairline)] pb-1"
+          >
+            <button
+              type="button"
+              role="tab"
+              id="dev-tab-email"
+              aria-selected="true"
+              data-dev-auth-tab="email"
+              class="inline-flex items-center gap-2 px-3 py-2 text-[14px] font-semibold text-[var(--accent)] transition-colors duration-150"
+            >
+              <Icon name="mail" size={15} />
+              <span>{strings.tabEmail}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="dev-tab-qr"
+              aria-selected="false"
+              data-dev-auth-tab="qr"
+              class="inline-flex items-center gap-2 px-3 py-2 text-[14px] font-semibold text-[var(--text-muted)] transition-colors duration-150 hover:text-[var(--text-primary)]"
+            >
+              <Icon name="qr" size={15} />
+              <span>{strings.tabQr}</span>
+            </button>
+          </div>
+
+          <!-- Panel 1: Email OTP + 2FA -->
+          <div role="tabpanel" aria-labelledby="dev-tab-email" data-dev-auth-panel="email" tabindex="0" class="mt-6">
+            <form id="dev-email-step1" method="POST" novalidate class="flex flex-col gap-4">
+              <div>
+                <p class="text-[14px] font-semibold text-[var(--text-primary)]">{strings.step1Title}</p>
+                <label for="dev-identifier" class="mt-2 block text-[13.5px] font-semibold text-[var(--text-secondary)]">
+                  {strings.identifierLabel}
+                </label>
+                <p id="dev-id-hint" class="mt-1 text-[12.5px] text-[var(--text-muted)]">
+                  {strings.identifierHint}
+                </p>
+                <input
+                  id="dev-identifier"
+                  name="identifier"
+                  type="text"
+                  required
+                  autocomplete="username"
+                  autocorrect="off"
+                  autocapitalize="none"
+                  spellcheck="false"
+                  enterkeyhint="next"
+                  aria-describedby="dev-id-hint"
+                  placeholder={strings.identifierPlaceholder}
+                  class="field-control mt-1.5 block w-full"
+                />
+              </div>
+
+              <p id="dev-err-1" role="alert" class="hidden text-[13.5px] font-semibold text-[var(--negative)]"></p>
+
+              <div>
+                <button id="dev-send-btn" type="submit" class="btn-primary w-full sm:w-auto">
+                  <Icon name="mail" size={16} />
+                  <span data-btn-text>{strings.sendCodeBtn}</span>
+                </button>
+              </div>
+            </form>
+
+            <form id="dev-email-step2" method="POST" novalidate class="hidden flex-col gap-4">
+              <div class="rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-alt)] px-3.5 py-3 text-[13.5px] text-[var(--text-secondary)]">
+                <span class="font-semibold text-[var(--text-primary)]">{strings.step2Title}</span>
+                <span id="dev-active-id" class="ml-2 font-mono text-[12.5px] text-[var(--accent)]"></span>
+              </div>
+
+              <div>
+                <label for="dev-otp" class="block text-[13.5px] font-semibold text-[var(--text-secondary)]">
+                  {strings.otpLabel}
+                </label>
+                <!-- Hint placed ABOVE the input so mobile autofill/keyboard never hides it -->
+                <p id="dev-otp-hint" class="mt-1 text-[12.5px] text-[var(--text-muted)]">
+                  {strings.otpHint}
+                </p>
+                <input
+                  id="dev-otp"
+                  name="code"
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="one-time-code"
+                  pattern="\d{6}"
+                  maxlength="6"
+                  required
+                  enterkeyhint="done"
+                  aria-describedby="dev-otp-hint"
+                  placeholder={strings.otpPlaceholder}
+                  class="field-control mt-1.5 block w-full font-mono text-[1.125rem] tracking-[0.35em]"
+                />
+                <div class="mt-2.5 flex flex-wrap items-center gap-4 text-[13px]">
+                  <button
+                    id="dev-resend-btn"
+                    type="button"
+                    class="font-semibold text-[var(--accent)] hover:underline disabled:cursor-not-allowed disabled:text-[var(--text-muted)] disabled:no-underline"
+                  >
+                    {strings.resendBtn}
+                  </button>
+                  <button
+                    id="dev-change-btn"
+                    type="button"
+                    class="text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:underline"
+                  >
+                    {strings.changeAccountBtn}
+                  </button>
+                </div>
+              </div>
+
+              <details id="dev-2fa-details" class="rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-alt)] p-3.5">
+                <summary class="flex items-center gap-2 text-[13.5px] font-semibold text-[var(--text-primary)]">
+                  <Icon name="lock" size={15} class="text-[var(--accent)]" />
+                  <span>{strings.twoFactorSummary}</span>
+                </summary>
+                <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label for="dev-2fa-pwd" class="block text-[12.5px] font-semibold text-[var(--text-secondary)]">
+                      {strings.twoFactorPwdLabel}
+                    </label>
+                    <div class="relative mt-1">
+                      <input
+                        id="dev-2fa-pwd"
+                        name="two_factor_password"
+                        type="password"
+                        autocomplete="current-password"
+                        class="field-control block w-full pr-11"
+                      />
+                      <button
+                        type="button"
+                        data-toggle-pwd="dev-2fa-pwd"
+                        aria-pressed="false"
+                        aria-label={strings.showPwdLabel}
+                        data-show-label={strings.showPwdLabel}
+                        data-hide-label={strings.hidePwdLabel}
+                        class="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                      >
+                        <span data-eye-open><Icon name="eye" size={16} /></span>
+                        <span data-eye-closed class="hidden"><Icon name="eye-off" size={16} /></span>
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label for="dev-recovery" class="block text-[12.5px] font-semibold text-[var(--text-secondary)]">
+                      {strings.recoveryLabel}
+                    </label>
+                    <input
+                      id="dev-recovery"
+                      name="recovery_code"
+                      type="text"
+                      autocomplete="off"
+                      autocorrect="off"
+                      autocapitalize="characters"
+                      spellcheck="false"
+                      class="field-control mt-1 block w-full font-mono"
+                    />
+                  </div>
+                </div>
+              </details>
+
+              <p id="dev-err-2" role="alert" class="hidden text-[13.5px] font-semibold text-[var(--negative)]"></p>
+
+              <div>
+                <button id="dev-verify-btn" type="submit" class="btn-primary w-full sm:w-auto">
+                  <Icon name="key" size={16} />
+                  <span data-btn-text>{strings.verifyBtn}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Panel 2: QR Sign-In (hidden initially per tabs guide) -->
+          <div role="tabpanel" aria-labelledby="dev-tab-qr" data-dev-auth-panel="qr" hidden class="mt-6">
+            <div class="flex flex-col items-center gap-4 text-center">
+              <p class="text-[14.5px] font-semibold text-[var(--text-primary)]">{strings.qrTitle}</p>
+              <p class="max-w-md text-[13.5px] text-[var(--text-secondary)]">{strings.qrSteps}</p>
+
+              <div class="rounded-[16px] border border-[var(--border-hairline)] bg-white p-4">
+                <div id="dev-qr-svg" class="flex h-48 w-48 items-center justify-center text-[#1d1d1f]"></div>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-center gap-3">
+                <span class="text-[12.5px] text-[var(--text-muted)]">{strings.qrShortCodeLabel}:</span>
+                <code id="dev-qr-shortcode" class="rounded-[6px] border border-[var(--border-hairline)] bg-[var(--bg-alt)] px-2.5 py-1 font-mono text-[14px] font-semibold text-[var(--text-primary)]">
+                  ----
+                </code>
+                <span class="copy-wrap">
+                  <button
+                    type="button"
+                    class="copy-btn"
+                    command="--copy"
+                    commandfor="dev-qr-shortcode"
+                    aria-label={strings.copyAriaCode}
+                    data-copied-label={strings.copied}
+                    data-failed-label={strings.copyFailed}
+                  >
+                    <span data-icon-copy aria-hidden="true"><Icon name="copy" size={14} /></span>
+                    <span data-icon-check aria-hidden="true"><Icon name="check" size={14} /></span>
+                  </button>
+                  <span class="copy-tip" role="status"></span>
+                </span>
+              </div>
+
+              <p id="dev-qr-status" aria-live="polite" class="text-[13.5px] text-[var(--text-secondary)]">
+                {strings.qrStatusWaiting}
+              </p>
+
+              <!-- Inline QR 2FA Form (when mobile approves and account has 2FA) -->
+              <form id="dev-qr-2fa-form" method="POST" novalidate class="hidden w-full max-w-sm flex-col gap-3 text-left">
+                <label for="dev-qr-2fa-pwd" class="block text-[13px] font-semibold text-[var(--text-secondary)]">
+                  {strings.twoFactorPwdLabel}
+                </label>
+                <input
+                  id="dev-qr-2fa-pwd"
+                  name="two_factor_password"
+                  type="password"
+                  autocomplete="current-password"
+                  required
+                  class="field-control block w-full"
+                />
+                <p id="dev-qr-2fa-err" role="alert" class="hidden text-[13px] font-semibold text-[var(--negative)]"></p>
+                <button type="submit" class="btn-primary w-full text-[14px]">{strings.qrSubmit2FA}</button>
+              </form>
+
+              <button id="dev-qr-refresh" type="button" class="btn-secondary text-[13.5px]">
+                <Icon name="refresh" size={15} />
+                <span>{strings.qrRefreshBtn}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Authenticated Dashboard View -->
+      <div id="dev-dashboard-view" hidden class="mt-8">
+        <!-- Developer Summary Bar -->
+        <div class="ink-card flex flex-wrap items-center justify-between gap-4 p-5">
+          <div class="flex flex-wrap items-center gap-4">
+            <div class="flex h-10 w-10 items-center justify-center rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-raised)] text-[var(--accent)]">
+              <Icon name="key" size={19} />
+            </div>
+            <div>
+              <div class="text-[12px] text-[var(--text-muted)]">{strings.dashSignedInAs}</div>
+              <h2 id="dev-dashboard-heading" tabindex="-1" class="text-[17px] font-semibold text-[var(--text-primary)] focus:outline-none">
+                <span id="dev-user-handle">@developer</span>
+                <span id="dev-user-email" class="ml-2 font-mono text-[13px] font-normal text-[var(--text-muted)]"></span>
+              </h2>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-4">
+            <div class="tabular rounded-full border border-[var(--border-hairline)] bg-[var(--bg-alt)] px-3 py-1 font-mono text-[12.5px] text-[var(--text-secondary)]">
+              {strings.dashQuotaLabel}: <span id="dev-quota-count" class="font-semibold text-[var(--text-primary)]">0 / 10</span>
+            </div>
+            <button id="dev-signout-btn" type="button" class="btn-secondary !min-h-[38px] !px-4 !py-1.5 text-[13.5px]">
+              {strings.dashSignOut}
+            </button>
+          </div>
+        </div>
+
+        <!-- One-time Secret Banner -->
+        <div id="dev-secret-banner" hidden class="ink-card mt-6 border-l-4 border-l-[var(--brand-gold)] p-6">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h3 class="text-[17px] font-semibold text-[var(--text-primary)]">{strings.secretBannerTitle}</h3>
+              <p class="mt-1 text-[14px] text-[var(--text-secondary)]">{strings.secretBannerBody}</p>
+            </div>
+            <button id="dev-secret-dismiss" type="button" class="rounded-[var(--radius-chip)] border border-[var(--border-hairline)] bg-[var(--bg-raised)] px-3 py-1.5 text-[12.5px] font-semibold text-[var(--text-primary)] hover:border-[var(--border-strong)]">
+              {strings.secretClose}
+            </button>
+          </div>
+          <div class="mt-4 flex flex-wrap items-center gap-3 rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] px-4 py-3">
+            <span class="font-mono text-[12px] text-[var(--text-muted)]">api_hash:</span>
+            <code id="dev-revealed-hash" class="min-w-0 flex-1 break-all font-mono text-[13.5px] font-semibold text-[var(--text-primary)]"></code>
+            <span class="copy-wrap shrink-0">
+              <button
+                type="button"
+                class="copy-btn"
+                command="--copy"
+                commandfor="dev-revealed-hash"
+                aria-label={strings.copyAriaHash}
+                data-copied-label={strings.copied}
+                data-failed-label={strings.copyFailed}
+              >
+                <span data-icon-copy aria-hidden="true"><Icon name="copy" size={14} /></span>
+                <span data-icon-check aria-hidden="true"><Icon name="check" size={14} /></span>
+                <span>{strings.copyAriaHash}</span>
+              </button>
+              <span class="copy-tip" role="status"></span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Main Grid: Registered Apps (left 7 cols) + Create Form (right 5 cols) -->
+        <div class="mt-8 grid items-start gap-8 lg:grid-cols-12">
+          <div class="lg:col-span-7">
+            <h3 class="text-[20px] font-semibold text-[var(--text-primary)]">{strings.listHeading}</h3>
+            <div id="dev-apps-list" class="mt-4 flex flex-col gap-4"></div>
+
+            <div id="dev-apps-empty" hidden class="ink-card mt-4 p-6">
+              <p class="text-[16px] font-semibold text-[var(--text-primary)]">{strings.listEmptyTitle}</p>
+              <p class="mt-1.5 text-[14px] leading-relaxed text-[var(--text-secondary)]">{strings.listEmptyBody}</p>
+            </div>
+          </div>
+
+          <div class="lg:col-span-5">
+            <div class="ink-card p-6">
+              <h3 class="text-[19px] font-semibold text-[var(--text-primary)]">{strings.createHeading}</h3>
+              <p class="mt-1.5 text-[13.5px] text-[var(--text-secondary)]">{strings.createSub}</p>
+
+              <form id="dev-create-form" method="POST" novalidate class="mt-5 flex flex-col gap-4">
+                <div>
+                  <label for="c-app-title" class="block text-[13.5px] font-semibold text-[var(--text-secondary)]">
+                    {strings.fTitle} <span aria-hidden="true">*</span>
+                  </label>
+                  <p id="c-title-hint" class="mt-1 text-[12px] text-[var(--text-muted)]">{strings.fTitleHint}</p>
+                  <input
+                    id="c-app-title"
+                    name="title"
+                    type="text"
+                    required
+                    minlength="2"
+                    maxlength="64"
+                    aria-describedby="c-title-hint"
+                    class="field-control mt-1.5 block w-full"
+                  />
+                </div>
+
+                <div>
+                  <label for="c-app-short" class="block text-[13.5px] font-semibold text-[var(--text-secondary)]">
+                    {strings.fShortName} <span aria-hidden="true">*</span>
+                  </label>
+                  <p id="c-short-hint" class="mt-1 text-[12px] text-[var(--text-muted)]">{strings.fShortNameHint}</p>
+                  <input
+                    id="c-app-short"
+                    name="short_name"
+                    type="text"
+                    required
+                    pattern="[a-zA-Z][a-zA-Z0-9_]{2,31}"
+                    minlength="3"
+                    maxlength="32"
+                    autocorrect="off"
+                    autocapitalize="none"
+                    spellcheck="false"
+                    aria-describedby="c-short-hint"
+                    class="field-control mt-1.5 block w-full font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label for="c-app-platform" class="block text-[13.5px] font-semibold text-[var(--text-secondary)]">
+                    {strings.fPlatform}
+                  </label>
+                  <select id="c-app-platform" name="platform" class="field-control mt-1.5 block w-full">
+                    {platforms.map((p) => (
+                      <option value={p}>{p}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label for="c-app-url" class="block text-[13.5px] font-semibold text-[var(--text-secondary)]">
+                    {strings.fUrl}
+                  </label>
+                  <input
+                    id="c-app-url"
+                    name="website_url"
+                    type="url"
+                    placeholder="https://example.com"
+                    autocorrect="off"
+                    autocapitalize="none"
+                    spellcheck="false"
+                    class="field-control mt-1.5 block w-full"
+                  />
+                </div>
+
+                <div>
+                  <label for="c-app-desc" class="block text-[13.5px] font-semibold text-[var(--text-secondary)]">
+                    {strings.fDesc}
+                  </label>
+                  <textarea
+                    id="c-app-desc"
+                    name="description"
+                    rows="3"
+                    maxlength="512"
+                    class="field-control mt-1.5 block w-full"
+                  ></textarea>
+                </div>
+
+                <p id="dev-create-err" role="alert" class="hidden text-[13.5px] font-semibold text-[var(--negative)]"></p>
+
+                <button id="dev-create-btn" type="submit" class="btn-primary w-full">
+                  <Icon name="key" size={16} />
+                  <span data-btn-text>{strings.btnCreate}</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom @BotMother Note -->
+      <div class="ink-card mt-10 flex flex-wrap items-center justify-between gap-4 bg-[var(--bg-alt)] p-5">
+        <div class="flex items-start gap-3">
+          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-card)] text-[var(--accent)]">
+            <Icon name="bot" size={18} />
+          </div>
+          <div>
+            <div class="text-[14.5px] font-semibold text-[var(--text-primary)]">{strings.botmotherNoteTitle}</div>
+            <p class="mt-0.5 text-[13.5px] text-[var(--text-secondary)]">{strings.botmotherNoteBody}</p>
+          </div>
+        </div>
+        <a href={localizePath('/docs/bots/overview-botmother', locale)} class="text-[13.5px] font-semibold text-[var(--accent)] hover:underline">
+          @BotMother →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Edit App Dialog -->
+  <dialog
+    id="dev-edit-dialog"
+    closedby="any"
+    aria-labelledby="dev-edit-title"
+    class="top-layer-dialog m-auto w-[min(500px,calc(100vw-32px))] rounded-[var(--radius-frame)] border border-[var(--border-strong)] bg-[var(--bg-card)] p-6 text-[var(--text-primary)] shadow-2xl"
+  >
+    <div class="flex items-center justify-between border-b border-[var(--border-hairline)] pb-3">
+      <h2 id="dev-edit-title" class="text-[18px] font-semibold">{strings.editDialogTitle}</h2>
+      <button type="button" data-close-edit aria-label="Close" class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] border border-[var(--border-hairline)] bg-[var(--bg-raised)]">
+        <Icon name="close" size={15} />
+      </button>
+    </div>
+
+    <form id="dev-edit-form" method="POST" novalidate class="mt-4 flex flex-col gap-3.5">
+      <input type="hidden" id="edit-app-id" name="api_id" />
+      <div>
+        <label for="edit-app-title" class="block text-[13px] font-semibold text-[var(--text-secondary)]">{strings.fTitle}</label>
+        <input id="edit-app-title" name="title" type="text" required minlength="2" maxlength="64" class="field-control mt-1 block w-full" />
+      </div>
+      <div>
+        <label for="edit-app-platform" class="block text-[13px] font-semibold text-[var(--text-secondary)]">{strings.fPlatform}</label>
+        <select id="edit-app-platform" name="platform" class="field-control mt-1 block w-full">
+          {platforms.map((p) => (
+            <option value={p}>{p}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label for="edit-app-url" class="block text-[13px] font-semibold text-[var(--text-secondary)]">{strings.fUrl}</label>
+        <input id="edit-app-url" name="website_url" type="url" class="field-control mt-1 block w-full" />
+      </div>
+      <div>
+        <label for="edit-app-desc" class="block text-[13px] font-semibold text-[var(--text-secondary)]">{strings.fDesc}</label>
+        <textarea id="edit-app-desc" name="description" rows="3" maxlength="512" class="field-control mt-1 block w-full"></textarea>
+      </div>
+      <p id="dev-edit-err" role="alert" class="hidden text-[13px] font-semibold text-[var(--negative)]"></p>
+      <div class="mt-2 flex flex-wrap justify-end gap-2">
+        <button type="button" data-close-edit class="btn-secondary !min-h-[40px] !px-4 !py-1.5 text-[14px]">{strings.btnCancel}</button>
+        <button type="submit" id="dev-edit-save" class="btn-primary !min-h-[40px] !px-4 !py-1.5 text-[14px]">{strings.btnSave}</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Confirm Rotate / Revoke Dialog -->
+  <dialog
+    id="dev-confirm-dialog"
+    closedby="any"
+    aria-labelledby="dev-confirm-title"
+    class="top-layer-dialog m-auto w-[min(440px,calc(100vw-32px))] rounded-[var(--radius-frame)] border border-[var(--border-strong)] bg-[var(--bg-card)] p-6 text-[var(--text-primary)] shadow-2xl"
+  >
+    <h2 id="dev-confirm-title" class="text-[18px] font-semibold text-[var(--text-primary)]"></h2>
+    <p id="dev-confirm-body" class="mt-2 text-[14.5px] leading-relaxed text-[var(--text-secondary)]"></p>
+    <div class="mt-6 flex flex-wrap justify-end gap-2">
+      <button type="button" id="dev-confirm-cancel" class="btn-secondary !min-h-[40px] !px-4 !py-1.5 text-[14px]">{strings.btnCancel}</button>
+      <button type="button" id="dev-confirm-proceed" class="btn-primary !min-h-[40px] !px-4 !py-1.5 text-[14px]"></button>
+    </div>
+  </dialog>
+</MarketingLayout>
+
+<style is:global>
+  .dev-auth-tablist [role="tab"][aria-selected="true"] {
+    anchor-name: --active-dev-auth;
+  }
+
+  .dev-auth-tablist::before {
+    content: "";
+    position: absolute;
+    position-anchor: --active-dev-auth;
+    inset-block-start: calc(anchor(self-end) - 1px);
+    inset-inline-start: anchor(self-start);
+    inset-inline-end: anchor(self-end);
+    border-block-end: 2px solid var(--accent);
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .dev-auth-tablist::before {
+      transition: inset 0.2s var(--ease-standard);
+    }
+  }
+
+  @supports not (position-anchor: --active-dev-auth) {
+    .dev-auth-tablist::before {
+      content: none;
+    }
+
+    .dev-auth-tablist [role="tab"][aria-selected="true"] {
+      border-block-end: 2px solid var(--accent);
+    }
+  }
+</style>
+
+<script>
+  import { renderSVG } from 'uqr';
+
+  const TOKEN_KEY = 'theaver_dev_portal_token';
+  const DEV_KEY = 'theaver_dev_portal_user';
+
+  const root = document.getElementById('dev-console-app');
+  if (root) {
+    const apiBase = (root.getAttribute('data-api-base') || '').replace(/\/+$/, '');
+    const locale = root.getAttribute('data-locale') || 'en';
+    const S = JSON.parse(root.getAttribute('data-strings') || '{}');
+
+    const authView = document.getElementById('dev-auth-view')!;
+    const dashView = document.getElementById('dev-dashboard-view')!;
+    const authHeading = document.getElementById('dev-auth-heading')!;
+    const dashHeading = document.getElementById('dev-dashboard-heading')!;
+
+    const authTabs = Array.from(document.querySelectorAll('[data-dev-auth-tab]'));
+    const authPanels = Array.from(document.querySelectorAll('[data-dev-auth-panel]'));
+
+    const step1Form = document.getElementById('dev-email-step1') as HTMLFormElement;
+    const step2Form = document.getElementById('dev-email-step2') as HTMLFormElement;
+    const idInput = document.getElementById('dev-identifier') as HTMLInputElement;
+    const otpInput = document.getElementById('dev-otp') as HTMLInputElement;
+    const tfaDetails = document.getElementById('dev-2fa-details') as HTMLDetailsElement;
+    const tfaPwdInput = document.getElementById('dev-2fa-pwd') as HTMLInputElement;
+    const recoveryInput = document.getElementById('dev-recovery') as HTMLInputElement;
+    const activeIdSpan = document.getElementById('dev-active-id')!;
+    const err1 = document.getElementById('dev-err-1')!;
+    const err2 = document.getElementById('dev-err-2')!;
+    const sendBtn = document.getElementById('dev-send-btn') as HTMLButtonElement;
+    const verifyBtn = document.getElementById('dev-verify-btn') as HTMLButtonElement;
+    const resendBtn = document.getElementById('dev-resend-btn') as HTMLButtonElement;
+    const changeBtn = document.getElementById('dev-change-btn') as HTMLButtonElement;
+
+    const qrSvgBox = document.getElementById('dev-qr-svg')!;
+    const qrShortCode = document.getElementById('dev-qr-shortcode')!;
+    const qrStatus = document.getElementById('dev-qr-status')!;
+    const qrRefresh = document.getElementById('dev-qr-refresh') as HTMLButtonElement;
+    const qr2faForm = document.getElementById('dev-qr-2fa-form') as HTMLFormElement;
+    const qr2faPwd = document.getElementById('dev-qr-2fa-pwd') as HTMLInputElement;
+    const qr2faErr = document.getElementById('dev-qr-2fa-err')!;
+
+    const userHandleEl = document.getElementById('dev-user-handle')!;
+    const userEmailEl = document.getElementById('dev-user-email')!;
+    const quotaCountEl = document.getElementById('dev-quota-count')!;
+    const appsListEl = document.getElementById('dev-apps-list')!;
+    const appsEmptyEl = document.getElementById('dev-apps-empty')!;
+    const signoutBtn = document.getElementById('dev-signout-btn') as HTMLButtonElement;
+
+    const secretBanner = document.getElementById('dev-secret-banner')!;
+    const revealedHashEl = document.getElementById('dev-revealed-hash')!;
+    const secretDismiss = document.getElementById('dev-secret-dismiss') as HTMLButtonElement;
+
+    const createForm = document.getElementById('dev-create-form') as HTMLFormElement;
+    const cTitle = document.getElementById('c-app-title') as HTMLInputElement;
+    const cShort = document.getElementById('c-app-short') as HTMLInputElement;
+    const cPlatform = document.getElementById('c-app-platform') as HTMLSelectElement;
+    const cUrl = document.getElementById('c-app-url') as HTMLInputElement;
+    const cDesc = document.getElementById('c-app-desc') as HTMLTextAreaElement;
+    const createErr = document.getElementById('dev-create-err')!;
+    const createBtn = document.getElementById('dev-create-btn') as HTMLButtonElement;
+
+    const editDialog = document.getElementById('dev-edit-dialog') as HTMLDialogElement;
+    const editForm = document.getElementById('dev-edit-form') as HTMLFormElement;
+    const editId = document.getElementById('edit-app-id') as HTMLInputElement;
+    const editTitle = document.getElementById('edit-app-title') as HTMLInputElement;
+    const editPlatform = document.getElementById('edit-app-platform') as HTMLSelectElement;
+    const editUrl = document.getElementById('edit-app-url') as HTMLInputElement;
+    const editDesc = document.getElementById('edit-app-desc') as HTMLTextAreaElement;
+    const editErr = document.getElementById('dev-edit-err')!;
+
+    const confirmDialog = document.getElementById('dev-confirm-dialog') as HTMLDialogElement;
+    const confirmTitle = document.getElementById('dev-confirm-title')!;
+    const confirmBody = document.getElementById('dev-confirm-body')!;
+    const confirmCancel = document.getElementById('dev-confirm-cancel') as HTMLButtonElement;
+    const confirmProceed = document.getElementById('dev-confirm-proceed') as HTMLButtonElement;
+
+    let currentIdentifier = '';
+    let resendTimer: number | null = null;
+    let qrPollTimer: number | null = null;
+    let qrSession: { token: string; secret: string } | null = null;
+    let appsCache: Array<Record<string, any>> = [];
+    let pendingConfirmAction: (() => Promise<void>) | null = null;
+
+    function getToken(): string {
+      return sessionStorage.getItem(TOKEN_KEY) || '';
+    }
+
+    function setSession(token: string, dev: Record<string, any> | null) {
+      sessionStorage.setItem(TOKEN_KEY, token);
+      if (dev) sessionStorage.setItem(DEV_KEY, JSON.stringify(dev));
+    }
+
+    function clearSession() {
+      sessionStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem(DEV_KEY);
+    }
+
+    function showErr(el: HTMLElement, msg: string) {
+      if (!msg) {
+        el.textContent = '';
+        el.classList.add('hidden');
+      } else {
+        el.textContent = msg;
+        el.classList.remove('hidden');
+      }
+    }
+
+    function closeDlg(dlg: HTMLDialogElement) {
+      if (window.__theaverCloseTopLayer) {
+        void window.__theaverCloseTopLayer(dlg);
+      } else {
+        dlg.close();
+      }
+    }
+
+    function runViewSwap(update: () => void, focusTarget: HTMLElement) {
+      const motionOk = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
+      if (typeof document.startViewTransition === 'function' && motionOk) {
+        const vt = document.startViewTransition(update);
+        vt.finished.finally(() => focusTarget.focus());
+      } else {
+        update();
+        focusTarget.focus();
+      }
+    }
+
+    // Password reveal toggles
+    document.querySelectorAll('[data-toggle-pwd]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-toggle-pwd');
+        const input = targetId ? (document.getElementById(targetId) as HTMLInputElement | null) : null;
+        if (!input) return;
+        const nextShown = input.type === 'password';
+        input.type = nextShown ? 'text' : 'password';
+        btn.setAttribute('aria-pressed', nextShown ? 'true' : 'false');
+        btn.setAttribute('aria-label', nextShown ? btn.getAttribute('data-hide-label') || '' : btn.getAttribute('data-show-label') || '');
+        btn.querySelector('[data-eye-open]')?.classList.toggle('hidden', nextShown);
+        btn.querySelector('[data-eye-closed]')?.classList.toggle('hidden', !nextShown);
+      });
+    });
+
+    function stopQrPoll() {
+      if (qrPollTimer) {
+        window.clearInterval(qrPollTimer);
+        qrPollTimer = null;
+      }
+    }
+
+    async function startQrSession() {
+      stopQrPoll();
+      qr2faForm.classList.add('hidden');
+      qrStatus.textContent = S.qrStatusWaiting;
+      qrSvgBox.innerHTML = '';
+      qrShortCode.textContent = '----';
+
+      try {
+        const res = await fetch(`${apiBase}/api/auth/qr/create`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            device_name: 'Theaver Developer Console',
+            device_type: 'web',
+            locale,
+            scope: 'developer_portal',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.token) {
+          qrStatus.textContent = data.message || S.errGeneric;
+          return;
+        }
+        qrSession = { token: data.token, secret: data.qr_secret };
+        qrShortCode.textContent = data.short_code || '----';
+        qrSvgBox.innerHTML = renderSVG(data.qr_url, { ecc: 'M', border: 1 });
+
+        qrPollTimer = window.setInterval(pollQrStatus, 2000);
+      } catch {
+        qrStatus.textContent = S.errGeneric;
+      }
+    }
+
+    async function pollQrStatus() {
+      if (!qrSession || document.hidden) return;
+      try {
+        const res = await fetch(`${apiBase}/api/auth/qr/status/${encodeURIComponent(qrSession.token)}`, {
+          headers: { 'X-QR-Secret': qrSession.secret },
+        });
+        const data = await res.json();
+        if (data.status === 'expired') {
+          stopQrPoll();
+          qrStatus.textContent = S.qrStatusExpired;
+          return;
+        }
+        if (data.status === 'awaiting_2fa') {
+          stopQrPoll();
+          qrStatus.textContent = S.qrStatus2FA;
+          qr2faForm.classList.remove('hidden');
+          qr2faForm.classList.add('flex');
+          qr2faPwd.focus();
+          return;
+        }
+        if (data.status === 'confirmed' && data.portal_token) {
+          stopQrPoll();
+          await completeSignIn(data.portal_token, data.developer || null);
+        }
+      } catch {}
+    }
+
+    qrRefresh.addEventListener('click', () => void startQrSession());
+
+    qr2faForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!qrSession) return;
+      showErr(qr2faErr, '');
+      try {
+        const res = await fetch(`${apiBase}/api/auth/qr/verify-2fa`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-QR-Secret': qrSession.secret,
+          },
+          body: JSON.stringify({
+            token: qrSession.token,
+            two_factor_password: qr2faPwd.value,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.portal_token) {
+          showErr(qr2faErr, data.message || S.err2FARequired);
+          qr2faPwd.focus();
+          return;
+        }
+        await completeSignIn(data.portal_token, data.developer || null);
+      } catch {
+        showErr(qr2faErr, S.errGeneric);
+      }
+    });
+
+    function activateAuthTab(key: string) {
+      authTabs.forEach((t) => {
+        const on = t.getAttribute('data-dev-auth-tab') === key;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        t.classList.toggle('text-[var(--accent)]', on);
+        t.classList.toggle('text-[var(--text-muted)]', !on);
+      });
+      authPanels.forEach((p) => {
+        if (!(p instanceof HTMLElement)) return;
+        const on = p.getAttribute('data-dev-auth-panel') === key;
+        p.hidden = !on;
+        if (on) p.setAttribute('tabindex', '0');
+        else p.removeAttribute('tabindex');
+      });
+      if (key === 'qr') {
+        void startQrSession();
+      } else {
+        stopQrPoll();
+      }
+    }
+
+    authTabs.forEach((tab, idx) => {
+      tab.addEventListener('click', () => activateAuthTab(tab.getAttribute('data-dev-auth-tab') || 'email'));
+      tab.addEventListener('keydown', (e) => {
+        const ev = e as KeyboardEvent;
+        if (ev.key === 'ArrowRight' || ev.key === 'ArrowLeft') {
+          ev.preventDefault();
+          const next = authTabs[(idx + 1) % authTabs.length] as HTMLElement;
+          activateAuthTab(next.getAttribute('data-dev-auth-tab') || 'email');
+          next.focus();
+        }
+      });
+    });
+
+    function startResendCooldown(seconds: number) {
+      if (resendTimer) window.clearInterval(resendTimer);
+      let rem = Math.max(10, seconds || 60);
+      const tick = () => {
+        if (rem <= 0) {
+          if (resendTimer) window.clearInterval(resendTimer);
+          resendBtn.disabled = false;
+          resendBtn.textContent = S.resendBtn;
+        } else {
+          resendBtn.disabled = true;
+          resendBtn.textContent = S.resendWait.replace('{sec}', String(rem));
+          rem -= 1;
+        }
+      };
+      tick();
+      resendTimer = window.setInterval(tick, 1000);
+    }
+
+    idInput.addEventListener('input', () => {
+      idInput.setCustomValidity('');
+      idInput.removeAttribute('aria-invalid');
+      showErr(err1, '');
+    });
+
+    step1Form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showErr(err1, '');
+      const val = idInput.value.trim();
+      if (!val) {
+        idInput.setAttribute('aria-invalid', 'true');
+        showErr(err1, S.errEmptyId);
+        idInput.focus();
+        return;
+      }
+      sendBtn.disabled = true;
+      const lbl = sendBtn.querySelector('[data-btn-text]');
+      if (lbl) lbl.textContent = S.sendingBtn;
+
+      try {
+        const res = await fetch(`${apiBase}/api/developers/auth/send-code`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: val, locale }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          showErr(err1, data.message || S.errGeneric);
+          return;
+        }
+        currentIdentifier = val;
+        activeIdSpan.textContent = val;
+        step1Form.classList.add('hidden');
+        step2Form.classList.remove('hidden');
+        step2Form.classList.add('flex');
+        startResendCooldown(data.cooldown_seconds || 60);
+        otpInput.focus();
+      } catch {
+        showErr(err1, S.errGeneric);
+      } finally {
+        sendBtn.disabled = false;
+        if (lbl) lbl.textContent = S.sendCodeBtn;
+      }
+    });
+
+    resendBtn.addEventListener('click', async () => {
+      if (!currentIdentifier || resendBtn.disabled) return;
+      try {
+        const res = await fetch(`${apiBase}/api/developers/auth/send-code`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: currentIdentifier, locale }),
+        });
+        const data = await res.json().catch(() => ({}));
+        startResendCooldown(data.cooldown_seconds || 60);
+      } catch {}
+    });
+
+    changeBtn.addEventListener('click', () => {
+      step2Form.classList.add('hidden');
+      step2Form.classList.remove('flex');
+      step1Form.classList.remove('hidden');
+      showErr(err2, '');
+      idInput.focus();
+    });
+
+    otpInput.addEventListener('input', () => {
+      otpInput.setCustomValidity('');
+      otpInput.removeAttribute('aria-invalid');
+      showErr(err2, '');
+    });
+
+    step2Form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showErr(err2, '');
+      const code = otpInput.value.trim();
+      if (!/^\d{6}$/.test(code)) {
+        otpInput.setAttribute('aria-invalid', 'true');
+        showErr(err2, S.errInvalidOtp);
+        otpInput.focus();
+        return;
+      }
+
+      verifyBtn.disabled = true;
+      const lbl = verifyBtn.querySelector('[data-btn-text]');
+      if (lbl) lbl.textContent = S.verifyingBtn;
+
+      try {
+        const payload: Record<string, string> = {
+          identifier: currentIdentifier,
+          code,
+        };
+        if (tfaPwdInput.value) payload.two_factor_password = tfaPwdInput.value;
+        if (recoveryInput.value.trim()) payload.recovery_code = recoveryInput.value.trim();
+
+        const res = await fetch(`${apiBase}/api/developers/auth/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.portal_token) {
+          if (data.requires_2fa || data.error_code === 'TWO_FACTOR_REQUIRED') {
+            tfaDetails.open = true;
+            showErr(err2, data.message || S.err2FARequired);
+            tfaPwdInput.focus();
+          } else {
+            showErr(err2, data.message || S.errGeneric);
+          }
+          return;
+        }
+        await completeSignIn(data.portal_token, data.developer || null);
+      } catch {
+        showErr(err2, S.errGeneric);
+      } finally {
+        verifyBtn.disabled = false;
+        if (lbl) lbl.textContent = S.verifyBtn;
+      }
+    });
+
+    async function devFetch(path: string, init: RequestInit = {}) {
+      const token = getToken();
+      const headers = new Headers(init.headers || {});
+      headers.set('Authorization', `Bearer ${token}`);
+      if (init.body && !headers.has('Content-Type')) {
+        headers.set('Content-Type', 'application/json');
+      }
+      const res = await fetch(`${apiBase}${path}`, { ...init, headers });
+      if (res.status === 401) {
+        handleSessionExpired();
+        throw new Error('unauthorized');
+      }
+      return res;
+    }
+
+    function handleSessionExpired() {
+      clearSession();
+      stopQrPoll();
+      runViewSwap(() => {
+        dashView.hidden = true;
+        authView.hidden = false;
+      }, authHeading);
+      showErr(err1, S.errSessionExpired);
+    }
+
+    async function completeSignIn(token: string, devObj: Record<string, any> | null) {
+      setSession(token, devObj);
+      try {
+        const meRes = await devFetch('/api/developers/me');
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          if (meData.developer) setSession(token, meData.developer);
+        }
+      } catch {}
+      renderDeveloperIdentity();
+      await loadApps();
+      runViewSwap(() => {
+        authView.hidden = true;
+        dashView.hidden = false;
+      }, dashHeading);
+    }
+
+    function renderDeveloperIdentity() {
+      try {
+        const dev = JSON.parse(sessionStorage.getItem(DEV_KEY) || '{}');
+        userHandleEl.textContent = dev.username ? `@${dev.username}` : `#${dev.id || 'dev'}`;
+        userEmailEl.textContent = dev.masked_email || '';
+      } catch {}
+    }
+
+    function revealApiHash(hash: string) {
+      if (!hash) return;
+      revealedHashEl.textContent = hash;
+      secretBanner.hidden = false;
+      secretBanner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    secretDismiss.addEventListener('click', () => {
+      secretBanner.hidden = true;
+      revealedHashEl.textContent = '';
+    });
+
+    function createCopyWidget(elementId: string, copyValue: string, ariaLabel: string): HTMLElement {
+      const wrap = document.createElement('span');
+      wrap.className = 'copy-wrap';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'copy-btn';
+      btn.setAttribute('aria-label', ariaLabel);
+      btn.setAttribute('data-copy-value', copyValue);
+      btn.setAttribute('data-copied-label', S.copied);
+      btn.setAttribute('data-failed-label', S.copyFailed);
+      btn.textContent = 'Copy';
+      btn.addEventListener('click', () => {
+        if (window.__theaverCopyValue) void window.__theaverCopyValue(btn, copyValue);
+      });
+      const tip = document.createElement('span');
+      tip.className = 'copy-tip';
+      tip.setAttribute('role', 'status');
+      wrap.append(btn, tip);
+      void elementId;
+      return wrap;
+    }
+
+    function renderAppsList() {
+      quotaCountEl.textContent = `${appsCache.length} / 10`;
+      if (appsCache.length === 0) {
+        appsListEl.replaceChildren();
+        appsEmptyEl.hidden = false;
+        return;
+      }
+      appsEmptyEl.hidden = true;
+
+      const fragment = document.createDocumentFragment();
+      for (const app of appsCache) {
+        const card = document.createElement('article');
+        card.className = 'ink-card p-6';
+
+        const header = document.createElement('div');
+        header.className = 'flex flex-wrap items-start justify-between gap-3';
+
+        const titleWrap = document.createElement('div');
+        const titleEl = document.createElement('h4');
+        titleEl.className = 'text-[18px] font-semibold text-[var(--text-primary)]';
+        titleEl.textContent = app.title;
+        const shortEl = document.createElement('div');
+        shortEl.className = 'mt-0.5 font-mono text-[12.5px] text-[var(--text-muted)]';
+        shortEl.textContent = `${app.short_name} · ${app.platform}`;
+        titleWrap.append(titleEl, shortEl);
+
+        const actionsWrap = document.createElement('div');
+        actionsWrap.className = 'flex flex-wrap items-center gap-2';
+
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'rounded-[var(--radius-chip)] border border-[var(--border-hairline)] bg-[var(--bg-alt)] px-2.5 py-1 text-[12.5px] font-semibold text-[var(--text-primary)] hover:border-[var(--border-strong)]';
+        editBtn.textContent = S.btnEdit;
+        editBtn.addEventListener('click', () => openEditModal(app));
+
+        const rotateBtn = document.createElement('button');
+        rotateBtn.type = 'button';
+        rotateBtn.className = 'rounded-[var(--radius-chip)] border border-[var(--border-hairline)] bg-[var(--bg-alt)] px-2.5 py-1 text-[12.5px] font-semibold text-[var(--accent)] hover:border-[var(--accent)]';
+        rotateBtn.textContent = S.btnRotate;
+        rotateBtn.addEventListener('click', () => openConfirmModal('rotate', app));
+
+        const revokeBtn = document.createElement('button');
+        revokeBtn.type = 'button';
+        revokeBtn.className = 'rounded-[var(--radius-chip)] border border-[var(--border-hairline)] bg-[var(--bg-alt)] px-2.5 py-1 text-[12.5px] font-semibold text-[var(--negative)] hover:border-[var(--negative)]';
+        revokeBtn.textContent = S.btnRevoke;
+        revokeBtn.addEventListener('click', () => openConfirmModal('revoke', app));
+
+        actionsWrap.append(editBtn, rotateBtn, revokeBtn);
+        header.append(titleWrap, actionsWrap);
+        card.appendChild(header);
+
+        if (app.description) {
+          const descP = document.createElement('p');
+          descP.className = 'mt-3 text-[14px] text-[var(--text-secondary)]';
+          descP.textContent = app.description;
+          card.appendChild(descP);
+        }
+
+        const grid = document.createElement('div');
+        grid.className = 'mt-4 grid gap-3 rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] p-3.5 sm:grid-cols-3';
+
+        const c1 = document.createElement('div');
+        const c1Lbl = document.createElement('div');
+        c1Lbl.className = 'text-[11.5px] text-[var(--text-muted)]';
+        c1Lbl.textContent = S.lblApiId;
+        const c1Val = document.createElement('div');
+        c1Val.className = 'mt-1 flex items-center gap-2 font-mono text-[14px] font-semibold text-[var(--text-primary)]';
+        const idNum = document.createElement('span');
+        idNum.textContent = String(app.api_id);
+        c1Val.append(idNum, createCopyWidget(`api-id-${app.api_id}`, String(app.api_id), S.copyAriaId));
+        c1.append(c1Lbl, c1Val);
+
+        const c2 = document.createElement('div');
+        const c2Lbl = document.createElement('div');
+        c2Lbl.className = 'text-[11.5px] text-[var(--text-muted)]';
+        c2Lbl.textContent = S.lblHashPrefix;
+        const c2Val = document.createElement('div');
+        c2Val.className = 'mt-1 font-mono text-[13.5px] text-[var(--text-secondary)]';
+        c2Val.textContent = app.api_hash_prefix || '••••••••';
+        c2.append(c2Lbl, c2Val);
+
+        const c3 = document.createElement('div');
+        const c3Lbl = document.createElement('div');
+        c3Lbl.className = 'text-[11.5px] text-[var(--text-muted)]';
+        c3Lbl.textContent = S.lblRateLimit;
+        const c3Val = document.createElement('div');
+        c3Val.className = 'mt-1 tabular font-mono text-[13.5px] text-[var(--text-secondary)]';
+        c3Val.textContent = `${app.rate_limit_rpm || 600} RPM`;
+        c3.append(c3Lbl, c3Val);
+
+        grid.append(c1, c2, c3);
+        card.appendChild(grid);
+        fragment.appendChild(card);
+      }
+      appsListEl.replaceChildren(fragment);
+    }
+
+    async function loadApps() {
+      try {
+        const res = await devFetch('/api/developers/apps');
+        const data = await res.json();
+        appsCache = Array.isArray(data.apps) ? data.apps : [];
+        renderAppsList();
+      } catch {}
+    }
+
+    function openEditModal(app: Record<string, any>) {
+      editId.value = String(app.api_id);
+      editTitle.value = app.title || '';
+      editPlatform.value = app.platform || 'desktop';
+      editUrl.value = app.website_url || '';
+      editDesc.value = app.description || '';
+      showErr(editErr, '');
+      editDialog.showModal();
+    }
+
+    document.querySelectorAll('[data-close-edit]').forEach((el) => {
+      el.addEventListener('click', () => closeDlg(editDialog));
+    });
+
+    editForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showErr(editErr, '');
+      const id = editId.value;
+      try {
+        const res = await devFetch(`/api/developers/apps/${encodeURIComponent(id)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            title: editTitle.value.trim(),
+            platform: editPlatform.value,
+            website_url: editUrl.value.trim(),
+            description: editDesc.value.trim(),
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          showErr(editErr, data.message || S.errGeneric);
+          return;
+        }
+        closeDlg(editDialog);
+        await loadApps();
+      } catch {}
+    });
+
+    function openConfirmModal(kind: 'rotate' | 'revoke', app: Record<string, any>) {
+      if (kind === 'rotate') {
+        confirmTitle.textContent = `${S.confirmRotateTitle} (#${app.api_id})`;
+        confirmBody.textContent = S.confirmRotateBody;
+        confirmProceed.textContent = S.confirmRotateAction;
+        confirmProceed.style.backgroundColor = '';
+        pendingConfirmAction = async () => {
+          const res = await devFetch(`/api/developers/apps/${encodeURIComponent(String(app.api_id))}/rotate-hash`, {
+            method: 'POST',
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data.api_hash) {
+            revealApiHash(data.api_hash);
+            await loadApps();
+          }
+        };
+      } else {
+        confirmTitle.textContent = `${S.confirmRevokeTitle} (${app.title})`;
+        confirmBody.textContent = S.confirmRevokeBody;
+        confirmProceed.textContent = S.confirmRevokeAction;
+        confirmProceed.style.backgroundColor = 'var(--negative)';
+        pendingConfirmAction = async () => {
+          const res = await devFetch(`/api/developers/apps/${encodeURIComponent(String(app.api_id))}`, {
+            method: 'DELETE',
+          });
+          if (res.ok) await loadApps();
+        };
+      }
+      confirmDialog.showModal();
+    }
+
+    confirmCancel.addEventListener('click', () => {
+      pendingConfirmAction = null;
+      closeDlg(confirmDialog);
+    });
+
+    confirmProceed.addEventListener('click', async () => {
+      const fn = pendingConfirmAction;
+      pendingConfirmAction = null;
+      closeDlg(confirmDialog);
+      if (fn) await fn();
+    });
+
+    [cTitle, cShort].forEach((field) => {
+      field.addEventListener('input', () => {
+        field.removeAttribute('aria-invalid');
+        showErr(createErr, '');
+      });
+    });
+
+    createForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showErr(createErr, '');
+      const title = cTitle.value.trim();
+      const shortName = cShort.value.trim();
+      if (title.length < 2 || title.length > 64) {
+        cTitle.setAttribute('aria-invalid', 'true');
+        showErr(createErr, S.errInvalidTitle);
+        cTitle.focus();
+        return;
+      }
+      if (!/^[a-zA-Z][a-zA-Z0-9_]{2,31}$/.test(shortName)) {
+        cShort.setAttribute('aria-invalid', 'true');
+        showErr(createErr, S.errInvalidShortName);
+        cShort.focus();
+        return;
+      }
+
+      createBtn.disabled = true;
+      const lbl = createBtn.querySelector('[data-btn-text]');
+      if (lbl) lbl.textContent = S.creatingBtn;
+
+      try {
+        const res = await devFetch('/api/developers/apps', {
+          method: 'POST',
+          body: JSON.stringify({
+            title,
+            short_name: shortName,
+            platform: cPlatform.value,
+            website_url: cUrl.value.trim(),
+            description: cDesc.value.trim(),
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          showErr(createErr, data.message || S.errGeneric);
+          return;
+        }
+        createForm.reset();
+        if (data.api_hash) revealApiHash(data.api_hash);
+        await loadApps();
+      } catch {
+        showErr(createErr, S.errGeneric);
+      } finally {
+        createBtn.disabled = false;
+        if (lbl) lbl.textContent = S.btnCreate;
+      }
+    });
+
+    signoutBtn.addEventListener('click', () => {
+      clearSession();
+      secretBanner.hidden = true;
+      revealedHashEl.textContent = '';
+      runViewSwap(() => {
+        dashView.hidden = true;
+        authView.hidden = false;
+      }, authHeading);
+    });
+
+    // Boot: resume portal session if present
+    if (getToken()) {
+      void (async () => {
+        try {
+          const meRes = await devFetch('/api/developers/me');
+          if (meRes.ok) {
+            const meData = await meRes.json();
+            if (meData.developer) sessionStorage.setItem(DEV_KEY, JSON.stringify(meData.developer));
+            renderDeveloperIdentity();
+            await loadApps();
+            authView.hidden = true;
+            dashView.hidden = false;
+          }
+        } catch {}
+      })();
+    }
+  }
+</script>

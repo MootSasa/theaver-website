@@ -19,7 +19,7 @@ const { entry, allEntries, headings, locale, slug } = Astro.props;
 const t = UI_STRINGS[locale];
 const currentPath = Astro.url.pathname;
 
-const tracksOrder: Array<'guide' | 'bots' | 'client'> = ['guide', 'bots', 'client'];
+const tracksOrder: Array<'client' | 'bots' | 'guide'> = ['client', 'bots', 'guide'];
 
 const localeEntries = allEntries
   .filter((item) => item.id.startsWith(`${locale}/`))
@@ -49,6 +49,8 @@ const docRelPath = entry.filePath
   ? entry.filePath.replace(/^src\/content\/docs\//, '')
   : `${entry.id}${entry.id.endsWith('.md') || entry.id.endsWith('.mdx') ? '' : '.mdx'}`;
 const editUrl = `https://github.com/MootSasa/theaver-website/edit/main/src/content/docs/${docRelPath}`;
+const docsOverviewHref = localizePath('/docs', locale);
+const tableRegionLabel = locale === 'ru' ? 'Таблица параметров API' : 'API parameters table';
 ---
 
 <BaseLayout
@@ -57,12 +59,12 @@ const editUrl = `https://github.com/MootSasa/theaver-website/edit/main/src/conte
   canonicalPath={currentPath}
 >
   <div class="flex min-h-screen flex-col">
-    <Header locale={locale} currentPath={currentPath} />
+    <Header locale={locale} currentPath={currentPath} mode="utility" />
 
     <div class="container-page flex-1 py-8 lg:py-10">
       <!-- Mobile docs navigation drawer -->
       <details class="ink-card mb-6 lg:hidden">
-        <summary class="flex items-center justify-between px-4 py-3 text-[14px] font-medium text-[var(--text-primary)]">
+        <summary class="flex items-center justify-between px-4 py-3 text-[14px] font-semibold text-[var(--text-primary)]">
           <span class="inline-flex items-center gap-2">
             <Icon name="book" size={16} class="text-[var(--accent)]" />
             <span>{t.tracks[entry.data.track]} — {entry.data.title}</span>
@@ -70,9 +72,17 @@ const editUrl = `https://github.com/MootSasa/theaver-website/edit/main/src/conte
           <Icon name="chevron-right" size={16} class="text-[var(--text-muted)]" />
         </summary>
         <nav aria-label="Documentation sections" class="border-t border-[var(--border-hairline)] p-3">
+          <div class="mb-4">
+            <a
+              href={docsOverviewHref}
+              class="block rounded-[var(--radius-control)] px-2.5 py-1.5 text-[13.5px] font-semibold text-[var(--accent)] hover:bg-[var(--bg-raised)]"
+            >
+              {t.docsUi.overview}
+            </a>
+          </div>
           {grouped.map((group) => (
             <div class="mb-4 last:mb-0">
-              <div class="px-2 pb-1.5 text-[12px] font-medium text-[var(--text-muted)]">
+              <div class="px-2 pb-1.5 text-[12px] font-semibold text-[var(--text-muted)]">
                 {group.label}
               </div>
               <ul class="flex flex-col gap-0.5">
@@ -86,7 +96,7 @@ const editUrl = `https://github.com/MootSasa/theaver-website/edit/main/src/conte
                         class:list={[
                           'block rounded-[var(--radius-control)] px-2.5 py-1.5 text-[13.5px]',
                           active
-                            ? 'bg-[var(--bg-raised)] font-medium text-[var(--text-primary)]'
+                            ? 'bg-[var(--bg-raised)] font-semibold text-[var(--text-primary)]'
                             : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]',
                         ]}
                       >
@@ -106,9 +116,18 @@ const editUrl = `https://github.com/MootSasa/theaver-website/edit/main/src/conte
         <aside class="hidden lg:block">
           <div class="sticky top-24 max-h-[calc(100vh-112px)] overflow-y-auto pr-2">
             <nav aria-label="Documentation sidebar" class="flex flex-col gap-6">
+              <div>
+                <a
+                  href={docsOverviewHref}
+                  class="flex min-h-[34px] items-center justify-between rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-card)] px-2.5 py-1.5 text-[13.5px] font-semibold text-[var(--accent)] transition-colors duration-150 hover:border-[var(--border-strong)]"
+                >
+                  <span>{t.docsUi.overview}</span>
+                  <Icon name="chevron-right" size={14} />
+                </a>
+              </div>
               {grouped.map((group) => (
                 <div>
-                  <div class="px-2.5 pb-2 text-[12px] font-medium text-[var(--text-muted)]">
+                  <div class="px-2.5 pb-2 text-[12px] font-semibold text-[var(--text-muted)]">
                     {group.label}
                   </div>
                   <ul class="flex flex-col gap-1">
@@ -123,7 +142,7 @@ const editUrl = `https://github.com/MootSasa/theaver-website/edit/main/src/conte
                             class:list={[
                               'flex min-h-[34px] items-center justify-between rounded-[var(--radius-control)] px-2.5 py-1.5 text-[13.5px] transition-colors duration-150',
                               active
-                                ? 'border border-[var(--border-hairline)] bg-[var(--bg-card)] font-medium text-[var(--text-primary)] shadow-[var(--card-highlight)]'
+                                ? 'border border-[var(--border-hairline)] bg-[var(--bg-card)] font-semibold text-[var(--text-primary)]'
                                 : 'text-[var(--text-secondary)] hover:bg-[var(--bg-raised)] hover:text-[var(--text-primary)]',
                             ]}
                           >
@@ -181,7 +200,7 @@ const editUrl = `https://github.com/MootSasa/theaver-website/edit/main/src/conte
                   <Icon name="chevron-left" size={14} />
                   <span>{t.docsUi.previous}</span>
                 </span>
-                <span class="text-[14.5px] font-medium text-[var(--text-primary)]">
+                <span class="text-[14.5px] font-semibold text-[var(--text-primary)]">
                   {prevItem.entry.data.title}
                 </span>
               </a>
@@ -198,7 +217,7 @@ const editUrl = `https://github.com/MootSasa/theaver-website/edit/main/src/conte
                   <span>{t.docsUi.next}</span>
                   <Icon name="chevron-right" size={14} />
                 </span>
-                <span class="text-[14.5px] font-medium text-[var(--text-primary)]">
+                <span class="text-[14.5px] font-semibold text-[var(--text-primary)]">
                   {nextItem.entry.data.title}
                 </span>
               </a>
@@ -210,7 +229,7 @@ const editUrl = `https://github.com/MootSasa/theaver-website/edit/main/src/conte
         <aside class="hidden xl:block" data-pagefind-ignore>
           {tocHeadings.length > 0 && (
             <div class="sticky top-24">
-              <div class="mb-3 text-[12px] font-medium text-[var(--text-muted)]">
+              <div class="mb-3 text-[12px] font-semibold text-[var(--text-muted)]">
                 {t.docsUi.onThisPage}
               </div>
               <ul class="flex flex-col gap-2 border-l border-[var(--border-hairline)] pl-3 text-[13px]">
@@ -233,4 +252,19 @@ const editUrl = `https://github.com/MootSasa/theaver-website/edit/main/src/conte
 
     <Footer locale={locale} />
   </div>
+
+  <script is:inline define:vars={{ tableRegionLabel }}>
+    (() => {
+      document.querySelectorAll('.docs-prose table').forEach((table) => {
+        if (table.closest('.table-wrapper')) return;
+        const wrap = document.createElement('div');
+        wrap.className = 'table-wrapper';
+        wrap.setAttribute('tabindex', '0');
+        wrap.setAttribute('role', 'region');
+        wrap.setAttribute('aria-label', tableRegionLabel);
+        table.parentNode?.insertBefore(wrap, table);
+        wrap.appendChild(table);
+      });
+    })();
+  </script>
 </BaseLayout>

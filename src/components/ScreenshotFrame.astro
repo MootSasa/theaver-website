@@ -1,71 +1,135 @@
 ---
+import type { Locale } from '../lib/i18n';
+
+type SceneName =
+  'hero-desktop'
+  | 'hero-pane-chats'
+  | 'hero-pane-dialog'
+  | 'hero-pane-inspector'
+  | 'chats-mobile'
+  | 'calls-stream'
+  | 'bots-miniapp'
+  | 'theme-glass'
+  | 'theme-classic';
+
 interface Props {
-  name: 'hero-desktop' | 'chats-mobile' | 'calls-stream';
+  name: SceneName;
+  locale?: Locale;
   alt: string;
   width: number;
   height: number;
   priority?: boolean;
+  aboveFoldHidden?: boolean;
+  forcedTheme?: 'light' | 'dark';
+  framed?: boolean;
   class?: string;
 }
 
-const { name, alt, width, height, priority = false, class: className = '' } = Astro.props;
-const baseDark = `/screenshots/${name}-dark`;
-const baseLight = `/screenshots/${name}-light`;
+const {
+  name,
+  locale = 'en',
+  alt,
+  width,
+  height,
+  priority = false,
+  aboveFoldHidden = false,
+  forcedTheme,
+  framed = true,
+  class: className = '',
+} = Astro.props;
+
+const baseDark = `/screenshots/${locale}/${name}-dark`;
+const baseLight = `/screenshots/${locale}/${name}-light`;
+
+const showDark = !forcedTheme || forcedTheme === 'dark';
+const showLight = !forcedTheme || forcedTheme === 'light';
+const autoSwitch = !forcedTheme;
 ---
 
 <div
   class:list={[
-    'overflow-hidden rounded-[var(--radius-frame)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] shadow-[var(--frame-shadow)]',
+    'overflow-hidden',
+    framed && 'rounded-[var(--radius-frame)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] shadow-[var(--frame-shadow)]',
     className,
   ]}
 >
-  <picture class="theme-only-dark block">
-    <source type="image/avif" srcset={`${baseDark}.avif 1x, ${baseDark}@2x.avif 2x`} />
-    <source type="image/webp" srcset={`${baseDark}.webp 1x, ${baseDark}@2x.webp 2x`} />
-    {priority ? (
-      <img
-        src={`${baseDark}.webp`}
-        alt={alt}
-        width={width}
-        height={height}
-        fetchpriority="high"
-        class="block h-auto w-full"
-      />
-    ) : (
-      <img
-        src={`${baseDark}.webp`}
-        alt={alt}
-        width={width}
-        height={height}
-        loading="lazy"
-        class="block h-auto w-full"
-      />
-    )}
-  </picture>
+  {showDark && (
+    <picture class:list={[autoSwitch && 'theme-only-dark', 'block']}>
+      <source type="image/avif" srcset={`${baseDark}.avif 1x, ${baseDark}@2x.avif 2x`} />
+      <source type="image/webp" srcset={`${baseDark}.webp 1x, ${baseDark}@2x.webp 2x`} />
+      {priority ? (
+        <img
+          src={`${baseDark}.webp`}
+          alt={alt}
+          width={width}
+          height={height}
+          fetchpriority="high"
+          decoding="async"
+          class="block h-auto w-full"
+        />
+      ) : aboveFoldHidden ? (
+        <img
+          src={`${baseDark}.webp`}
+          alt={alt}
+          width={width}
+          height={height}
+          fetchpriority="low"
+          loading="lazy"
+          decoding="async"
+          class="block h-auto w-full"
+        />
+      ) : (
+        <img
+          src={`${baseDark}.webp`}
+          alt={alt}
+          width={width}
+          height={height}
+          loading="lazy"
+          decoding="async"
+          class="block h-auto w-full"
+        />
+      )}
+    </picture>
+  )}
 
-  <picture class="theme-only-light block">
-    <source type="image/avif" srcset={`${baseLight}.avif 1x, ${baseLight}@2x.avif 2x`} />
-    <source type="image/webp" srcset={`${baseLight}.webp 1x, ${baseLight}@2x.webp 2x`} />
-    {priority ? (
-      <img
-        src={`${baseLight}.webp`}
-        alt={alt}
-        width={width}
-        height={height}
-        fetchpriority="high"
-        class="block h-auto w-full"
-      />
-    ) : (
-      <img
-        src={`${baseLight}.webp`}
-        alt={alt}
-        width={width}
-        height={height}
-        loading="lazy"
-        class="block h-auto w-full"
-      />
-    )}
-  </picture>
+  {showLight && (
+    <picture class:list={[autoSwitch && 'theme-only-light', 'block']}>
+      <source type="image/avif" srcset={`${baseLight}.avif 1x, ${baseLight}@2x.avif 2x`} />
+      <source type="image/webp" srcset={`${baseLight}.webp 1x, ${baseLight}@2x.webp 2x`} />
+      {priority ? (
+        <img
+          src={`${baseLight}.webp`}
+          alt={alt}
+          width={width}
+          height={height}
+          fetchpriority="high"
+          decoding="async"
+          class="block h-auto w-full"
+        />
+      ) : aboveFoldHidden ? (
+        <img
+          src={`${baseLight}.webp`}
+          alt={alt}
+          width={width}
+          height={height}
+          fetchpriority="low"
+          loading="lazy"
+          decoding="async"
+          class="block h-auto w-full"
+        />
+      ) : (
+        <img
+          src={`${baseLight}.webp`}
+          alt={alt}
+          width={width}
+          height={height}
+          loading="lazy"
+          decoding="async"
+          class="block h-auto w-full"
+        />
+      )}
+    </picture>
+  )}
 </div>
 
 <style is:global>

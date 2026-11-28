@@ -1,8 +1,12 @@
 ---
 import MarketingLayout from '../../layouts/MarketingLayout.astro';
+import BrandMark from '../BrandMark.astro';
 import Icon from '../Icon.astro';
 import ScreenshotFrame from '../ScreenshotFrame.astro';
 import SmartDownloadButton from '../SmartDownloadButton.astro';
+import HeroScrollStage from '../interactive/HeroScrollStage.astro';
+import InteractivePaneResizer from '../interactive/InteractivePaneResizer.astro';
+import InteractiveThemePlayground from '../interactive/InteractiveThemePlayground.astro';
 import { localizePath, type Locale } from '../../lib/i18n';
 import { fetchPublicReleases, GITHUB_REPO_URL, WEB_APP_URL } from '../../lib/releases';
 
@@ -15,132 +19,184 @@ const initialReleases = await fetchPublicReleases();
 const rawHeroVer =
   initialReleases.channels.stable?.latest_version ||
   initialReleases.channels.beta?.latest_version ||
-  '1.20';
+  '1.21';
 const heroVersionTag = rawHeroVer.startsWith('v') ? rawHeroVer : `v${rawHeroVer}`;
-const channelPill = locale === 'ru' ? `Релиз ${heroVersionTag}` : `Release ${heroVersionTag}`;
+const channelPill = locale === 'ru' ? `Версия ${heroVersionTag}` : `Release ${heroVersionTag}`;
 
 const c = locale === 'ru'
   ? {
-      metaTitle: 'Theaver — Мессенджер для чатов, звонков и работы',
-      metaDesc: 'Кроссплатформенный мессенджер с открытым клиентом: чаты с работой без сети, каналы, звонки с показом экрана, несколько панелей на ПК и боты.',
-      heroTitle: 'Общение, звонки и работа в одном мессенджере',
-      heroSub: 'Быстрые чаты, каналы, звонки с показом экрана, несколько окон на одном экране компьютера и встроенные боты.',
+      metaTitle: 'Theaver — Чаты, войсы и стримы на одном экране',
+      metaDesc: 'Быстрый кроссплатформенный мессенджер: переписка без сети, голосовые комнаты, стримы экрана 1080p 60 fps, несколько панелей на ПК, стикеры и свои клиенты.',
+      heroTitle: 'Все твои чаты, войсы и стримы. На одном экране.',
+      heroSub: 'Мгновенные сообщения без тормозов, голосовые комнаты с друзьями, стримы 1080p 60 fps и три живые панели на большом мониторе.',
       openBrowser: 'Открыть в браузере',
-      heroAlt: 'Десктопный клиент Theaver с открытыми чатами и боковой панелью',
-      section1Label: 'Чаты и звонки',
-      section1Title: 'На связи, даже когда интернет пропадает',
-      section1Body: 'Сообщения, черновики и недавние файлы сохраняются на вашем устройстве. Если отправить ответ в метро или без сети, приложение само доставит его, как только вернётся связь.',
-      section1List: [
-        'Публичные каналы со счётчиком просмотров, отложенной отправкой и комментариями',
-        'Группы с темами обсуждений, опросами, викторинами и настройкой прав участников',
-        'Голосовые, видеокружки и групповые звонки с демонстрацией экрана до 1080p 60 fps',
-      ],
-      chatsAlt: 'Экран мобильного клиента Theaver со списком чатов',
-      callsAlt: 'Групповой звонок и демонстрация экрана в Theaver',
-      section2Label: 'Компьютер и оформление',
-      section2Title: 'Удобно на большом экране и настраивается под себя',
-      featureCards: [
-        {
-          icon: 'layers' as const,
-          title: 'Несколько панелей на одном экране',
-          body: 'На компьютере диалог, ветку комментариев, профиль и панель стикеров можно держать открытыми рядом без постоянных переключений.',
-          href: '',
-          linkLabel: '',
-        },
+
+      act2Eyebrow: 'Чаты без пауз',
+      act2Title: 'Работает даже глубоко в метро',
+      act2Sub: 'Напиши ответ или прикрепи фото без связи — сообщение уже ждёт в очереди и улетит само в ту секунду, когда вернётся сеть.',
+      chatsAlt: 'Мобильный клиент Theaver со списком чатов и папок',
+      act2Cards: [
         {
           icon: 'message' as const,
-          title: 'Стикеры, GIF и перенос из Telegram',
-          body: 'Анимированные стикеры, быстрый поиск по GIF-ленте и импорт ваших любимых наборов из Telegram прямо внутри приложения.',
-          href: '',
-          linkLabel: '',
+          title: 'Переписка не теряется в тоннелях',
+          body: 'Твоя история, черновики и недавние медиа всегда под рукой на устройстве. Даже без интернета всё открывается мгновенно.',
+          chip: 'Доставим, как появится сеть',
+        },
+        {
+          icon: 'mic' as const,
+          title: 'Волны голосовых и видеокружки',
+          body: 'Живая звуковая дорожка на каждом войсе и запись кружочков в одно нажатие — без задержек и лишних меню.',
+          chip: '0:14 · Чистый звук',
+        },
+        {
+          icon: 'layers' as const,
+          title: 'Ветки, каналы и опросы без хаоса',
+          body: 'Разделяй большие чаты на аккуратные темы обсуждений, веди каналы с комментариями и собирай мнения живыми опросами.',
+          chip: 'Темы · Опросы · Реакции',
+        },
+      ],
+
+      act3Eyebrow: 'Голос и стримы',
+      act3Title: 'Залетай в войс без ссылок. Стримь в 1080p 60 fps.',
+      act3Sub: 'Заходи в голосовую комнату одним кликом, показывай игры или фильмы друзьям в чётком 60-кадровом качестве и перекидывай звонок с телефона на ноутбук на лету.',
+      callsAlt: 'Окно группового звонка и демонстрации экрана Theaver',
+      act3Highlights: [
+        {
+          icon: 'phone' as const,
+          title: 'Вход за секунду',
+          body: 'Никаких одноразовых ссылок-приглашений: участники просто заходят в активный голосовой канал.',
+        },
+        {
+          icon: 'video' as const,
+          title: 'Плавный экран 1080p 60 fps',
+          body: 'Фильмы, код и игры транслируются чётко, а звук окна можно передать вместе с картинкой.',
         },
         {
           icon: 'laptop' as const,
-          title: 'Свои темы и оформление',
-          body: 'Светлая и тёмная палитры, выбор акцентов, фонов чата и возможность поделиться готовой темой по короткой ссылке.',
-          href: '',
-          linkLabel: '',
-        },
-        {
-          icon: 'bot' as const,
-          title: 'Боты и мини-приложения',
-          body: 'Запускайте ботов и веб-сервисы прямо в чатах. Для разработчиков доступна привычная совместимость с Telegram Bot API.',
-          href: localizePath('/docs/bots/overview-botmother', locale),
-          linkLabel: 'Документация для разработчиков',
+          title: 'Телефон → Ноутбук в один тап',
+          body: 'Начал говорить по дороге, пришёл домой и перехватил звонок на большой экран без разрыва.',
         },
       ],
-      section3Badge: 'Открытый клиент',
-      section3Title: 'Исходный код открыт, а сборки проверяются',
-      section3Body: 'Клиент написан на открытом коде. Все установщики для Windows, macOS, Linux, Android и iOS публикуются с контрольной суммой SHA-256 и цифровой подписью.',
-      allPlatformsBtn: 'Скачать приложение',
+
+      act4Eyebrow: 'Пространство и эмоции',
+      act4Title: 'Подстрой панели под себя. Забирай свои стикеры.',
+      act4Sub: 'На компьютере не нужно постоянно прыгать между экранами: держи список чатов, диалог и ветку обсуждений рядом и двигай границы под свой монитор.',
+      stickersTitle: 'Живые стикеры, гифки по удержанию и перенос паков',
+      stickersBody: 'Любимые наборы всегда двигаются плавно, GIF-лента открывает превью по зажатию пальца, а перенести старые стикерпаки по ссылке можно за пару кликов прямо внутри настроек.',
+      stickersChips: ['Стикеры 60 fps', 'GIF по зажатию', 'Перенос паков в 2 клика'],
+      miniappsTitle: 'Мини-приложения и сервисы прямо в диалоге',
+      miniappsBody: 'Игры, заметки, бронирования и боты открываются внутри чата в аккуратном окне и подхватывают твою тему оформления.',
+      botsAlt: 'Встроенные мини-приложения внутри интерфейса Theaver',
+
+      act5Eyebrow: 'Свет, ночь и Liquid Glass',
+      act5Title: 'Твой стиль. От мягкого стекла до чёткой классики.',
+      act5Sub: 'Меняй палитру, переключайся между полупрозрачным стеклом и классическими матовыми панелями, и делись готовой темой с друзьями по короткой ссылке.',
+
+      act6Badge: 'Открытый клиент и свобода',
+      act6Title: 'Прозрачный код. Построен для общения и для своих идей.',
+      act6Body: 'Качай официальные сборки для любой системы — все установщики проверяются цифровыми подписями. А если хочется собрать своего бота, веб-апп или даже собственный клиент, вся платформа уже открыта.',
+      allPlatformsBtn: 'Скачать Theaver',
       viewSource: 'Исходники на GitHub',
-      verifyGuide: 'Как проверить подпись',
+      verifyGuide: 'Проверка подписей сборок',
+      creatorCardLabel: 'Для создателей и разработчиков',
+      creatorCardTitle: 'Боты, мини-аппы и собственные клиенты Theaver',
+      creatorCardBody: 'Подключай свои проекты к открытому протоколу, выпускай ключи приложений в консоли и тестируй идеи за 15 минут.',
+      docsCta: 'Открыть документацию',
+      devConsoleCta: 'Зарегистрировать свой клиент',
     }
   : {
-      metaTitle: 'Theaver — Messenger for chats, calls, and everyday work',
-      metaDesc: 'Cross-platform messenger with an open client: offline-ready chats, channels, 1080p screen-sharing calls, multi-pane desktop layout, and bots.',
-      heroTitle: 'Chats, calls, and your workspace in one messenger',
-      heroSub: 'Fast direct messages, channels, screen-sharing calls, side-by-side desktop panes, and built-in bots.',
-      openBrowser: 'Open in Browser',
-      heroAlt: 'Theaver desktop client showing chat list, conversation, and side panel',
-      section1Label: 'Chats & Calls',
-      section1Title: 'Keeps up even when your connection drops',
-      section1Body: 'Your messages, drafts, and recent media stay cached on your device. Send a reply on a train or in a dead zone, and the app delivers it automatically once you reconnect.',
-      section1List: [
-        'Public channels with view counts, scheduled posts, and comment threads',
-        'Groups with forum topics, polls, quizzes, and clear member permissions',
-        'Voice notes, round video messages, and calls with 1080p 60 fps screen sharing',
-      ],
-      chatsAlt: 'Theaver mobile app chat screen',
-      callsAlt: 'Theaver group call and screen sharing window',
-      section2Label: 'Desktop & Personalization',
-      section2Title: 'Built for wide screens and tailored to your style',
-      featureCards: [
-        {
-          icon: 'layers' as const,
-          title: 'Side-by-side desktop panes',
-          body: 'Keep your main chat, a comment thread, a profile card, and the sticker panel open next to each other instead of jumping back and forth.',
-          href: '',
-          linkLabel: '',
-        },
+      metaTitle: 'Theaver — Chats, voice rooms, and streams on one clean screen',
+      metaDesc: 'Fast cross-platform messenger built for everyday life: offline-ready chats, drop-in voice rooms, 1080p 60 fps screen streams, resizable desktop panes, stickers, and custom clients.',
+      heroTitle: 'All your chats, voice rooms, and streams. One clean screen.',
+      heroSub: 'Instant messaging that never stutters, drop-in voice hangouts with friends, 1080p 60 fps screen streams, and three live panes built for wide displays.',
+      openBrowser: 'Open in browser',
+
+      act2Eyebrow: 'Zero dead air',
+      act2Title: 'Even when you lose signal underground',
+      act2Sub: 'Send a reply or drop a photo in the subway — it stays safely queued and delivers automatically the moment signal comes back.',
+      chatsAlt: 'Theaver mobile client displaying chat folders and messages',
+      act2Cards: [
         {
           icon: 'message' as const,
-          title: 'Stickers, GIFs & Telegram import',
-          body: 'Smooth animated stickers, quick GIF search with hold-to-preview, and direct sticker pack import from Telegram.',
-          href: '',
-          linkLabel: '',
+          title: 'Ready before signal returns',
+          body: 'Recent chats, drafts, and saved media stay right on your device, so nothing freezes when trains go underground.',
+          chip: 'Queued · Auto-sends online',
+        },
+        {
+          icon: 'mic' as const,
+          title: 'Crisp voice waveforms & video circles',
+          body: 'Record voice messages or round video clips in a single tap with instant scrubbable playback right inside the thread.',
+          chip: '0:14 · Clear audio',
+        },
+        {
+          icon: 'layers' as const,
+          title: 'Topics, channels & live polls',
+          body: 'Split busy groups into clean topic threads, publish scheduled channel posts, and run instant quizzes or polls.',
+          chip: 'Topics · Polls · Reactions',
+        },
+      ],
+
+      act3Eyebrow: 'Voice & Streams',
+      act3Title: 'Drop into voice. Stream at 1080p 60 fps.',
+      act3Sub: 'Join friends in a live voice room without scheduling a call link, share movies or games in silky 60 fps, and hand off from phone to laptop mid-sentence.',
+      callsAlt: 'Theaver group voice call and screen stream view',
+      act3Highlights: [
+        {
+          icon: 'phone' as const,
+          title: 'One-tap drop-in',
+          body: 'Jump straight into active community voice rooms whenever friends are online.',
+        },
+        {
+          icon: 'video' as const,
+          title: '1080p 60 fps screen share',
+          body: 'Low-latency streams with crisp text for pair work, watch parties, and gaming.',
         },
         {
           icon: 'laptop' as const,
-          title: 'Custom themes you can share',
-          body: 'Switch between light and dark modes, tune accent colors and chat backgrounds, and share your theme via a short link.',
-          href: '',
-          linkLabel: '',
-        },
-        {
-          icon: 'bot' as const,
-          title: 'Bots & Mini Apps',
-          body: 'Run interactive bots and web tools directly inside conversations, backed by a Telegram-compatible Bot API for developers.',
-          href: localizePath('/docs/bots/overview-botmother', locale),
-          linkLabel: 'Bot developer docs',
+          title: 'Phone → Laptop handoff',
+          body: 'Walk through the door and move your live call to desktop with one click.',
         },
       ],
-      section3Badge: 'Open Client',
-      section3Title: 'Open client code and verifiable builds',
-      section3Body: 'The app client source code is public on GitHub. Official installers for Windows, macOS, Linux, Android, and iOS include SHA-256 checksums and signing keys.',
+
+      act4Eyebrow: 'Big screen & Stickers',
+      act4Title: 'Stretch every pane your way. Bring your packs.',
+      act4Sub: 'Stop flipping screens on desktop. Keep your chat list, active dialog, and discussion thread side-by-side and drag every column to fit your flow.',
+      stickersTitle: 'Silky stickers, hold-to-preview GIFs & easy pack import',
+      stickersBody: 'Animated sticker packs stay buttery at high refresh rates, GIF search previews on press-and-hold, and importing existing packs by link takes seconds.',
+      stickersChips: ['60 fps Stickers', 'Hold-to-preview GIF', '2-Click Pack Import'],
+      miniappsTitle: 'Interactive mini apps right inside conversations',
+      miniappsBody: 'Run polls, utilities, stores, and games inline inside chats with automatic theme matching.',
+      botsAlt: 'Interactive mini app running inside Theaver',
+
+      act5Eyebrow: 'Day ↔ Night & Liquid Glass',
+      act5Title: 'Make it yours. Frosted glass or classic matte.',
+      act5Sub: 'Sweep between daylight and midnight themes, pick your accent pigment, switch translucent Liquid Glass bars, and share a finished look via a short link.',
+
+      act6Badge: 'Open Source & Built for Creators',
+      act6Title: 'Open code. Ready for everyday chats — and your own ideas.',
+      act6Body: 'Download signed installers across desktop, mobile, and the web. Want to build a bot, an inline web experience, or a custom client app? The platform is open.',
       allPlatformsBtn: 'Download Theaver',
-      viewSource: 'View on GitHub',
-      verifyGuide: 'Verification Guide',
+      viewSource: 'Source on GitHub',
+      verifyGuide: 'Verify build signatures',
+      creatorCardLabel: 'For Creators & Builders',
+      creatorCardTitle: 'Build bots, mini apps, or your very own client',
+      creatorCardBody: 'Register a client app ID in minutes, explore step-by-step developer guides, and connect directly to Theaver.',
+      docsCta: 'Explore documentation',
+      devConsoleCta: 'Open Developer Console',
     };
 ---
 
 <MarketingLayout title={c.metaTitle} description={c.metaDesc}>
-  <!-- Section 1: Hero (Canvas) -->
-  <section class="bg-[var(--bg-page)] pt-14 pb-16 lg:pt-20 lg:pb-24">
+  <!-- Act 1: Hero & 3-Pane Desktop Scroll Unfold (#ffffff / #000000) -->
+  <section class="bg-[var(--bg-page)] pt-10 pb-16 lg:pt-16 lg:pb-24" data-stoat-scope>
     <div class="container-page">
       <div class="mx-auto max-w-3xl text-center">
-        <span class="badge-warm tabular">{channelPill}</span>
-        <h1 class="mt-4 text-[36px] font-semibold leading-[1.07] tracking-[-0.022em] text-[var(--text-primary)] sm:text-[48px] lg:text-[56px]">
+        <div class="flex flex-col items-center gap-3">
+          <BrandMark size={46} interactive={true} />
+          <span class="badge-warm tabular">{channelPill}</span>
+        </div>
+
+        <h1 class="mt-5 text-[36px] font-semibold leading-[1.07] tracking-[-0.022em] text-[var(--text-primary)] sm:text-[48px] lg:text-[56px]">
           {c.heroTitle}
         </h1>
         <p class="mx-auto mt-4 max-w-2xl text-[17px] font-normal leading-[1.47] text-[var(--text-secondary)] sm:text-[21px] sm:leading-[1.35]">
@@ -163,30 +219,24 @@ const c = locale === 'ru'
         </div>
       </div>
 
-      <div class="mx-auto mt-12 max-w-[980px] lg:mt-16">
-        <ScreenshotFrame
-          name="hero-desktop"
-          alt={c.heroAlt}
-          width={960}
-          height={600}
-          priority={true}
-        />
+      <div class="mx-auto mt-12 lg:mt-14">
+        <HeroScrollStage locale={locale} />
       </div>
     </div>
   </section>
 
-  <!-- Section 2: Chats, Channels & Calls (Parchment) -->
+  <!-- Act 2: Chats, Round Videos & Subway Offline Queue (#f5f5f7 / #161618) -->
   <section id="features" class="bg-[var(--bg-alt)] py-14 lg:py-20">
     <div class="container-page">
       <div class="mx-auto max-w-3xl text-center">
-        <p class="font-mono text-[12.5px] font-semibold tracking-tight text-[var(--accent)]">
-          {c.section1Label}
+        <p class="text-[13px] font-semibold text-[var(--accent)]">
+          {c.act2Eyebrow}
         </p>
         <h2 class="mt-2 text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[40px]">
-          {c.section1Title}
+          {c.act2Title}
         </h2>
         <p class="mx-auto mt-4 max-w-2xl text-[17px] leading-[1.47] text-[var(--text-secondary)]">
-          {c.section1Body}
+          {c.act2Sub}
         </p>
       </div>
 
@@ -195,86 +245,183 @@ const c = locale === 'ru'
           <div class="mx-auto max-w-[300px]">
             <ScreenshotFrame
               name="chats-mobile"
+              locale={locale}
               alt={c.chatsAlt}
-              width={380}
-              height={640}
+              width={390}
+              height={780}
             />
           </div>
         </div>
 
-        <div class="min-w-0 lg:col-span-7">
-          <ul class="flex flex-col gap-3.5 text-[16px] leading-[1.47] text-[var(--text-secondary)]">
-            {c.section1List.map((item) => (
-              <li class="flex items-start gap-2.5">
-                <Icon name="check" size={18} class="mt-1 shrink-0 text-[var(--positive)]" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-
-          <div class="mt-8">
-            <ScreenshotFrame
-              name="calls-stream"
-              alt={c.callsAlt}
-              width={720}
-              height={460}
-            />
-          </div>
+        <div class="act2-cards-stack flex min-w-0 flex-col gap-4 lg:col-span-7">
+          {c.act2Cards.map((card, idx) => (
+            <div class="act2-card ink-card p-6" data-scroll-card={idx}>
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div class="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-raised)] text-[var(--accent)]">
+                  <Icon name={card.icon} size={19} />
+                </div>
+                <span class="rounded-full border border-[var(--border-hairline)] bg-[var(--bg-alt)] px-3 py-1 text-[12px] font-semibold text-[var(--positive)]">
+                  {card.chip}
+                </span>
+              </div>
+              <h3 class="mt-4 text-[19px] font-semibold leading-[1.24] text-[var(--text-primary)]">
+                {card.title}
+              </h3>
+              <p class="mt-2 text-[15px] leading-[1.5] text-[var(--text-secondary)]">
+                {card.body}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Section 3: Desktop, Media, Themes & Bots (Canvas) -->
+  <!-- Act 3: Voice Rooms & 1080p 60 fps Screen Streams (#ffffff / #000000) -->
   <section class="bg-[var(--bg-page)] py-14 lg:py-20">
     <div class="container-page">
       <div class="mx-auto max-w-3xl text-center">
-        <p class="font-mono text-[12.5px] font-semibold tracking-tight text-[var(--accent)]">
-          {c.section2Label}
+        <p class="text-[13px] font-semibold text-[var(--accent)]">
+          {c.act3Eyebrow}
         </p>
         <h2 class="mt-2 text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[40px]">
-          {c.section2Title}
+          {c.act3Title}
         </h2>
+        <p class="mx-auto mt-4 max-w-2xl text-[17px] leading-[1.47] text-[var(--text-secondary)]">
+          {c.act3Sub}
+        </p>
       </div>
 
-      <div class="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-2">
-        {c.featureCards.map((card) => (
-          <div class="ink-card flex flex-col justify-between p-7">
-            <div>
-              <div class="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-raised)] text-[var(--accent)]">
-                <Icon name={card.icon} size={19} />
-              </div>
-              <h3 class="mt-5 text-[19px] font-semibold leading-[1.24] text-[var(--text-primary)]">
-                {card.title}
-              </h3>
-              <p class="mt-2.5 text-[15px] leading-[1.5] text-[var(--text-secondary)]">
-                {card.body}
-              </p>
+      <div class="mx-auto mt-10 max-w-4xl">
+        <ScreenshotFrame
+          name="calls-stream"
+          locale={locale}
+          alt={c.callsAlt}
+          width={880}
+          height={550}
+        />
+      </div>
+
+      <div class="mx-auto mt-8 grid max-w-5xl gap-5 md:grid-cols-3">
+        {c.act3Highlights.map((item) => (
+          <div class="ink-card p-6">
+            <div class="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-raised)] text-[var(--accent)]">
+              <Icon name={item.icon} size={19} />
             </div>
-            {card.href && (
-              <div class="mt-5">
-                <a href={card.href} class="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[var(--accent)] hover:underline">
-                  <span>{card.linkLabel}</span>
-                  <Icon name="arrow-right" size={14} />
-                </a>
-              </div>
-            )}
+            <h3 class="mt-4 text-[18px] font-semibold text-[var(--text-primary)]">
+              {item.title}
+            </h3>
+            <p class="mt-2 text-[14.5px] leading-relaxed text-[var(--text-secondary)]">
+              {item.body}
+            </p>
           </div>
         ))}
       </div>
     </div>
   </section>
 
-  <!-- Section 4: Open Client & Downloads CTA (Dark Contrast Spotlight) -->
-  <section class="tile-contrast-dark py-14 lg:py-20">
+  <!-- Act 4: Interactive Multi-Pane Resizer, Stickers & Mini Apps (#f5f5f7 / #161618) -->
+  <section class="bg-[var(--bg-alt)] py-14 lg:py-20">
     <div class="container-page">
       <div class="mx-auto max-w-3xl text-center">
-        <span class="badge-warm">{c.section3Badge}</span>
-        <h2 class="mt-4 text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[40px]">
-          {c.section3Title}
+        <p class="text-[13px] font-semibold text-[var(--accent)]">
+          {c.act4Eyebrow}
+        </p>
+        <h2 class="mt-2 text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[40px]">
+          {c.act4Title}
         </h2>
         <p class="mx-auto mt-4 max-w-2xl text-[17px] leading-[1.47] text-[var(--text-secondary)]">
-          {c.section3Body}
+          {c.act4Sub}
+        </p>
+      </div>
+
+      <div class="mx-auto mt-10 max-w-5xl">
+        <InteractivePaneResizer locale={locale} />
+      </div>
+
+      <div class="mx-auto mt-8 grid max-w-5xl items-stretch gap-6 lg:grid-cols-12">
+        <div class="ink-card flex flex-col justify-between p-7 lg:col-span-5">
+          <div>
+            <div class="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-raised)] text-[var(--accent)]">
+              <Icon name="message" size={19} />
+            </div>
+            <h3 class="mt-4 text-[20px] font-semibold leading-[1.24] text-[var(--text-primary)]">
+              {c.stickersTitle}
+            </h3>
+            <p class="mt-2.5 text-[15px] leading-[1.52] text-[var(--text-secondary)]">
+              {c.stickersBody}
+            </p>
+          </div>
+
+          <div class="mt-6 flex flex-wrap gap-2 text-[12px] font-semibold text-[var(--text-secondary)]">
+            {c.stickersChips.map((chip) => (
+              <span class="rounded-full border border-[var(--border-hairline)] bg-[var(--bg-alt)] px-3 py-1">{chip}</span>
+            ))}
+          </div>
+        </div>
+
+        <div class="ink-card flex flex-col justify-between p-7 lg:col-span-7">
+          <div>
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h3 class="text-[20px] font-semibold leading-[1.24] text-[var(--text-primary)]">
+                  {c.miniappsTitle}
+                </h3>
+                <p class="mt-2 text-[15px] leading-[1.5] text-[var(--text-secondary)]">
+                  {c.miniappsBody}
+                </p>
+              </div>
+              <div class="hidden h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-raised)] text-[var(--accent)] sm:inline-flex">
+                <Icon name="bot" size={19} />
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-5">
+            <ScreenshotFrame
+              name="bots-miniapp"
+              locale={locale}
+              alt={c.botsAlt}
+              width={880}
+              height={550}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Act 5: Day ↔ Night Scroll Curtain & Liquid Glass Playground (#ffffff / #000000) -->
+  <section class="bg-[var(--bg-page)] py-14 lg:py-20">
+    <div class="container-page">
+      <div class="mx-auto max-w-3xl text-center">
+        <p class="text-[13px] font-semibold text-[var(--accent)]">
+          {c.act5Eyebrow}
+        </p>
+        <h2 class="mt-2 text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[40px]">
+          {c.act5Title}
+        </h2>
+        <p class="mx-auto mt-4 max-w-2xl text-[17px] leading-[1.47] text-[var(--text-secondary)]">
+          {c.act5Sub}
+        </p>
+      </div>
+
+      <div class="mt-10">
+        <InteractiveThemePlayground locale={locale} />
+      </div>
+    </div>
+  </section>
+
+  <!-- Act 6: Contrast Dark Finale & Creator Gateway (.tile-contrast-dark #1d1d1f / #252527) -->
+  <section class="tile-contrast-dark py-16 lg:py-24">
+    <div class="container-page">
+      <div class="mx-auto max-w-3xl text-center">
+        <span class="badge-warm">{c.act6Badge}</span>
+        <h2 class="mt-4 text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--text-primary)] sm:text-[42px]">
+          {c.act6Title}
+        </h2>
+        <p class="mx-auto mt-4 max-w-2xl text-[17px] leading-[1.47] text-[var(--text-secondary)]">
+          {c.act6Body}
         </p>
 
         <div class="mt-8 flex flex-wrap justify-center gap-3">
@@ -288,7 +435,7 @@ const c = locale === 'ru'
           </a>
         </div>
 
-        <div class="mt-6 flex flex-wrap items-center justify-center gap-5 text-[14px] text-[var(--text-secondary)]">
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-6 text-[14px] text-[var(--text-secondary)]">
           <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 hover:text-[var(--accent)] hover:underline">
             <Icon name="github" size={15} />
             <span>{c.viewSource}</span>
@@ -299,6 +446,82 @@ const c = locale === 'ru'
           </a>
         </div>
       </div>
+
+      <!-- Builder Gateway Card -->
+      <div class="ink-card mx-auto mt-12 max-w-4xl p-7 sm:p-8">
+        <div class="grid items-center gap-6 md:grid-cols-12">
+          <div class="md:col-span-7">
+            <p class="text-[12.5px] font-semibold text-[var(--brand-gold)]">
+              {c.creatorCardLabel}
+            </p>
+            <h3 class="mt-1.5 text-[22px] font-semibold leading-[1.2] text-[var(--text-primary)]">
+              {c.creatorCardTitle}
+            </h3>
+            <p class="mt-2.5 text-[15px] leading-relaxed text-[var(--text-secondary)]">
+              {c.creatorCardBody}
+            </p>
+          </div>
+          <div class="flex flex-col gap-3 sm:flex-row md:col-span-5 md:flex-col">
+            <a href={localizePath('/developers/apps', locale)} class="btn-primary w-full text-[15px]">
+              <Icon name="key" size={16} />
+              <span>{c.devConsoleCta}</span>
+            </a>
+            <a href={localizePath('/docs', locale)} class="btn-secondary w-full text-[15px]">
+              <Icon name="book" size={16} />
+              <span>{c.docsCta}</span>
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 </MarketingLayout>
+
+<style is:global>
+  /* Scroll-driven spring reveal for Act 2 cards with explicit resting middle phase (no opacity flicker) */
+  @keyframes theaver-act2-card-pop {
+    entry 0% {
+      transform: translate3d(0, 22px, 0) scale(0.95);
+    }
+    entry 100%,
+    exit 0% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    exit 100% {
+      transform: translate3d(0, -10px, 0) scale(0.97);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    @supports ((animation-timeline: view()) and (animation-range: entry)) {
+      .act2-card {
+        animation: theaver-act2-card-pop auto var(--ease-spring, ease-out) both;
+        animation-timeline: view();
+      }
+    }
+  }
+</style>
+
+<script is:inline>
+  (() => {
+    if (
+      !CSS.supports('(animation-timeline: view()) and (animation-range: entry)') &&
+      window.matchMedia('(prefers-reduced-motion: no-preference)').matches
+    ) {
+      const cards = document.querySelectorAll('.act2-card');
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!(entry.target instanceof HTMLElement)) continue;
+            const r = Math.min(1, Math.max(0, entry.intersectionRatio));
+            const s = 0.95 + r * 0.05;
+            const y = (1 - r) * 18;
+            entry.target.style.transform = `translate3d(0, ${y}px, 0) scale(${s})`;
+          }
+        },
+        { threshold: Array.from({ length: 21 }, (_, i) => i / 20) },
+      );
+      cards.forEach((c) => observer.observe(c));
+    }
+  })();
+</script>

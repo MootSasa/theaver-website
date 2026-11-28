@@ -1,66 +1,62 @@
 ---
 title: WebSocket API & RPC
-description: Bidirectional WebSocket protocol (/api/ws) for low-latency RPC calls and real-time events.
+description: Bidirectional WebSocket stream (/api/ws), client RPC frame schema ({ type, req_id, data }), and real-time server events.
 track: client
-order: 4
+order: 9
 ---
 
-Connect to the bidirectional WebSocket stream at:
+Connect to the bidirectional WebSocket endpoint using query parameters or headers:
 
 ```text
-wss://api.theaver.app/api/ws?token=<jwt_token>
+wss://api.theaver.app/api/ws?token=<jwt_token>&device_id=<device_id>
 ```
 
-You can also pass `Authorization: Bearer <jwt_token>` as a connection header on native clients.
+Native clients may pass `Authorization: Bearer <jwt_token>` and `X-Device-ID` on the upgrade handshake (browsers can also supply the token via `Sec-WebSocket-Protocol`). Immediately after upgrading, the server pushes `{ "type": "connected", "user_id": "...", "timestamp": "..." }`.
 
-## Client RPC calls (Client → Server)
+## Client RPC frame format (`Client → Server`)
 
-When a JSON frame includes `req_id`, the server guarantees an `rpc_result` or `rpc_error` response carrying the matching `req_id`.
+Client frames wrap method arguments inside a `data` object and carry an optional `req_id` correlation ID:
 
 ```json
 {
   "type": "send_message",
   "req_id": "req-101",
-  "chat_id": 849201432,
-  "content": "Hello over WebSocket RPC",
-  "local_id": "client-uuid-991",
-  "reply_to_id": null
+  "data": {
+    "chat_id": 849201432,
+    "content": "Hello over WebSocket RPC",
+    "local_id": "client-uuid-991",
+    "reply_to_message_id": null
+  }
 }
 ```
 
-### Supported RPC methods
+When `req_id` is set, the server replies with either `{ "type": "rpc_result", "req_id": "req-101", "ok": true, "result": { ... }, "timestamp": "..." }` or `{ "type": "rpc_error", "req_id": "req-101", "ok": false, "error_code": 429, "error": "SLOWMODE_WAIT", "description": "...", "parameters": { "retry_after": 12 } }`. Unknown `type` values return `UNKNOWN_METHOD`.
 
-| `type` | Key parameters | Description |
+### Supported client RPC methods
+
+| `type` | Key fields in `data` | Behavior |
 |---|---|---|
-| `send_message` | `chat_id`, `content`, `local_id`, `reply_to_id`, `thread_root_id`, `attachment_ids`, `entities`, `is_silent` | Idempotent message creation; returns created `Message` in `result` |
-| `read_history` / `mark_read` | `chat_id`, `max_id` | Advances High-Water Mark read state and returns `unread_count` |
-| `typing` | `chat_id`, `action` (`typing`, `record_voice`, `upload_photo`) | Broadcasts activity indicator (throttled to 1 event / 2s) |
-| `active_chat` | `chat_id` | Reports foreground chat to suppress duplicate push notifications |
-| `emoji_interaction` | `chat_id`, `message_id`, `emoji` | Synchronizes fullscreen emoji tap effects |
-| `call.signal` | `call_id`, SDP / ICE payload | WebRTC signaling for 1:1 calls and rooms |
-| `ping` | `req_id` (optional) | Keepalive check returning `pong` |
+| `ping` | `req_id` optional | Keepalive check returning `pong` |
+| `client_state` | App foreground/background metadata | Guides push notification suppression |
+| `active_chat` | `chat_id` (`0` when closed) | Suppresses notifications for open conversation |
+| `typing` | `chat_id`, `action` | `typing`, `record_voice`, `record_round`, `uploading_photo`, `uploading_video`, `uploading_file`, `uploading_audio`, `choosing_sticker`, `stop` |
+| `emoji_interaction` | `chat_id`, `message_id`, `emoji` | Broadcasts synchronized fullscreen emoji tap animations |
+| `send_message` | `chat_id`, `content`, `local_id`, `file_url`, `message_type`, `topic_id`, `is_round`, `is_view_once`, `ttl_seconds`, `send_as_anonymous` | Idempotent message creation; returns `result.message` (or `{ deduplicated: true, message }`) |
+| `read_history` / `mark_read` | `chat_id`, `max_id` | Advances High-Water Mark inbox pointer and returns unread count |
+| `callback_query` | Bot inline button payload | Triggers bot callback and returns answer alert/URL |
+| `call.*` | Call IDs, tracks, SDP/ICE payloads | `call.start`, `call.accept`, `call.decline`, `call.leave`, `call.transfer_device`, `call.update_state`, `call.stream.*`, `call.signal` |
 
-## Voice, video, and stream media path
+## Server push events (`Server → Client`)
 
-Direct calls, voice channels, and `1080p60` screen sharing route through **LiveKit SFU** alongside **Coturn** over TLS port `443` (`turn.theaver.app`), keeping media connections working behind strict NATs and corporate firewalls.
+Every push event follows `{ "type": "<event_type>", ... }` and also enters the per-user `usn` log for offline replay via `/api/updates?since_usn=...`:
 
-<CallMediaDiagram locale="en" />
-
-## Real-time server events (Server → Client)
-
-| `type` | Payload highlights | Trigger |
-|---|---|---|
-| `new_message` | Full `Message` object | New message delivered in any user chat |
-| `new_chat` | Full `Chat` object | Added to a new DM, group, or channel |
-| `message_edited` | Updated `Message` | Text, entities, or inline keyboard edited |
-| `message_deleted` | `{"message_id", "chat_id"}` | Message deleted for everyone |
-| `message_read` | `{"chat_id", "user_id", "max_id", "last_read_outbox_message_id"}` | Recipient read messages up to `max_id` |
-| `unread_count_updated` | `{"chat_id", "unread_count", "last_read_inbox_message_id"}` | Cross-device unread counter sync |
-| `message_reaction_updated` | `{"chat_id", "message_id", "reactions", "emoji", "action"}` | Reaction toggled |
-| `poll_updated` | Updated `Poll` object | Vote cast or poll closed |
-| `draft_updated` | `{"chat_id", "draft"}` | Cloud draft updated on another device |
-| `typing` | `{"chat_id", "user_id", "action"}` | Live typing/upload indicator |
-| `user_online` / `user_offline` / `user_status` | `{"user_id", "is_online", "last_seen"}` | Presence updates respecting privacy rules |
-| `callback_query_answer` | `{"query_id", "text", "show_alert", "url"}` | Bot callback response |
-| `inline_query_results` | `{"query_id", "results", "next_offset"}` | Bot inline query results |
-| `session_terminated` | `{"session_id", "reason"}` | Current device session was revoked |
+| Event `type` | Trigger |
+|---|---|
+| `new_message`, `message_edited`, `message_deleted`, `message_burned` | Message created, edited, deleted, or self-destruct/view-once expired |
+| `message_read`, `unread_count_updated`, `unread_badges_updated`, `message_listened` | High-Water Mark read state, unread counters, or voice/round listened state changed |
+| `message_reaction_updated`, `message_pinned`, `message_unpinned`, `message_views_updated`, `post_comments_updated` | Reactions, pins, channel views, or discussion counters updated |
+| `new_chat`, `chat_update`, `chat_deleted`, `chat_archive_updated`, `chat_settings_updated`, `chat_appearance_updated`, `chat_auto_delete_updated`, `chat_unread_marked`, `forum_topic_updated` | Dialog, group, topic, archive, or theme state changed |
+| `member_joined`, `member_updated`, `join_requests_updated`, `scheduled_messages_updated` | Group/channel membership or scheduled post queue updated |
+| `draft_updated`, `typing`, `emoji_interaction`, `screenshot_taken` | Cross-device drafts, live typing/upload activity, emoji bursts, screenshot alerts |
+| `user_online`, `user_offline`, `user_status`, `user_avatar_updated`, `user_appearance_updated`, `contact_updated`, `contact_deleted` | Presence, profile, avatar, or contact changes |
+| `session_terminated`, `app_update_available` | Active session revoked or newer app release published |

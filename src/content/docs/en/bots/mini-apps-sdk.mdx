@@ -1,51 +1,49 @@
 ---
 title: Mini Apps SDK (v8.0)
-description: Build embedded Mini Apps inside Theaver using the Telegram.WebApp JS bridge, theme tokens, safe insets, CloudStorage, and HMAC initData verification.
+description: Build embedded web applications using window.Theaver.WebApp, reactive theme params, safe areas, CloudStorage, and X-Theaver-Init-Data verification.
 track: bots
 order: 4
 ---
 
-Theaver Mini Apps (v8.0) run HTML5/JS applications inside native WebViews on mobile, desktop, and browser clients using the `window.Telegram.WebApp` JavaScript bridge.
+Mini Apps v8.0 launches web applications inside native WebViews on mobile, desktop, and web clients via the native `window.Theaver.WebApp` JavaScript bridge. For drop-in compatibility aliases when adapting existing Mini Apps, see [Migrating Bots & Mini Apps](/docs/bots/migrating-from-telegram).
 
-## Registering a Mini App
+## Attaching a Mini App to your bot
 
-You can bind a Main Mini App URL or named Short Name Mini App to your bot via `@BotMother` (or the `@BotMother` Studio Mini App) and expose it through:
+Configure a main app or named `short_name` mini app via **`@BotMother`** (or its Bot Studio) and open it from:
 
-- Bot menu button (`setChatMenuButton` with `{ "type": "web_app", "text": "Open App", "web_app": { "url": "https://..." } }`)
-- Inline keyboard `web_app` buttons
-- Direct deep links to `https://theaver.app/u/<bot_username>?startapp=<param>`
+- A chat menu button (`setChatMenuButton` with `web_app`)
+- Inline keyboard buttons using `web_app: { url }`
+- Direct deep link `https://theaver.app/u/<bot_username>?startapp=<param>`
 
-## Client JS Bridge (`window.Telegram.WebApp`)
-
-Include the standard script or inspect `window.Telegram.WebApp` directly on load:
+## Client-side JS bridge (`window.Theaver.WebApp`)
 
 ```js
-const tg = window.Telegram.WebApp;
-tg.ready();
-tg.expand();
+const webApp = window.Theaver.WebApp;
+webApp.ready();
+webApp.expand();
 
-// Adapt styling to active Theaver user theme
-document.body.style.backgroundColor = tg.themeParams.bg_color;
-document.body.style.color = tg.themeParams.text_color;
+// Adapt dynamically to the active Theaver theme
+document.body.style.backgroundColor = webApp.themeParams.bg_color;
+document.body.style.color = webApp.themeParams.text_color;
 
-// Configure persistent action button
-tg.MainButton.setText("Save Settings");
-tg.MainButton.show();
-tg.MainButton.onClick(() => {
-  tg.HapticFeedback.impactOccurred("medium");
-  tg.sendData(JSON.stringify({ action: "saved" }));
+// Configure persistent main action button
+webApp.MainButton.setText("Save Preferences");
+webApp.MainButton.show();
+webApp.MainButton.onClick(() => {
+  webApp.HapticFeedback.impactOccurred("medium");
+  webApp.sendData(JSON.stringify({ action: "saved" }));
 });
 ```
 
-### Supported Mini App v8 capabilities
+### Supported v8 features
 
-- **Lifecycle & HUD insets:** `ready()`, `expand()`, `close()`, `safeAreaInset`, `contentSafeAreaInset`, and live `safe_area_changed` / `content_safe_area_changed` events.
-- **Native controls:** `MainButton`, `SecondaryButton`, `BackButton`, `SettingsButton`.
-- **Device & Cloud APIs:** `CloudStorage` (per-bot, per-user key-value storage), `HapticFeedback`, `showScanQrPopup`, and `requestWriteAccess`.
+- **Lifecycle & insets:** `ready()`, `expand()`, `close()`, `safeAreaInset`, `contentSafeAreaInset`, events `safe_area_changed` and `content_safe_area_changed`.
+- **Native buttons:** `MainButton`, `SecondaryButton`, `BackButton`, `SettingsButton`.
+- **Storage & sensors:** `CloudStorage` (scoped key-value persistence), `HapticFeedback`, `showScanQrPopup`, and `requestWriteAccess`.
 
 ## Verifying `initData` on your backend
 
-Never trust `initDataUnsafe` on your server. Always validate the signed `initData` query string using `HMAC-SHA256` with key `HMAC_SHA256("WebAppData", bot_token)`:
+Never trust unverified `initDataUnsafe` fields. Send `window.Theaver.WebApp.initData` in the `X-Theaver-Init-Data` request header and validate its `HMAC-SHA256` signature using key `HMAC_SHA256("WebAppData", bot_token)`:
 
 ```python
 import hashlib
@@ -68,5 +66,5 @@ def verify_init_data(init_data: str, bot_token: str) -> dict[str, str] | None:
 ```
 
 <Callout type="tip" title="Validate auth_date freshness">
-  Always check that `int(time.time()) - int(pairs["auth_date"])` falls within an acceptable window (such as 3600 seconds) to prevent replay of captured `initData` payloads.
+  Reject requests where `int(time.time()) - int(pairs["auth_date"])` exceeds your replay window (for example, 3600 seconds).
 </Callout>
