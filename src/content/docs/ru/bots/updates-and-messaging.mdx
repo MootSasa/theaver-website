@@ -1,6 +1,6 @@
 ---
 title: Обновления, сообщения и Inline
-description: Справочник getUpdates, вебхуков, методов отправки сообщений, клавиатур, модерации чатов и inline-запросов.
+description: Справочник getUpdates, вебхуков (X-Theaver-Bot-Api-Secret-Token), отправки сообщений, клавиатур, модерации и inline-запросов.
 track: bots
 order: 3
 ---
@@ -22,7 +22,7 @@ order: 3
 
 <ApiEndpoint method="POST" path="/bot<token>/setWebhook" auth="Bot Token" />
 
-Укажите HTTPS-адрес вашего сервера и опциональный `secret_token`. Theaver будет передавать `secret_token` в заголовке `X-Telegram-Bot-Api-Secret-Token` на каждый запрос.
+Укажите HTTPS-адрес вашего сервера и опциональный `secret_token`. Theaver передаёт `secret_token` в HTTP-заголовке `X-Theaver-Bot-Api-Secret-Token` на каждый запрос вебхука (заголовки совместимости перечислены в [Миграции ботов](/ru/docs/bots/migrating-from-telegram)).
 
 ## Отправка и редактирование сообщений
 

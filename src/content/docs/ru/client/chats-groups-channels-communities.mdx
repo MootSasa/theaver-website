@@ -1,0 +1,43 @@
+---
+title: Чаты, группы, каналы и сообщества
+description: Диалоги, Избранное, папки, права в группах, пригласительные ссылки, темы форума, каналы с комментариями и ролевые сообщества.
+track: client
+order: 5
+---
+
+Протокол объединяет личные чаты, «Избранное» с тегами, группы, темы форумов, каналы с привязанными группами комментариев и многоканальные сообщества с ролями.
+
+## Диалоги, «Избранное» и папки
+
+<ApiEndpoint method="GET" path="/api/chats" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/chats" auth="JWT" />
+
+- **Избранное:** `GET /api/chats/saved`, `GET /api/chats/saved/tags`, `GET /api/chats/saved/peers`, `POST/DELETE /api/chats/saved/messages/:messageId/tags`, `PUT /api/chats/saved/tags/:tag/label`.
+- **Управление в списке:** `POST /api/chats/:id/pin`, `unpin`, `POST/DELETE /api/chats/:id/archive`, `POST/DELETE /api/chats/:id/mark-unread`, `PUT /api/chats/:id/auto-delete`.
+- **Папки чатов:** `/api/folders/*` для группировки диалогов по фильтрам и ручным спискам.
+
+## Группы, каналы и права участников
+
+| Операция | Маршрут |
+|---|---|
+| Профиль чата / публичный вход | `GET /api/chats/:id`, `POST /api/chats/:id/join` |
+| Проверка и вход по инвайту | `GET /api/chats/invite/:code`, `POST /api/chats/join/:code` |
+| Настройки группы и роли | `GET/PUT /api/chats/:id/group-settings`, `GET/POST /api/chats/:id/members`, `PUT .../members/:userId/role`, `DELETE .../members/:userId` |
+| Ссылки-приглашения и заявки | `GET/POST /api/chats/:id/invite-links`, `GET /api/chats/:id/join-requests`, `POST .../approve`, `POST .../decline` |
+| Темы форума | Создание, редактирование, закрепление, закрытие и удаление топиков в группах-форумах |
+| Аватары и тема чата | `POST/DELETE /api/chats/:id/avatar`, `GET/PUT/DELETE /api/chats/:id/appearance` |
+| Выход, передача прав, удаление | `POST /api/chats/:id/leave`, `POST /api/chats/:id/transfer-ownership`, `DELETE /api/chats/:id` |
+
+Каналы и группы могут запрещать защиту от пересылки и сохранения — попытка переслать защищённое сообщение вернёт `403 CHAT_FORWARDS_RESTRICTED`.
+
+## Структурированные сообщества (`/api/communities/*`)
+
+Сообщества позволяют организовать текстовые, голосовые каналы и трибуны внутри категорий с независимыми правами доступа:
+
+- **Иерархия:** категории и каналы внутри них с настраиваемой сортировкой.
+- **Ролевая модель (RBAC):** цветные роли, битовые маски прав и переопределения `allow`/`deny` на уровне категории или конкретного канала.
+- **Модерация и саундборд:** список участников, баны, инвайты и звуковая панель (soundboard) для голосовых комнат.
+
+## Глобальный поиск и пользователи
+
+Для одновременного поиска по людям, каналам и истории переписки вызывайте `GET /api/search?q=<query>&type=all`. Профили, приватность, чёрный список и контакты обслуживаются маршрутами `/api/users/*` и `/api/contacts/*`.

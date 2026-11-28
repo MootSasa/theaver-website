@@ -21,47 +21,47 @@ const platformOrder = ['windows', 'macos', 'linux', 'android', 'ios', 'web'];
 const copy = locale === 'ru'
   ? {
       title: 'Скачать Theaver',
-      description: 'Установщики и архивы Theaver для Windows, macOS, Linux, Android, iOS и веб-клиент с контрольными суммами SHA-256 и ключами проверки.',
-      heading: 'Загрузки для всех платформ',
-      sub: 'Выберите канал обновлений и скачайте установщик для своей системы. Веб-версию можно открыть сразу в браузере.',
-      channelLabel: 'Канал релизов:',
+      description: 'Установщики и архивы Theaver для Windows, macOS, Linux, Android, iOS и веб-клиент с проверкой подлинности.',
+      heading: 'Загрузки для любого экрана',
+      sub: 'Выбирай канал обновлений и ставь приложение на свой ноутбук, телефон или запускай прямо в браузере.',
+      channelLabel: 'Канал:',
       stable: 'Stable',
       beta: 'Beta',
       alpha: 'Alpha',
       downloadBtn: 'Скачать',
       openWebBtn: 'Открыть app.theaver.app',
-      shaLabel: 'SHA-256',
+      copyLabel: 'Скопировать SHA-256 контрольную сумму',
       copyDone: 'Скопировано',
-      noChannelBuilds: 'В этом канале пока нет опубликованных сборок. Посмотрите доступные файлы на GitHub Releases или переключитесь на канал Beta.',
+      copyFailed: 'Ошибка',
+      noChannelBuilds: 'В этом канале пока нет сборок. Загляни на GitHub Releases или переключись на Beta.',
       githubFallback: 'Открыть GitHub Releases',
-      verifyHeading: 'Проверка подлинности сборок',
-      verifySummary: 'Публичные ключи и команды проверки (Windows CA, Linux GPG, SHA-256)',
-      verifyDocsLink: 'Подробная инструкция в документации',
-      gpgDesc: 'Рядом с Linux-архивами лежит файл подписи .asc. Перед проверкой импортируйте публичный ключ:',
+      verifySummary: 'Как проверить цифровую подпись и контрольную сумму (Windows CA, Linux GPG, SHA-256)',
+      verifyDocsLink: 'Подробный гайд по проверке в документации',
+      gpgDesc: 'Рядом с Linux-архивами лежит файл подписи .asc. Импортируй публичный ключ и проверь архив:',
       winDesc: 'Установщики Windows подписаны корневым сертификатом Theaver Root CA:',
-      shaDesc: 'Проверить контрольную сумму SHA-256 можно в терминале:',
+      shaDesc: 'Проверить контрольную сумму SHA-256 можно локально в терминале:',
     }
   : {
       title: 'Download Theaver',
-      description: 'Installers and archives for Windows, macOS, Linux, Android, iOS, plus the Web client with SHA-256 checksums and signing keys.',
-      heading: 'Downloads for every platform',
-      sub: 'Pick a release channel and download an installer for your device, or launch the web client right in your browser.',
-      channelLabel: 'Release channel:',
+      description: 'Installers and archives for Windows, macOS, Linux, Android, iOS, plus the Web client with verifiable builds.',
+      heading: 'Downloads for every screen',
+      sub: 'Pick a release channel and grab the build for your phone or computer — or jump straight into the web version.',
+      channelLabel: 'Channel:',
       stable: 'Stable',
       beta: 'Beta',
       alpha: 'Alpha',
       downloadBtn: 'Download',
       openWebBtn: 'Open app.theaver.app',
-      shaLabel: 'SHA-256',
+      copyLabel: 'Copy SHA-256 checksum',
       copyDone: 'Copied',
-      noChannelBuilds: 'No builds are listed for this channel yet. Check GitHub Releases or switch to Beta.',
+      copyFailed: 'Copy failed',
+      noChannelBuilds: 'No builds are published for this channel yet. Check GitHub Releases or switch to Beta.',
       githubFallback: 'Browse GitHub Releases',
-      verifyHeading: 'Verify installer authenticity',
-      verifySummary: 'Public signing keys and verification commands (Windows CA, Linux GPG, SHA-256)',
+      verifySummary: 'Verify installer authenticity & checksums (Windows CA, Linux GPG, SHA-256)',
       verifyDocsLink: 'Read full verification guide',
-      gpgDesc: 'Linux archives include a detached .asc signature. Import the public key before running verification:',
+      gpgDesc: 'Linux archives include a detached .asc signature. Import the public key before verifying:',
       winDesc: 'Windows builds are signed with the Theaver Root certificate:',
-      shaDesc: 'Check the SHA-256 digest locally:',
+      shaDesc: 'Verify the local SHA-256 digest in your terminal:',
     };
 
 const activeChannel =
@@ -84,11 +84,11 @@ const activeChannel =
         </p>
       </div>
 
-      <!-- Channel Switcher -->
+      <!-- Channel Switcher (Anchor-positioned active indicator) -->
       <div class="mt-8 flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-3">
           <span class="text-[13.5px] text-[var(--text-muted)]">{copy.channelLabel}</span>
-          <div class="inline-flex rounded-full border border-[var(--border-hairline)] bg-[var(--bg-deep)] p-1" role="tablist">
+          <div class="downloads-tablist relative inline-flex rounded-full border border-[var(--border-hairline)] bg-[var(--bg-deep)] p-1" role="tablist" aria-label={copy.channelLabel}>
             {(['stable', 'beta', 'alpha'] as const).map((ch) => (
               <button
                 type="button"
@@ -128,6 +128,8 @@ const activeChannel =
         data-active-channel={activeChannel}
         data-download-label={copy.downloadBtn}
         data-copied-label={copy.copyDone}
+        data-failed-label={copy.copyFailed}
+        data-copy-aria={copy.copyLabel}
         data-empty-msg={copy.noChannelBuilds}
         data-github-url={GITHUB_RELEASES_URL}
         data-github-label={copy.githubFallback}
@@ -170,7 +172,7 @@ const activeChannel =
         </div>
       </div>
 
-      <!-- Verification Accordion -->
+      <!-- Verification Accordion (Kept cleanly on /downloads bottom away from Hero) -->
       <details class="ink-card mt-12 p-6">
         <summary class="flex items-center justify-between gap-4 text-[16px] font-semibold text-[var(--text-primary)]">
           <span class="inline-flex items-center gap-2.5">
@@ -221,6 +223,39 @@ Get-FileHash .\theaver-*.exe -Algorithm SHA256</pre>
   </section>
 </MarketingLayout>
 
+<style is:global>
+  .downloads-tablist [role="tab"][aria-selected="true"] {
+    anchor-name: --active-dl-tab;
+  }
+
+  .downloads-tablist::before {
+    content: "";
+    position: absolute;
+    position-anchor: --active-dl-tab;
+    inset-block-start: calc(anchor(self-end) - 2px);
+    inset-inline-start: calc(anchor(self-start) + 10px);
+    inset-inline-end: calc(anchor(self-end) + 10px);
+    border-block-end: 2px solid var(--accent);
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .downloads-tablist::before {
+      transition: inset 0.2s var(--ease-standard);
+    }
+  }
+
+  @supports not (position-anchor: --active-dl-tab) {
+    .downloads-tablist::before {
+      content: none;
+    }
+
+    .downloads-tablist [role="tab"][aria-selected="true"] {
+      border-block-end: 2px solid var(--accent);
+    }
+  }
+</style>
+
 <script is:inline>
   (() => {
     const matrixEl = document.getElementById('downloads-matrix');
@@ -230,6 +265,8 @@ Get-FileHash .\theaver-*.exe -Algorithm SHA256</pre>
     const apiBase = (matrixEl.getAttribute('data-api-base') || '').replace(/\/+$/, '');
     const downloadLabel = matrixEl.getAttribute('data-download-label') || 'Download';
     const copiedLabel = matrixEl.getAttribute('data-copied-label') || 'Copied';
+    const failedLabel = matrixEl.getAttribute('data-failed-label') || 'Copy failed';
+    const copyAria = matrixEl.getAttribute('data-copy-aria') || 'Copy checksum';
     const webUrl = matrixEl.getAttribute('data-web-url') || 'https://app.theaver.app';
     const webLabel = matrixEl.getAttribute('data-web-label') || 'Open app.theaver.app';
     const labels = JSON.parse(matrixEl.getAttribute('data-platform-labels') || '{}');
@@ -290,14 +327,14 @@ Get-FileHash .\theaver-*.exe -Algorithm SHA256</pre>
           );
           const rowTop = createEl('div', 'flex items-center justify-between gap-2');
           const archText = platInfo.archLabel?.[art.architecture] || art.architecture;
-          rowTop.appendChild(createEl('span', 'text-[13.5px] font-medium text-[var(--text-primary)]', archText));
+          rowTop.appendChild(createEl('span', 'text-[13.5px] font-semibold text-[var(--text-primary)]', archText));
           rowTop.appendChild(createEl('span', 'tabular font-mono text-[12px] text-[var(--text-muted)]', formatSize(art.size_bytes)));
           row.appendChild(rowTop);
 
           const actions = createEl('div', 'mt-2.5 flex flex-wrap items-center justify-between gap-2');
           const dlLink = createEl(
             'a',
-            'inline-flex h-8 items-center gap-1.5 rounded-full bg-[var(--accent-fill)] px-3.5 text-[12.5px] font-normal text-[var(--accent-on-fill)] transition-all duration-150 hover:bg-[var(--accent-fill-hover)] active:scale-95',
+            'inline-flex h-8 items-center gap-1.5 rounded-full bg-[var(--accent-fill)] px-3.5 text-[12.5px] font-normal text-[var(--accent-on-fill)] transition-[background-color,transform] duration-150 hover:bg-[var(--accent-fill-hover)] active:scale-95',
             downloadLabel,
           );
           dlLink.href = art.download_url;
@@ -305,23 +342,27 @@ Get-FileHash .\theaver-*.exe -Algorithm SHA256</pre>
           actions.appendChild(dlLink);
 
           if (art.sha256) {
-            const copyBtn = createEl(
-              'button',
-              'tabular inline-flex h-8 items-center rounded-[var(--radius-chip)] border border-[var(--border-hairline)] bg-[var(--bg-card)] px-2.5 font-mono text-[11.5px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]',
-              `SHA ${art.sha256.slice(0, 8)}`,
-            );
+            const copyWrap = createEl('span', 'copy-wrap');
+            const copyBtn = createEl('button', 'tabular copy-btn');
             copyBtn.type = 'button';
-            copyBtn.title = art.sha256;
+            copyBtn.setAttribute('aria-label', `${copyAria}: ${art.sha256.slice(0, 12)}`);
+            copyBtn.setAttribute('data-copy-value', art.sha256);
+            copyBtn.setAttribute('data-copied-label', copiedLabel);
+            copyBtn.setAttribute('data-failed-label', failedLabel);
+
+            const labelSpan = createEl('span', '', `SHA ${art.sha256.slice(0, 8)}`);
+            const tip = createEl('span', 'copy-tip');
+            tip.setAttribute('role', 'status');
+            copyBtn.appendChild(labelSpan);
+
             copyBtn.addEventListener('click', () => {
-              navigator.clipboard?.writeText(art.sha256).then(() => {
-                const orig = copyBtn.textContent;
-                copyBtn.textContent = copiedLabel;
-                setTimeout(() => {
-                  copyBtn.textContent = orig;
-                }, 1400);
-              });
+              if (window.__theaverCopyValue) {
+                void window.__theaverCopyValue(copyBtn, art.sha256);
+              }
             });
-            actions.appendChild(copyBtn);
+
+            copyWrap.append(copyBtn, tip);
+            actions.appendChild(copyWrap);
           }
 
           row.appendChild(actions);
@@ -332,7 +373,6 @@ Get-FileHash .\theaver-*.exe -Algorithm SHA256</pre>
         cards.push(card);
       }
 
-      // Always keep Web client card visible
       const webInfo = labels.web || { title: 'Web', archLabel: {} };
       const webCard = createEl('div', 'ink-card flex flex-col justify-between p-6');
       const webTop = createEl('div');
@@ -373,7 +413,6 @@ Get-FileHash .\theaver-*.exe -Algorithm SHA256</pre>
           t.setAttribute('aria-selected', on ? 'true' : 'false');
           t.classList.toggle('bg-[var(--bg-card)]', on);
           t.classList.toggle('text-[var(--text-primary)]', on);
-          t.classList.toggle('shadow-[var(--card-highlight)]', on);
           t.classList.toggle('text-[var(--text-muted)]', !on);
         });
         render();

@@ -314,7 +314,30 @@ The official Theaver mark is an alert white-bellied **stoat (горностай)
 - **Utility & Docs Pages:** `#000000` / `#161618` backgrounds with `#1d1d1f` cards and `{colors.hairline-dark}` (`1px solid rgba(255, 255, 255, 0.10)`).
 
 ### Gradients
-**Zero decorative CSS gradients.** Depth comes from surface polarity changes, product framing, and frosted glass blur on the sticky global navigation bar.
+**Zero decorative CSS gradients.** Depth comes from surface polarity changes, product framing, and frosted glass blur on the sticky global navigation bar and Dynamic Island marketing capsule.
+
+---
+
+## Motion & Interactive Choreography
+
+Motion follows Apple's purposeful spatial grammar: animations clarify hierarchy, respond directly to scroll or touch/pointer input, and never run idle loops or block legibility.
+
+- **Compositor-First Properties Only:** Scroll and state choreography animates only `transform` (`translate3d`, `scale`), `opacity`, and `clip-path`. Layout properties (`width`, `height`, `top`, `left`) are never animated inside scroll timelines.
+- **Dynamic Island Header vs. Utility Bar (`Header.astro`):**
+  - On marketing pages (`/`, `/ru/`, `/downloads`, `/changelog`), a fixed wrapper animates cleanly over `0px..140px` scroll distance from a full-bleed bar into a compact frosted `Liquid Glass` capsule (`max-width` pill with hairline border), using native CSS `animation-timeline: scroll(block root)` + `animation-range` (always declared **after** the `animation` shorthand) and a passive scroll listener fallback.
+  - On reading and console routes (`/docs/*`, `/developers/*`, legal pages), the bar remains a calm `48px` sticky utility header so focus stays on code and forms.
+- **Same-Document & Cross-Document View Transitions:**
+  - Navigation across pages opts into `@view-transition { navigation: auto; }` inside `@media (prefers-reduced-motion: no-preference)`.
+  - Toggling Dark ↔ Light in `ThemeToggle.astro` wraps DOM theme updates in `document.startViewTransition()` with a circular `clip-path` wave radiating from the toggle center, falling back to an instant switch when unsupported or under `prefers-reduced-motion: reduce`.
+- **Top-Layer `<dialog>` Entry & Exit:** Modal navigation and `⌘K` search dialogs open via `.showModal()`, support `closedby="any"` (with click-outside Safari fallback), animate entry with `@starting-style`, and animate exit with `transition-property: opacity, transform, display, overlay` + separate `transition-behavior: allow-discrete` (plus lazy `canTransitionDisplay()` + `[data-closing]` fallback).
+- **Opt-In Motion (`prefers-reduced-motion`):** Never reset transitions/animations with a global `* { animation-duration: 0.01ms !important }`. Non-spatial feedback (`color`, `background-color`) remains smooth, while spatial movement, scroll choreography, and mascot reactions live inside `@media (prefers-reduced-motion: no-preference)`.
+
+---
+
+## Voice & Tone Split
+
+- **Marketing Surfaces (`/`, `/ru/`, `/downloads`, `/changelog`, `404`):** Conversational, youthful Apple product rhythm addressing the reader on «ты» (RU) / «you» (EN). Everyday life scenarios first — zero internal stack names (`SQLite`, `Drift`, `LiveKit`, `Coturn`, `WebSocket`, `SHA-256`, `X-Api-Id`) and zero competitor mentions on the landing canvas. Subtle interactive playfulness lives in real tactile widgets (the 3-pane scroll fan-out, draggable multi-pane workspace splitter, Day ↔ Night scroll curtain + `Liquid Glass` theme playground, and pointer-reactive stoat mark).
+- **Documentation & Console (`/docs/*`, `/developers/*`):** Crisp, direct engineering precision modeled on `core.telegram.org` — exact REST paths, WebSocket RPC schemas, Proof-of-Work math, and copy-ready TypeScript/Python/Go examples verified against backend handlers.
 
 ---
 

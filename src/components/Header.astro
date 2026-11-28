@@ -10,16 +10,147 @@ import { GITHUB_REPO_URL, WEB_APP_URL } from '../lib/releases';
 interface Props {
   locale: Locale;
   currentPath: string;
+  mode?: 'marketing' | 'utility';
 }
 
-const { locale, currentPath } = Astro.props;
+const { locale, currentPath, mode } = Astro.props;
+const cleanPath = currentPath.replace(/\/+$/, '') || '/';
+const isUtilityRoute =
+  cleanPath.startsWith('/docs') ||
+  cleanPath.startsWith('/ru/docs') ||
+  cleanPath.startsWith('/developers') ||
+  cleanPath.startsWith('/ru/developers') ||
+  cleanPath.startsWith('/privacy') ||
+  cleanPath.startsWith('/ru/privacy') ||
+  cleanPath.startsWith('/terms') ||
+  cleanPath.startsWith('/ru/terms') ||
+  cleanPath.startsWith('/security') ||
+  cleanPath.startsWith('/ru/security') ||
+  cleanPath.startsWith('/delete-account') ||
+  cleanPath.startsWith('/ru/delete-account');
+
+const resolvedMode: 'marketing' | 'utility' = mode ?? (isUtilityRoute ? 'utility' : 'marketing');
+
 const t = UI_STRINGS[locale].nav;
 const homeHref = localizePath('/', locale);
 const downloadsHref = localizePath('/downloads', locale);
-const docsHref = localizePath('/docs/guide/getting-started', locale);
+const docsHref = localizePath('/docs', locale);
+const devsHref = localizePath('/developers/apps', locale);
 const changelogHref = localizePath('/changelog', locale);
 const ruEquivalent = localizePath(currentPath, 'ru');
+
+const norm = (href: string) => href.replace(/\/+$/, '') || '/';
+const isDownloadsActive = cleanPath === norm(downloadsHref);
+const isDocsActive = cleanPath === norm(docsHref) || cleanPath.startsWith(`${norm(docsHref)}/`);
+const isDevsActive = cleanPath === norm(devsHref) || cleanPath.startsWith('/developers') || cleanPath.startsWith('/ru/developers');
+const isChangelogActive = cleanPath === norm(changelogHref);
+const isFeaturesActive = !isDownloadsActive && !isDocsActive && !isDevsActive && !isChangelogActive && (cleanPath === '/' || cleanPath === '/ru');
+
+const navItems = [
+  { href: `${homeHref}#features`, label: t.features, active: isFeaturesActive },
+  { href: downloadsHref, label: t.downloads, active: isDownloadsActive },
+  { href: docsHref, label: t.docs, active: isDocsActive },
+  { href: devsHref, label: t.developers, active: isDevsActive },
+  { href: changelogHref, label: t.changelog, active: isChangelogActive },
+];
 ---
+
+<header
+  data-header-mode={resolvedMode}
+  class:list={[
+    'theaver-header z-40 text-[#f5f5f7]',
+    resolvedMode === 'marketing'
+      ? 'theaver-header-marketing fixed inset-x-0 top-0 pointer-events-none'
+      : 'theaver-header-utility sticky top-0 border-b border-white/[0.08] bg-[rgba(12,12,14,0.88)] backdrop-blur-xl backdrop-saturate-[180%]',
+  ]}
+>
+  <div class="theaver-header-shell pointer-events-auto relative mx-auto flex h-11 w-full items-center justify-between gap-2 px-4 sm:px-6 max-w-[1280px]">
+    <div class="header-capsule-bg" aria-hidden="true"></div>
+
+    <div class="relative z-10 flex min-w-0 items-center gap-4 lg:gap-5">
+      <a href={homeHref} class="inline-flex shrink-0 items-center gap-2 text-white">
+        <BrandMark size={22} />
+        <span class="text-[13.5px] font-semibold tracking-[-0.01em]">Theaver</span>
+      </a>
+
+      <nav aria-label="Main navigation" class="hidden md:block">
+        <ul class="nav-links relative flex items-center gap-0.5 whitespace-nowrap">
+          {navItems.map((item) => (
+            <li class:list={[item.active && 'active']}>
+              <a
+                href={item.href}
+                aria-current={item.active ? 'page' : undefined}
+                class:list={[
+                  'inline-flex items-center rounded-[6px] px-2.5 py-1 text-[12px] tracking-[-0.01em] transition-colors duration-150',
+                  item.active ? 'text-white' : 'text-[#d2d2d7] hover:text-white',
+                ]}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))}
+          <li>
+            <a
+              href={GITHUB_REPO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1 rounded-[6px] px-2.5 py-1 text-[12px] tracking-[-0.01em] text-[#d2d2d7] transition-colors duration-150 hover:text-white"
+            >
+              <Icon name="github" size={14} />
+              <span>{t.github}</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="relative z-10 flex shrink-0 items-center gap-1.5 whitespace-nowrap">
+      <button
+        type="button"
+        data-open-search
+        aria-label={t.searchButton}
+        class="inline-flex h-7 w-7 items-center justify-center gap-1.5 rounded-[7px] border border-white/15 bg-white/[0.08] text-[12px] text-[#d2d2d7] transition-colors duration-150 hover:bg-white/[0.14] hover:text-white active:scale-95 sm:w-auto sm:px-2"
+      >
+        <Icon name="search" size={14} />
+        <span class="hidden xl:inline">{t.searchButton}</span>
+        <kbd class="hidden rounded-[4px] border border-white/15 bg-white/10 px-1 py-px font-mono text-[10px] leading-none text-[#a1a1a6] xl:inline-flex">⌘K</kbd>
+      </button>
+
+      <LanguageSelect locale={locale} currentPath={currentPath} variant="nav" />
+      <ThemeToggle locale={locale} variant="nav" />
+
+      <a
+        href={WEB_APP_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="hidden whitespace-nowrap px-2 text-[12px] tracking-[-0.01em] text-[#d2d2d7] transition-colors duration-150 hover:text-white lg:inline-flex"
+      >
+        {t.openWeb}
+      </a>
+
+      <a
+        href={downloadsHref}
+        class="hidden h-7 items-center gap-1.5 whitespace-nowrap rounded-full bg-[#00558f] px-3 text-[12px] font-normal tracking-[-0.01em] text-white transition-[background-color,transform] duration-150 hover:bg-[#006bb3] active:scale-95 sm:inline-flex"
+      >
+        <Icon name="download" size={13} />
+        <span>{t.download}</span>
+      </a>
+
+      <button
+        type="button"
+        id="mobile-menu-open"
+        aria-label="Open menu"
+        class="inline-flex h-8 w-8 items-center justify-center rounded-[7px] border border-white/15 bg-white/[0.08] text-white md:hidden"
+      >
+        <Icon name="menu" size={17} />
+      </button>
+    </div>
+  </div>
+</header>
+
+{resolvedMode === 'marketing' && (
+  <div class="h-11 shrink-0" aria-hidden="true"></div>
+)}
 
 {locale === 'en' && (
   <div
@@ -47,106 +178,17 @@ const ruEquivalent = localizePath(currentPath, 'ru');
   </div>
 )}
 
-<header class="sticky top-0 z-40 border-b border-white/[0.08] bg-[rgba(12,12,14,0.84)] text-[#f5f5f7] backdrop-blur-xl backdrop-saturate-[180%]">
-  <div class="container-wide flex h-11 items-center justify-between gap-3">
-    <div class="flex min-w-0 items-center gap-5">
-      <a href={homeHref} class="inline-flex shrink-0 items-center gap-2 text-white">
-        <BrandMark size={22} />
-        <span class="text-[13.5px] font-semibold tracking-[-0.01em]">Theaver</span>
-      </a>
-
-      <nav aria-label="Main navigation" class="hidden items-center gap-1 whitespace-nowrap md:flex">
-        <a
-          href={`${homeHref}#features`}
-          class="rounded-[6px] px-2.5 py-1 text-[12px] tracking-[-0.01em] text-[#d2d2d7] transition-colors duration-150 hover:text-white"
-        >
-          {t.features}
-        </a>
-        <a
-          href={downloadsHref}
-          class="rounded-[6px] px-2.5 py-1 text-[12px] tracking-[-0.01em] text-[#d2d2d7] transition-colors duration-150 hover:text-white"
-        >
-          {t.downloads}
-        </a>
-        <a
-          href={docsHref}
-          class="rounded-[6px] px-2.5 py-1 text-[12px] tracking-[-0.01em] text-[#d2d2d7] transition-colors duration-150 hover:text-white"
-        >
-          {t.docs}
-        </a>
-        <a
-          href={changelogHref}
-          class="rounded-[6px] px-2.5 py-1 text-[12px] tracking-[-0.01em] text-[#d2d2d7] transition-colors duration-150 hover:text-white"
-        >
-          {t.changelog}
-        </a>
-        <a
-          href={GITHUB_REPO_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-1 rounded-[6px] px-2.5 py-1 text-[12px] tracking-[-0.01em] text-[#d2d2d7] transition-colors duration-150 hover:text-white"
-        >
-          <Icon name="github" size={14} />
-          <span>{t.github}</span>
-        </a>
-      </nav>
-    </div>
-
-    <div class="flex shrink-0 items-center gap-1.5 whitespace-nowrap">
-      <button
-        type="button"
-        data-open-search
-        aria-label={t.searchButton}
-        class="inline-flex h-7 w-7 items-center justify-center gap-1.5 rounded-[7px] border border-white/15 bg-white/[0.08] text-[12px] text-[#d2d2d7] transition-colors duration-150 hover:bg-white/[0.14] hover:text-white active:scale-95 sm:w-auto sm:px-2"
-      >
-        <Icon name="search" size={14} />
-        <span class="hidden lg:inline">{t.searchButton}</span>
-        <kbd class="hidden rounded-[4px] border border-white/15 bg-white/10 px-1 py-px font-mono text-[10px] leading-none text-[#a1a1a6] lg:inline-flex">⌘K</kbd>
-      </button>
-
-      <LanguageSelect locale={locale} currentPath={currentPath} variant="nav" />
-      <ThemeToggle locale={locale} variant="nav" />
-
-      <a
-        href={WEB_APP_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="hidden whitespace-nowrap px-2 text-[12px] tracking-[-0.01em] text-[#d2d2d7] transition-colors duration-150 hover:text-white sm:inline-flex"
-      >
-        {t.openWeb}
-      </a>
-
-      <a
-        href={downloadsHref}
-        class="hidden h-7 items-center gap-1.5 whitespace-nowrap rounded-full bg-[#00558f] px-3 text-[12px] font-normal tracking-[-0.01em] text-white transition-all duration-150 hover:bg-[#006bb3] active:scale-95 sm:inline-flex"
-      >
-        <Icon name="download" size={13} />
-        <span>{t.download}</span>
-      </a>
-
-      <button
-        type="button"
-        id="mobile-menu-open"
-        aria-label="Open menu"
-        class="inline-flex h-8 w-8 items-center justify-center rounded-[7px] border border-white/15 bg-white/[0.08] text-white md:hidden"
-      >
-        <Icon name="menu" size={17} />
-      </button>
-    </div>
-  </div>
-</header>
-
 <dialog
   id="mobile-nav-dialog"
   closedby="any"
   aria-label="Mobile navigation"
-  class="m-0 ml-auto h-full max-h-none w-[min(320px,86vw)] border-l border-[var(--border-hairline)] bg-[var(--bg-page)] p-5 text-[var(--text-primary)] backdrop:bg-black/60"
+  class="top-layer-dialog m-0 ml-auto h-full max-h-none w-[min(320px,86vw)] border-l border-[var(--border-hairline)] bg-[var(--bg-page)] p-5 text-[var(--text-primary)] backdrop:bg-black/60"
 >
   <div class="flex h-full flex-col justify-between">
     <div>
       <div class="flex items-center justify-between border-b border-[var(--border-hairline)] pb-4">
         <span class="inline-flex items-center gap-2 text-[16px] font-semibold">
-          <img src="/app-icon.png" alt="" width="24" height="24" class="h-6 w-6 rounded-[6px]" />
+          <BrandMark size={24} />
           <span>Theaver</span>
         </span>
         <button
@@ -158,20 +200,26 @@ const ruEquivalent = localizePath(currentPath, 'ru');
           <Icon name="close" size={16} />
         </button>
       </div>
-      <nav class="mt-4 flex flex-col gap-1">
-        <a href={`${homeHref}#features`} data-mobile-nav-link class="rounded-[8px] px-3 py-2.5 text-[15px] text-[var(--text-primary)] hover:bg-[var(--bg-raised)]">
-          {t.features}
-        </a>
-        <a href={downloadsHref} data-mobile-nav-link class="rounded-[8px] px-3 py-2.5 text-[15px] text-[var(--text-primary)] hover:bg-[var(--bg-raised)]">
-          {t.downloads}
-        </a>
-        <a href={docsHref} data-mobile-nav-link class="rounded-[8px] px-3 py-2.5 text-[15px] text-[var(--text-primary)] hover:bg-[var(--bg-raised)]">
-          {t.docs}
-        </a>
-        <a href={changelogHref} data-mobile-nav-link class="rounded-[8px] px-3 py-2.5 text-[15px] text-[var(--text-primary)] hover:bg-[var(--bg-raised)]">
-          {t.changelog}
-        </a>
-        <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" class="rounded-[8px] px-3 py-2.5 text-[15px] text-[var(--text-secondary)] hover:bg-[var(--bg-raised)]">
+      <nav aria-label="Mobile sections" class="mt-4 flex flex-col gap-1">
+        {navItems.map((item) => (
+          <a
+            href={item.href}
+            data-mobile-nav-link
+            aria-current={item.active ? 'page' : undefined}
+            class:list={[
+              'rounded-[8px] px-3 py-2.5 text-[15px] hover:bg-[var(--bg-raised)]',
+              item.active ? 'font-semibold text-[var(--accent)]' : 'text-[var(--text-primary)]',
+            ]}
+          >
+            {item.label}
+          </a>
+        ))}
+        <a
+          href={GITHUB_REPO_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="rounded-[8px] px-3 py-2.5 text-[15px] text-[var(--text-secondary)] hover:bg-[var(--bg-raised)]"
+        >
           {t.github}
         </a>
       </nav>
@@ -190,6 +238,96 @@ const ruEquivalent = localizePath(currentPath, 'ru');
 </dialog>
 
 <SearchDialog locale={locale} />
+
+<style is:global>
+  /* Anchor-positioned active nav underline with progressive enhancement + forced-colors border */
+  ul.nav-links li {
+    position: relative;
+  }
+
+  ul.nav-links li.active {
+    anchor-name: --active-nav;
+  }
+
+  ul.nav-links::before {
+    content: "";
+    position: absolute;
+    position-anchor: --active-nav;
+    inset-block-start: calc(anchor(self-end) + 2px);
+    inset-inline-start: anchor(self-start);
+    inset-inline-end: anchor(self-end);
+    border-block-end: 2px solid var(--brand-gold);
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    ul.nav-links::before {
+      transition: inset 0.2s var(--ease-standard);
+    }
+  }
+
+  @supports not (position-anchor: --active-nav) {
+    ul.nav-links::before {
+      content: none;
+    }
+
+    ul.nav-links li.active {
+      border-block-end: 2px solid var(--brand-gold);
+    }
+  }
+
+  /* Dynamic Island marketing header on compositor properties */
+  .theaver-header-marketing .theaver-header-shell {
+    transition: transform 0.22s var(--ease-standard);
+  }
+
+  .theaver-header-marketing .header-capsule-bg {
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline: 0;
+    height: 44px;
+    background-color: rgba(12, 12, 14, 0.86);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    pointer-events: none;
+  }
+
+  .theaver-header-utility .header-capsule-bg {
+    display: none;
+  }
+
+  @keyframes theaver-header-shell-shrink {
+    to {
+      transform: translate3d(0, 10px, 0) scale(0.985);
+    }
+  }
+
+  @keyframes theaver-header-pill-clip {
+    to {
+      transform: translate3d(0, 10px, 0);
+      clip-path: inset(0 max(14px, calc(50vw - 560px)) 0 max(14px, calc(50vw - 560px)) round 9999px);
+      background-color: rgba(18, 18, 22, 0.82);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    @supports ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {
+      .theaver-header-marketing .theaver-header-shell {
+        animation: theaver-header-shell-shrink auto linear both;
+        animation-timeline: scroll(block root);
+        animation-range: 0px 140px;
+      }
+
+      .theaver-header-marketing .header-capsule-bg {
+        clip-path: inset(0 0 0 0 round 0px);
+        animation: theaver-header-pill-clip auto linear both;
+        animation-timeline: scroll(block root);
+        animation-range: 0px 140px;
+      }
+    }
+  }
+</style>
 
 <script is:inline>
   (() => {
@@ -211,23 +349,43 @@ const ruEquivalent = localizePath(currentPath, 'ru');
     const openBtn = document.getElementById('mobile-menu-open');
     const closeBtn = document.getElementById('mobile-menu-close');
     if (mobileDialog instanceof HTMLDialogElement && openBtn && closeBtn) {
+      const closeMobile = () => {
+        if (window.__theaverCloseTopLayer) {
+          void window.__theaverCloseTopLayer(mobileDialog);
+        } else {
+          mobileDialog.close();
+        }
+      };
       openBtn.addEventListener('click', () => mobileDialog.showModal());
-      closeBtn.addEventListener('click', () => mobileDialog.close());
+      closeBtn.addEventListener('click', closeMobile);
       mobileDialog.querySelectorAll('[data-mobile-nav-link]').forEach((el) => {
-        el.addEventListener('click', () => mobileDialog.close());
+        el.addEventListener('click', closeMobile);
       });
-      if (!('closedBy' in HTMLDialogElement.prototype)) {
-        mobileDialog.addEventListener('click', (event) => {
-          if (event.target !== mobileDialog) return;
-          const rect = mobileDialog.getBoundingClientRect();
-          const inside =
-            rect.top <= event.clientY &&
-            event.clientY <= rect.top + rect.height &&
-            rect.left <= event.clientX &&
-            event.clientX <= rect.left + rect.width;
-          if (!inside) mobileDialog.close();
-        });
-      }
+    }
+
+    // Fallback for browsers lacking CSS scroll-driven animation-range support
+    const marketingHeader = document.querySelector('.theaver-header-marketing');
+    if (
+      marketingHeader &&
+      !CSS.supports('(animation-timeline: scroll()) and (animation-range: 0% 100%)') &&
+      window.matchMedia('(prefers-reduced-motion: no-preference)').matches
+    ) {
+      const shell = marketingHeader.querySelector('.theaver-header-shell');
+      const bg = marketingHeader.querySelector('.header-capsule-bg');
+      const updateHeader = () => {
+        if (!(shell instanceof HTMLElement) || !(bg instanceof HTMLElement)) return;
+        const p = Math.min(1, Math.max(0, window.scrollY / 140));
+        const scale = 1 - p * 0.015;
+        const ty = p * 10;
+        const insetX = Math.max(14, window.innerWidth / 2 - 560) * p;
+        const radius = p * 9999;
+        shell.style.transform = `translate3d(0, ${ty}px, 0) scale(${scale})`;
+        bg.style.transform = `translate3d(0, ${ty}px, 0)`;
+        bg.style.clipPath = `inset(0 ${insetX}px 0 ${insetX}px round ${radius}px)`;
+      };
+      window.addEventListener('scroll', updateHeader, { passive: true });
+      window.addEventListener('resize', updateHeader, { passive: true });
+      updateHeader();
     }
   })();
 </script>

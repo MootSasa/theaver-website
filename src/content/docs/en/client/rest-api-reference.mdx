@@ -1,77 +1,69 @@
 ---
 title: Client REST API Reference
-description: Authentication, QR login, chats, messages, delta sync, file uploads, and standardized error contracts for the Theaver Client API.
+description: Complete REST endpoint map across auth, developer apps, updates, chats, messages, communities, files, calls, privacy, and releases.
 track: client
-order: 3
+order: 8
 ---
 
-All authenticated client routes require a JWT tied to a device session (`session_id`):
+All authenticated client routes require `Authorization: Bearer <jwt>` issued for a user device session (developer portal JWTs carry `scope: "developer_portal"` and are rejected here). Include `X-Api-Id` (`1..6` or custom `>= 100000` paired with `X-Api-Hash`). Download the full machine-readable spec at [`/openapi.json`](/openapi.json).
 
-- Recommended header: `Authorization: Bearer <jwt_token>`
-- WebSocket / direct media links: `?token=<jwt_token>`
+## Authentication & verification (`/api/auth/*`)
 
-## Entity IDs & error contract
-
-Users, chats, folders, sessions, attachments, and polls use 30-bit Feistel cipher IDs (`100 000 000` – `2 147 483 647`) fitting signed 32-bit integers.
-
-Errors return a consistent JSON contract:
-
-```json
-{
-  "ok": false,
-  "success": false,
-  "error": "BAD_REQUEST",
-  "error_code": 400,
-  "description": "Validation details"
-}
-```
-
-| HTTP Status | `error` Code | Meaning |
-|---|---|---|
-| `400` | `BAD_REQUEST` | Invalid input parameters or payload |
-| `401` | `UNAUTHORIZED` / `SESSION_REVOKED` / `TWO_FACTOR_REQUIRED` | Missing/expired token, terminated session, or 2FA challenge |
-| `403` | `FORBIDDEN` / `USER_PRIVACY_RESTRICTED` / `USER_IS_BLOCKED` | Insufficient permissions or privacy restriction |
-| `404` | `NOT_FOUND` | Requested entity does not exist |
-| `409` | `CONFLICT` / `USERNAME_OCCUPIED` | State or uniqueness conflict |
-| `429` | `FLOOD_WAIT` / `SLOWMODE_WAIT` | Rate limit or chat slow mode active |
-
-## Authentication & sessions
-
-<ApiEndpoint method="POST" path="/api/auth/login" auth="Public" />
+<ApiEndpoint method="GET" path="/api/auth/providers" auth="Public" />
+<ApiEndpoint method="GET" path="/api/auth/challenge?purpose=register" auth="Public" />
+<ApiEndpoint method="POST" path="/api/auth/register/start" auth="Public" />
+<ApiEndpoint method="POST" path="/api/auth/register/verify" auth="Public" />
 <ApiEndpoint method="POST" path="/api/auth/register" auth="Public" />
+<ApiEndpoint method="POST" path="/api/auth/login" auth="Public" />
 <ApiEndpoint method="POST" path="/api/auth/qr/create" auth="Public" />
-<ApiEndpoint method="GET" path="/api/auth/qr/status/:token" auth="Public" />
-<ApiEndpoint method="POST" path="/api/auth/qr/confirm" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/auth/qr/status/:token" auth="X-QR-Secret" />
+<ApiEndpoint method="POST" path="/api/auth/sessions/qr/confirm" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/auth/qr/verify-2fa" auth="X-QR-Secret" />
 <ApiEndpoint method="GET" path="/api/auth/sessions" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/auth/refresh" auth="Public" />
+<ApiEndpoint method="POST" path="/api/auth/logout" auth="JWT" />
 
-- **Login & 2FA:** If cloud 2FA is active, `/api/auth/login` returns `requires_2fa: true` with a temporary token; complete sign-in via `POST /api/auth/qr/verify-2fa` or by supplying `two_factor_password`.
-- **Session management:** List active sessions with `GET /api/auth/sessions` and revoke remote devices via `POST /api/auth/logout-device` or `POST /api/auth/terminate-others`.
+Additional auth & security routes: `GET /api/auth/check-username`, `GET /api/auth/phone-verify/:id/status`, `POST /api/auth/sessions/qr/grant`, `POST /api/auth/qr/claim`, OAuth (`/api/auth/oauth/:provider/start`, `/callback`, `/session/:id/status`, `/session/:id/verify-2fa`, `/confirm-link`), recovery (`/api/auth/recover`, `/password/send-code`, `/password/reset`, `/2fa/reset/send-code`, `/2fa/reset/confirm`), `PATCH /api/auth/sessions/:deviceId/rename`, `POST /api/auth/logout-device`, `POST /api/auth/terminate-others`, `GET`/`PUT /api/auth/sessions/ttl`, and account deletion (`/api/auth/account/delete/{send-code,confirm}` & `/api/security/account/delete/{send-code,confirm}`).
 
-## Chats, messages & delta updates
+## Developer console (`/api/developers/*`)
 
-<ApiEndpoint method="GET" path="/api/chats" auth="JWT" />
-<ApiEndpoint method="GET" path="/api/chats/:id/messages?limit=50&before_id=..." auth="JWT" />
-<ApiEndpoint method="POST" path="/api/chats/:id/messages" auth="JWT" />
-<ApiEndpoint method="GET" path="/api/updates?pts=0&limit=200" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/developers/auth/send-code" auth="Public" />
+<ApiEndpoint method="POST" path="/api/developers/auth/verify" auth="Public" />
+<ApiEndpoint method="GET" path="/api/developers/me" auth="Developer JWT" />
+<ApiEndpoint method="GET" path="/api/developers/apps" auth="Developer JWT" />
+<ApiEndpoint method="POST" path="/api/developers/apps" auth="Developer JWT" />
+<ApiEndpoint method="PATCH" path="/api/developers/apps/:apiId" auth="Developer JWT" />
+<ApiEndpoint method="POST" path="/api/developers/apps/:apiId/rotate-hash" auth="Developer JWT" />
+<ApiEndpoint method="DELETE" path="/api/developers/apps/:apiId" auth="Developer JWT" />
+
+## Delta sync, chats & messages
+
+<ApiEndpoint method="GET" path="/api/updates?since_usn=0&limit=200" auth="JWT" />
 <ApiEndpoint method="GET" path="/api/search?q=query&type=all" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/chats" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/chats" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/chats/:id" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/chats/:id/messages?limit=50&until_message_id=..." auth="JWT" />
+<ApiEndpoint method="POST" path="/api/chats/:id/messages" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/chats/:id/messages/album" auth="JWT" />
+<ApiEndpoint method="PUT" path="/api/chats/:id/messages/:messageId" auth="JWT" />
+<ApiEndpoint method="DELETE" path="/api/chats/:id/messages/:messageId" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/chats/:id/messages/read-up-to" auth="JWT" />
+<ApiEndpoint method="PUT" path="/api/chats/:id/draft" auth="JWT" />
 
-- Pass `local_id` (`client_message_id`) when calling `POST /api/chats/:id/messages` to guarantee idempotent retries.
-- `GET /api/updates` returns `new_messages`, `edited_messages`, `deleted_messages`, `chats`, `next_pts`, and `has_more`.
+Full chat suite includes `/api/chats/saved*`, `/api/chats/invite/:code`, `/api/chats/join/:code`, `/api/chats/:id/pinned-messages`, `/api/chats/:id/scheduled*`, `/api/chats/:id/polls*`, `/api/chats/:id/members*`, `/api/chats/:id/invite-links`, `/api/chats/:id/join-requests*`, `/api/folders/*`, and `/api/communities/*`.
 
-## Chunked file uploads & public release API
+## Files, stickers, calls & public endpoints
 
 <ApiEndpoint method="POST" path="/api/files/upload" auth="JWT" />
-<ApiEndpoint method="POST" path="/api/files/upload/init" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/files/upload/chunked/init" auth="JWT" />
+<ApiEndpoint method="PUT" path="/api/files/upload/chunked/part?upload_id=...&part_number=1" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/files/upload/chunked/complete" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/files/download/*objectName" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/files/avatar/*objectName?mt=..." auth="JWT / Media Ticket" />
+<ApiEndpoint method="GET" path="/api/calls/ice-servers" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/calls/start" auth="JWT" />
 <ApiEndpoint method="GET" path="/api/app/check-update" auth="Public" />
 <ApiEndpoint method="GET" path="/api/public/releases" auth="Public" />
-
-Large files support resumable chunked uploads (`upload/init` → chunk parts → `complete`) with `SHA-256` deduplication. Public download clients can query `/api/public/releases` for the release matrix by channel and architecture.
-
-## Self-service account deletion
-
-<ApiEndpoint method="POST" path="/api/auth/account/delete/send-code" auth="Public" />
-<ApiEndpoint method="POST" path="/api/auth/account/delete/confirm" auth="Public" />
-<ApiEndpoint method="POST" path="/api/security/account/delete/send-code" auth="JWT" />
-<ApiEndpoint method="POST" path="/api/security/account/delete/confirm" auth="JWT" />
-
-Confirming account deletion revokes all active device sessions immediately and schedules permanent deletion in 7 days (`grace_period_days: 7`). Signing back in via password or QR before the grace period ends cancels the scheduled deletion automatically.
+<ApiEndpoint method="GET" path="/api/public/preview/:kind/:target" auth="Public" />
+<ApiEndpoint method="GET" path="/api/public/avatar/:kind/:target" auth="Public" />

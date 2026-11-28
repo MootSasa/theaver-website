@@ -31,14 +31,24 @@ const btnClasses =
   <span data-theme-icon="light" class="hidden items-center">
     <Icon name="sun" size={14} />
   </span>
-  <span class="hidden sm:inline" data-theme-label data-label-system={t.system} data-label-dark={t.dark} data-label-light={t.light}>
+  <span
+    class="hidden sm:inline"
+    data-theme-label
+    data-label-system={t.system}
+    data-label-dark={t.dark}
+    data-label-light={t.light}
+  >
     {t.system}
   </span>
 </button>
 
 <script is:inline>
   (() => {
+    if (window.__theaverThemeInit) return;
+    window.__theaverThemeInit = true;
+
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const motionOk = () => window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
 
     function applyTheme(pref) {
       const resolved = pref === 'light' || pref === 'dark' ? pref : mq.matches ? 'dark' : 'light';
@@ -46,8 +56,9 @@ const btnClasses =
       document.documentElement.dataset.themePref = pref;
       document.querySelectorAll('[data-theme-toggle]').forEach((btn) => {
         btn.querySelectorAll('[data-theme-icon]').forEach((el) => {
-          el.classList.toggle('hidden', el.getAttribute('data-theme-icon') !== pref);
-          el.classList.toggle('inline-flex', el.getAttribute('data-theme-icon') === pref);
+          const on = el.getAttribute('data-theme-icon') === pref;
+          el.classList.toggle('hidden', !on);
+          el.classList.toggle('inline-flex', on);
         });
         const lbl = btn.querySelector('[data-theme-label]');
         if (lbl) {
@@ -68,6 +79,7 @@ const btnClasses =
     document.addEventListener('click', (e) => {
       const btn = e.target instanceof Element ? e.target.closest('[data-theme-toggle]') : null;
       if (!btn) return;
+
       const curResolved = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
       const curPref = localStorage.getItem('theaver-theme') || 'system';
       let next;
@@ -79,7 +91,30 @@ const btnClasses =
         next = !mq.matches ? 'system' : 'light';
       }
       localStorage.setItem('theaver-theme', next);
-      applyTheme(next);
+
+      const rect = btn.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      const maxR = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y),
+      );
+
+      if (typeof document.startViewTransition === 'function' && motionOk()) {
+        const root = document.documentElement;
+        root.style.setProperty('--vt-x', `${Math.round(x)}px`);
+        root.style.setProperty('--vt-y', `${Math.round(y)}px`);
+        root.style.setProperty('--vt-r', `${Math.ceil(maxR)}px`);
+        root.setAttribute('data-theme-transitioning', '');
+        const transition = document.startViewTransition(() => {
+          applyTheme(next);
+        });
+        transition.finished.finally(() => {
+          root.removeAttribute('data-theme-transitioning');
+        });
+      } else {
+        applyTheme(next);
+      }
     });
   })();
 </script>

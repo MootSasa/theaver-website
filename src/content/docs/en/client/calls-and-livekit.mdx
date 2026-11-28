@@ -1,0 +1,46 @@
+---
+title: Voice Calls, Streams & LiveKit WebRTC
+description: 1:1 encrypted calls, LiveKit SFU voice rooms, 1080p60 screen-share streams, Coturn TLS ICE discovery, and RTMP/WHIP ingress.
+track: client
+order: 7
+---
+
+Voice calls, video calls, group voice rooms, and high-framerate screen shares combine REST setup routes, WebSocket signaling (`call.*`), **LiveKit SFU**, and **Coturn TLS port 443** (`turn.theaver.app`).
+
+<CallMediaDiagram locale="en" />
+
+## REST call control & ICE discovery
+
+<ApiEndpoint method="GET" path="/api/calls/ice-servers" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/calls/start" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/calls/history" auth="JWT" />
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/calls/ice-servers` | Returns time-limited Coturn STUN/TURN credentials over TLS 443 |
+| `POST /api/calls/start` | Starts a 1:1 or group call and returns `call_id` + LiveKit room credentials |
+| `GET /api/calls/:callId` | Fetches current participant roster and call state |
+| `POST /api/calls/:callId/accept` / `decline` / `leave` | Answers, declines, or exits an active call |
+| `POST /api/calls/:callId/transfer` | Hands off an active call to another signed-in device session |
+| `POST /api/calls/:callId/state` | Updates mute, camera, or hand-raise state |
+| `POST /api/calls/:callId/signal` | Exchanging SDP/ICE signaling frames over REST |
+
+## Multi-stream video & screen sharing
+
+Inside calls and community voice channels, participants can publish secondary screen-share streams up to `1080p @ 60 fps` alongside camera/audio tracks:
+
+- `POST /api/calls/:callId/streams/start` — register a screen/window broadcast stream.
+- `POST /api/calls/:callId/streams/:streamId/quality` — adjust published simulcast tier or bitrate cap.
+- `POST /api/calls/:callId/streams/:streamId/subscription` — subscribe or request viewer resolution for a stream.
+- `POST /api/calls/:callId/streams/:streamId/stop` — tear down an active stream.
+
+Community stages also accept OBS Studio feeds directly via **RTMP** and **WHIP** endpoints managed by LiveKit Ingress.
+
+## WebSocket call RPC methods
+
+Every REST call action also exists as a low-latency WebSocket RPC frame (`{ type, req_id, data }`):
+
+- `call.start`, `call.accept`, `call.decline`, `call.leave`
+- `call.transfer_device`, `call.update_state`
+- `call.stream.start`, `call.stream.update_quality`, `call.stream.stop`, `call.stream.set_viewer_quality`
+- `call.signal`

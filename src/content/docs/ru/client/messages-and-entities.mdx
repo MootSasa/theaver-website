@@ -1,0 +1,73 @@
+---
+title: Сообщения, разметка (entities) и реакции
+description: Пагинация истории, отправка текста/медиа/цитат/спойлеров/TTL, альбомы, редактирование, реакции, черновики, опросы и отложка.
+track: client
+order: 4
+---
+
+Сообщения поддерживают форматирование через массив `entities`, альбомы (`grouped_id`), топики форумов (`topic_id`), цитаты, спойлеры, одноразовый просмотр, таймеры самоуничтожения, реакции, опросы и облачные черновики.
+
+## Чтение истории сообщений
+
+<ApiEndpoint method="GET" path="/api/chats/:id/messages?limit=50" auth="JWT" />
+
+| Параметр | Тип | Описание |
+|---|---|---|
+| `limit` | `int` | Размер страницы (по умолчанию `50`) |
+| `until_message_id` | `int` | Загрузить сообщения строго старше указанного ID |
+| `after_message_id` | `int` | Загрузить сообщения строго новее указанного ID |
+| `around_message_id` | `int` | Загрузить окно вокруг целевого сообщения (переход к ответу/пину) |
+| `topic_id` | `int` | Фильтр по теме форума |
+| `tag` / `saved_peer_key` | `string` | Фильтр «Избранного» по тегу или источнику пересылки |
+
+Дополнительно доступны `GET /api/chats/:id/shared-media`, `GET /api/chats/:id/calendar`, `GET /api/chats/:id/pinned-messages` и `GET /api/chats/:id/unread-info`.
+
+## Отправка сообщений и альбомов
+
+<ApiEndpoint method="POST" path="/api/chats/:id/messages" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/chats/:id/messages/album" auth="JWT" />
+
+Основные поля тела `POST /api/chats/:id/messages`:
+
+- **Базовые:** `content`, `message_type` (`text`, `image`, `video`, `voice`, `audio`, `document`, `sticker`, `gif`, `location`, `contact`), `local_id`, `file_url`, `file_name`.
+- **Медиа-флаги:** `is_round` (видеокружок при `message_type: "video"`), `has_media_spoiler`, `invert_media`, `waveform`, `duration`, `grouped_id`.
+- **Эфемерность и эффекты:** `is_silent`, `is_view_once`, `ttl_seconds` (`0..60`, для медиа вне каналов), `effect_id`.
+- **Ответы, цитаты и топики:** `reply_to_message_id`, `topic_id`, `is_quote`, `quote_text`, `quote_offset`, `quote_length`.
+- **Отправка от имени:** `send_as_mode`, `send_as_chat_id`, `send_as_anonymous` (анонимные посты админов или от имени привязанного канала).
+- **Гео и контакты:** `latitude`, `longitude`, `live_period`, `contact`. Живая геолокация обновляется через `PATCH /api/chats/:id/messages/:messageId/live-location`.
+
+## Форматирование `entities`
+
+Диапазоны `offset` и `length` считаются в кодовых единицах UTF-16 поверх поля `content`:
+
+```json
+{
+  "content": "Релиз v1.21 готов! #release",
+  "entities": [
+    { "type": "bold", "offset": 0, "length": 11 },
+    { "type": "custom_emoji", "offset": 17, "length": 2, "custom_emoji_id": "9012482" },
+    { "type": "hashtag", "offset": 19, "length": 8 }
+  ],
+  "link_preview_options": {
+    "is_disabled": false,
+    "prefer_large_media": true
+  }
+}
+```
+
+Поддерживаются типы `bold`, `italic`, `underline`, `strikethrough`, `spoiler`, `code`, `pre`, `blockquote`, `expandable_blockquote`, `text_link`, `url`, `mention`, `hashtag`, `bot_command`, `custom_emoji`.
+
+## Редактирование, реакции, закрепы и отложка
+
+| Действие | Маршрут |
+|---|---|
+| Изменить текст / разметку | `PUT /api/chats/:id/messages/:messageId` |
+| Удалить сообщение / историю | `DELETE /api/chats/:id/messages/:messageId`, `POST /api/chats/:id/messages/delete`, `DELETE /api/chats/:id/messages` |
+| Переслать сообщения | `POST /api/chats/:id/messages/forward` |
+| Закрепить / открепить | `POST/DELETE /api/chats/:id/messages/:messageId/pin`, `DELETE /api/chats/:id/pinned-messages` |
+| Реакции (до 3 на сообщение) | `POST /api/chats/:id/messages/:messageId/reactions` |
+| Просмотр view-once / скриншот | `POST /api/chats/:id/messages/:messageId/consume-view-once`, `POST /api/chats/:id/screenshot` |
+| Облачный черновик | `PUT /api/chats/:id/draft` |
+| Отложенные сообщения | `GET/POST /api/chats/:id/scheduled`, `PUT/DELETE /api/chats/:id/scheduled/:schedId`, `POST .../send-now` |
+| Опросы и викторины | `POST /api/chats/:id/polls`, `POST .../vote`, `POST .../close`, `GET .../results` |
+| Перевод сообщения | `POST /api/chats/:id/messages/:messageId/translate` |

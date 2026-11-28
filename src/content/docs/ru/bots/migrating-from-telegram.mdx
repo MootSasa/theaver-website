@@ -1,11 +1,11 @@
 ---
 title: Миграция с Telegram Bot API
-description: Запустите существующего бота на aiogram, grammY, python-telegram-bot или telegraf в Theaver, сменив базовый URL API.
+description: Запустите существующего бота на aiogram, grammY, python-telegram-bot, telegraf или Telegram WebApp в Theaver, сменив базовый URL API.
 track: bots
 order: 2
 ---
 
-Поскольку Theaver повторяет стандартный контракт `/bot<token>/<method>`, формат ответа `{"ok": true, "result": ...}`, поля `Update` и структуру `reply_markup`, перенос готового бота обычно сводится к замене базового URL на `https://api.theaver.app`.
+Поскольку Theaver повторяет стандартный контракт `/bot<token>/<method>`, формат ответа `{"ok": true, "result": ...}`, поля `Update`, псевдонимы JS-моста Mini Apps v8 и структуру `reply_markup`, перенос готового бота обычно сводится к замене базового URL на `https://api.theaver.app`.
 
 ## Примеры для популярных библиотек
 
@@ -81,7 +81,17 @@ bot.launch();
 ```
 </CodeTabs>
 
-## Совместимость идентификаторов и разметки
+## Таблица псевдонимов совместимости
+
+Наряду с нативными контрактами Theaver поддерживает прозрачные псевдонимы совместимости:
+
+| Компонент | Нативный Theaver | Псевдоним совместимости |
+|---|---|---|
+| Объект Mini Apps | `window.Theaver.WebApp` | `window.Telegram.WebApp` |
+| Заголовок `initData` | `X-Theaver-Init-Data` | `X-Telegram-Init-Data` |
+| Заголовок секрета вебхука | `X-Theaver-Bot-Api-Secret-Token` | `X-Telegram-Bot-Api-Secret-Token` |
+| Валюта платежей | `THV` | `XTR` (1:1 к `THV` для ботов Telegram Stars) |
+| Импорт стикеров | `POST /api/stickers/import-pack` | `POST /api/stickers/import-telegram` |
 
 - **Формат `chat_id`:** используются непоследовательные 30-битные Feistel ID (`100 000 000` – `2 147 483 647`). Для групп и каналов принимаются как прямые ID (`849201432`), так и префикс `-100849201432` или `@username`.
 - **Разметка текста:** поддерживаются `MarkdownV2`, `Markdown`, `HTML` и явный массив `entities`.

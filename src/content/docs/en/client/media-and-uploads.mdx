@@ -1,0 +1,59 @@
+---
+title: Media, Chunked Uploads, Stickers & GIFs
+description: Standard uploads, 2 MiB resumable chunked uploads, SHA-256 deduplication, HMAC-signed avatar tickets, stickers, and GIF endpoints.
+track: client
+order: 6
+---
+
+Media assets are stored behind authenticated MinIO object endpoints with automatic `SHA-256` deduplication and server-generated thumbnails/dimensions.
+
+## Single-request upload (small media)
+
+<ApiEndpoint method="POST" path="/api/files/upload" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/files/upload-avatar" auth="JWT" />
+
+- Send `multipart/form-data` with field `file` on `/api/files/upload` (or use `POST /api/files/upload-presigned` for direct pre-signed object upload).
+- Profile photos use multipart field `avatar` (and optional `avatar_crop` coordinates) on `/api/files/upload-avatar`.
+
+## Resumable chunked upload
+
+For large files, videos, and slow connections, stream `2 MiB` parts sequentially or concurrently:
+
+<ApiEndpoint method="POST" path="/api/files/upload/chunked/init" auth="JWT" />
+<ApiEndpoint method="PUT" path="/api/files/upload/chunked/part?upload_id=...&part_number=1" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/files/upload/chunked/complete" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/files/upload/chunked/cancel" auth="JWT" />
+
+1. **Initialize:** `POST /api/files/upload/chunked/init` with `{ file_name, total_size, mime_type, parts_count }`. Returns `{ upload_id, chunk_size: 2097152 }`.
+2. **Upload parts:** send `PUT /api/files/upload/chunked/part?upload_id=<id>&part_number=<1..N>` either as a raw binary body (`application/octet-stream`) or multipart field `chunk`.
+3. **Complete:** `POST /api/files/upload/chunked/complete` with `{ upload_id }`. Returns:
+
+```json
+{
+  "file_id": 841902331,
+  "object_name": "2026/11/a4e8c1...mp4",
+  "url": "/api/files/download/2026/11/a4e8c1...mp4",
+  "file_name": "demo.mp4",
+  "size": 18422091,
+  "mime_type": "video/mp4",
+  "sha256": "e3b0c442...",
+  "thumb_base64": "...",
+  "thumb_url": "/api/files/download/thumbs/a4e8c1.jpg",
+  "width": 1920,
+  "height": 1080,
+  "duration": 42.5
+}
+```
+
+## Downloading media & protected avatars
+
+- **Attachments:** `GET /api/files/download/*objectName` with `Authorization: Bearer <jwt>` or `GET /api/files/download-presigned/*objectName` (supports `Range` requests for instant video seeking).
+- **Avatars & banners:** `GET /api/files/avatar/*objectName?mt=<hmac_ticket>` honors privacy visibility automatically without exposing protected user avatars publicly.
+
+## Stickers, custom emoji & GIFs
+
+| Feature | Endpoints |
+|---|---|
+| Sticker packs | `/api/stickers/packs*`, favorites `/api/stickers/favorites/:id`, recents `/api/stickers/recent*` |
+| External pack import | `POST /api/stickers/import-pack` (pass shared pack slug or URL) |
+| GIFs | `GET /api/gifs/trending`, `GET /api/gifs/search?q=...`, `GET/POST/DELETE /api/gifs/saved` |

@@ -30,4 +30,15 @@ export type IconName =
   | 'verified'
   | 'trash'
   | 'mail'
-  | 'lock';
+  | 'lock'
+  | 'qr'
+  | 'key'
+  | 'refresh'
+  | 'sliders'
+  | 'eye'
+  | 'eye-off'
+  | 'grip-vertical'
+  | 'play'
+  | 'mic'
+  | 'video'
+  | 'edit';

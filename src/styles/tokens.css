@@ -28,8 +28,12 @@
 
   /* Motion */
   --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: ease-out;
   --duration-fast: 150ms;
   --duration-base: 200ms;
+  --duration-dialog: 240ms;
+  --duration-vt: 380ms;
 
   /* Brand Identity Tokens */
   --brand-navy: #002a49;
@@ -144,4 +148,15 @@ html[data-theme="light"] {
 
 html[data-theme="dark"] .tile-contrast-dark {
   background-color: #252527;
+}
+
+@supports (animation-timing-function: linear(0, 1)) {
+  :root {
+    --ease-spring: linear(
+      0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 16.7%, 1.017,
+      1.077 20.4%, 1.121, 1.149 24.3%, 1.159, 1.163 27%, 1.154 29.9%,
+      1.129 33%, 1.051 40.3%, 1.017 44.9%, 0.992 49.8%, 0.98 55.6%,
+      0.996 72.1%, 1.003 82%, 1
+    );
+  }
 }

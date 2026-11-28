@@ -18,6 +18,27 @@ const { locale } = Astro.props;
 const curatedEntries: ChangelogEntryData[] = locale === 'ru'
   ? [
       {
+        version: 'v1.21.0-beta.560',
+        date: '2026-11-28',
+        channel: 'beta',
+        title: 'Свои клиенты, обновлённый раздел «Устройства» и новая документация',
+        sections: [
+          {
+            kind: 'added',
+            items: [
+              'Разработчики теперь могут регистрировать свои клиентские приложения в консоли /developers/apps и через @BotMother (/newclient).',
+              'В разделе «Устройства» рядом с активными сессиями появилось название клиентского приложения и отметка стороннего клиента.',
+            ],
+          },
+          {
+            kind: 'improved',
+            items: [
+              'Расширили экран настроек оформления Liquid Glass и Классики, а также обновили портал разработчиков на theaver.app.',
+            ],
+          },
+        ],
+      },
+      {
         version: 'v1.20.3-beta.429',
         date: '2026-11-09',
         channel: 'beta',
@@ -63,14 +84,14 @@ const curatedEntries: ChangelogEntryData[] = locale === 'ru'
         version: 'v1.19.0-beta.421',
         date: '2026-11-08',
         channel: 'beta',
-        title: 'Панель стикеров, сетка GIF и импорт из Telegram',
+        title: 'Панель стикеров, сетка GIF и перенос наборов по ссылке',
         sections: [
           {
             kind: 'added',
             items: [
               'Добавили отдельную боковую панель эмодзи и стикеров для многооконного режима на компьютере.',
               'Сделали адаптивную сетку GIF с предпросмотром по удержанию и отправкой в полном качестве.',
-              'Появился импорт наборов стикеров из Telegram с отображением прогресса прямо в клиенте.',
+              'Появился перенос внешних наборов стикеров по ссылке с отображением прогресса прямо в клиенте.',
             ],
           },
           {
@@ -98,6 +119,27 @@ const curatedEntries: ChangelogEntryData[] = locale === 'ru'
       },
     ]
   : [
+      {
+        version: 'v1.21.0-beta.560',
+        date: '2026-11-28',
+        channel: 'beta',
+        title: 'Custom client apps, Devices attribution & Developer Portal',
+        sections: [
+          {
+            kind: 'added',
+            items: [
+              'Developers can now register custom client applications at /developers/apps and via @BotMother (/newclient).',
+              'The Devices screen now displays the client app title and custom-client badge on active sessions.',
+            ],
+          },
+          {
+            kind: 'improved',
+            items: [
+              'Refined Liquid Glass and Classic appearance previews alongside the rebuilt client API documentation portal.',
+            ],
+          },
+        ],
+      },
       {
         version: 'v1.20.3-beta.429',
         date: '2026-11-09',
@@ -144,14 +186,14 @@ const curatedEntries: ChangelogEntryData[] = locale === 'ru'
         version: 'v1.19.0-beta.421',
         date: '2026-11-08',
         channel: 'beta',
-        title: 'Sticker sidecar, GIF grid, and Telegram pack import',
+        title: 'Sticker sidecar, GIF grid, and link-based pack import',
         sections: [
           {
             kind: 'added',
             items: [
               'Added a dedicated Emoji & Sticker side panel for wide desktop windows.',
               'Built a justified GIF grid with press-and-hold preview and full-resolution sending.',
-              'Added direct Telegram sticker pack import with live progress inside the app.',
+              'Added link-based external sticker pack import with live progress inside the app.',
             ],
           },
           {
@@ -182,7 +224,7 @@ const curatedEntries: ChangelogEntryData[] = locale === 'ru'
 const labels = locale === 'ru'
   ? {
       title: 'История обновлений',
-      description: 'Что менялось в новых версиях клиента и платформы Theaver на каналах Stable и Beta.',
+      description: 'Что появлялось в новых версиях Theaver на каналах Stable и Beta.',
       all: 'Все',
       stable: 'Stable',
       beta: 'Beta',
@@ -193,7 +235,7 @@ const labels = locale === 'ru'
     }
   : {
       title: 'Changelog',
-      description: 'What changed in recent Stable and Beta builds of Theaver.',
+      description: 'What shipped in recent Stable and Beta releases of Theaver.',
       all: 'All',
       stable: 'Stable',
       beta: 'Beta',
@@ -234,15 +276,17 @@ const entries: ChangelogEntryData[] = [...dynamicEntries, ...curatedEntries];
             </p>
           </div>
 
-          <div class="inline-flex rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] p-1">
+          <div class="inline-flex rounded-[var(--radius-control)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] p-1" role="tablist" aria-label={labels.title}>
             {(['all', 'stable', 'beta'] as const).map((filter, idx) => (
               <button
                 type="button"
+                role="tab"
+                aria-selected={idx === 0 ? 'true' : 'false'}
                 data-cl-filter={filter}
                 class:list={[
-                  'rounded-[var(--radius-chip)] px-3 py-1 text-[13px] font-medium transition-colors duration-150',
+                  'rounded-[var(--radius-chip)] px-3 py-1 text-[13px] font-semibold transition-colors duration-150',
                   idx === 0
-                    ? 'bg-[var(--bg-card)] text-[var(--text-primary)] shadow-[var(--card-highlight)]'
+                    ? 'bg-[var(--bg-card)] text-[var(--text-primary)]'
                     : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
                 ]}
               >
@@ -257,7 +301,7 @@ const entries: ChangelogEntryData[] = [...dynamicEntries, ...curatedEntries];
             <article class="ink-card p-6" data-cl-channel={entry.channel}>
               <div class="flex flex-wrap items-center justify-between gap-2">
                 <div class="flex items-center gap-3">
-                  <span class="tabular font-mono text-[14px] font-medium text-[var(--accent)]">
+                  <span class="tabular font-mono text-[14px] font-semibold text-[var(--accent)]">
                     {entry.version}
                   </span>
                   <span class="rounded-[var(--radius-chip)] border border-[var(--border-hairline)] bg-[var(--bg-raised)] px-2 py-0.5 text-[12px] text-[var(--text-secondary)]">
@@ -276,7 +320,7 @@ const entries: ChangelogEntryData[] = [...dynamicEntries, ...curatedEntries];
               <div class="mt-4 flex flex-col gap-4">
                 {entry.sections.map((sec) => (
                   <div>
-                    <div class="text-[12.5px] font-medium text-[var(--text-muted)]">
+                    <div class="text-[12.5px] font-semibold text-[var(--text-muted)]">
                       {labels[sec.kind]}
                     </div>
                     <ul class="mt-1.5 flex flex-col gap-1.5 text-[14.5px] leading-relaxed text-[var(--text-secondary)]">
@@ -320,9 +364,9 @@ const entries: ChangelogEntryData[] = [...dynamicEntries, ...curatedEntries];
         const target = btn.getAttribute('data-cl-filter') || 'all';
         buttons.forEach((b) => {
           const on = b === btn;
+          b.setAttribute('aria-selected', on ? 'true' : 'false');
           b.classList.toggle('bg-[var(--bg-card)]', on);
           b.classList.toggle('text-[var(--text-primary)]', on);
-          b.classList.toggle('shadow-[var(--card-highlight)]', on);
           b.classList.toggle('text-[var(--text-muted)]', !on);
         });
         cards.forEach((card) => {

@@ -1,0 +1,46 @@
+---
+title: Звонки, стримы и LiveKit WebRTC
+description: Зашифрованные звонки 1:1, голосовые комнаты на LiveKit SFU, демонстрация экрана 1080p60, Coturn TLS ICE и RTMP/WHIP.
+track: client
+order: 7
+---
+
+Личные видеозвонки, групповые голосовые комнаты и демонстрация экрана высокой чёткости работают поверх связки REST-маршрутов, WebSocket-сигналинга (`call.*`), **LiveKit SFU** и **Coturn на TLS-порту 443** (`turn.theaver.app`).
+
+<CallMediaDiagram locale="ru" />
+
+## REST-управление звонком и ICE-серверы
+
+<ApiEndpoint method="GET" path="/api/calls/ice-servers" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/calls/start" auth="JWT" />
+<ApiEndpoint method="GET" path="/api/calls/history" auth="JWT" />
+
+| Маршрут | Назначение |
+|---|---|
+| `GET /api/calls/ice-servers` | Выдаёт кратковременные учётные данные STUN/TURN Coturn по TLS 443 |
+| `POST /api/calls/start` | Инициирует звонок 1:1 или комнату, возвращает `call_id` и токен LiveKit |
+| `GET /api/calls/:callId` | Текущий список участников и состояние звонка |
+| `POST /api/calls/:callId/accept` / `decline` / `leave` | Принять, отклонить или выйти из звонка |
+| `POST /api/calls/:callId/transfer` | Бесшовно перевести активный звонок на другое своё устройство |
+| `POST /api/calls/:callId/state` | Обновление состояния микрофона, камеры или поднятой руки |
+| `POST /api/calls/:callId/signal` | Обмен SDP/ICE-сигналингом по REST |
+
+## Многопотоковое видео и демонстрация экрана
+
+Участники звонков и голосовых каналов могут публиковать дополнительный поток окна или экрана в качестве до `1080p @ 60 fps`:
+
+- `POST /api/calls/:callId/streams/start` — регистрация видеопотока экрана.
+- `POST /api/calls/:callId/streams/:streamId/quality` — смена профиля симулькаста и битрейта.
+- `POST /api/calls/:callId/streams/:streamId/subscription` — подписка зрителя или выбор разрешения потока.
+- `POST /api/calls/:callId/streams/:streamId/stop` — остановка трансляции.
+
+Стримы для трибун сообществ также принимаются напрямую из OBS Studio через **RTMP** и **WHIP** (LiveKit Ingress).
+
+## WebSocket RPC методы звонков
+
+Все операции звонка продублированы низколатентными WebSocket RPC вызовами (`{ type, req_id, data }`):
+
+- `call.start`, `call.accept`, `call.decline`, `call.leave`
+- `call.transfer_device`, `call.update_state`
+- `call.stream.start`, `call.stream.update_quality`, `call.stream.stop`, `call.stream.set_viewer_quality`
+- `call.signal`

@@ -1,0 +1,313 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../Header.astro';
+import Footer from '../Footer.astro';
+import Icon from '../Icon.astro';
+import BotPlatformDiagram from '../illustrations/BotPlatformDiagram.astro';
+import { UI_STRINGS, localizePath, type Locale } from '../../lib/i18n';
+import { GITHUB_REPO_URL } from '../../lib/releases';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = UI_STRINGS[locale];
+const currentPath = localizePath('/docs', locale);
+const allDocs = await getCollection('docs');
+
+const localeEntries = allDocs
+  .filter((item) => item.id.startsWith(`${locale}/`))
+  .map((item) => ({
+    entry: item,
+    cleanSlug: item.id.replace(new RegExp(`^${locale}/`), '').replace(/\.(md|mdx)$/, ''),
+  }));
+
+const tracksMeta: Array<{
+  key: 'client' | 'bots' | 'guide';
+  title: string;
+  eyebrow: string;
+  summary: string;
+}> =
+  locale === 'ru'
+    ? [
+        {
+          key: 'client',
+          title: t.tracks.client,
+          eyebrow: '01 · CLIENT PROTOCOL & API',
+          summary:
+            'Полный цикл создания собственного клиента Theaver: получение api_id / api_hash, авторизация с PoW и QR, инкрементальная синхронизация since_usn, чанковая загрузка медиа, LiveKit WebRTC и WebSocket RPC.',
+        },
+        {
+          key: 'bots',
+          title: t.tracks.bots,
+          eyebrow: '02 · BOTS & MINI APPS',
+          summary:
+            'HTTP Bot API v7.x, создание ботов и клиентских приложений через @BotMother, вебхуки и long polling, Mini Apps SDK v8 (window.Theaver.WebApp), платежи THV и перенос существующих ботов.',
+        },
+        {
+          key: 'guide',
+          title: t.tracks.guide,
+          eyebrow: '03 · USER GUIDE & SECURITY',
+          summary:
+            'Быстрый старт на всех платформах, проверка криптографических подписей релизов, топики и сообщества, рабочие панели десктопа, стикеры, облачный пароль 2FA и кошелёк @walt.',
+        },
+      ]
+    : [
+        {
+          key: 'client',
+          title: t.tracks.client,
+          eyebrow: '01 · CLIENT PROTOCOL & API',
+          summary:
+            'Everything required to build a standalone Theaver client: api_id / api_hash registration, PoW and QR authentication, monotonic since_usn delta sync, chunked uploads, LiveKit WebRTC calls, and WebSocket RPC.',
+        },
+        {
+          key: 'bots',
+          title: t.tracks.bots,
+          eyebrow: '02 · BOTS & MINI APPS',
+          summary:
+            'HTTP Bot API v7.x, managing bots and client apps via @BotMother, webhooks and long polling, Mini Apps SDK v8 (window.Theaver.WebApp), internal THV payments, and bot migration.',
+        },
+        {
+          key: 'guide',
+          title: t.tracks.guide,
+          eyebrow: '03 · USER GUIDE & SECURITY',
+          summary:
+            'Getting started across platforms, verifying release signatures, topics and communities, desktop multi-pane layout, stickers, cloud 2FA passwords, and the @walt wallet.',
+        },
+      ];
+
+const groupedTracks = tracksMeta.map((track) => ({
+  ...track,
+  items: localeEntries
+    .filter((i) => i.entry.data.track === track.key)
+    .sort((a, b) => a.entry.data.order - b.entry.data.order),
+}));
+
+const c =
+  locale === 'ru'
+    ? {
+        title: 'Документация разработчика и гид пользователя — Theaver',
+        description:
+          'Открытый клиентский протокол Theaver, создание своих клиентов с api_id / api_hash, HTTP Bot API, Mini Apps SDK v8 и руководство пользователя.',
+        eyebrow: 'THEAVER DOCUMENTATION HUB',
+        h1: 'Открытый протокол для своих клиентов, ботов и приложений.',
+        subtitle:
+          'Изучай реальные контракты REST API и WebSocket RPC, выпускай собственные пары api_id / api_hash в веб-консоли или через @BotMother и подключай Mini Apps.',
+        ctaApps: 'Мои клиенты (api_id)',
+        ctaFirstClient: 'Сделать первый клиент',
+        ctaSearch: 'Поиск по докам',
+        ctaOpenApi: 'OpenAPI 3.1 JSON',
+        ctaGithub: 'Исходный код',
+        surfacesHeading: 'Три точки входа в платформу',
+        surfaces: [
+          {
+            label: 'CLIENT REST API',
+            endpoint: 'https://api.theaver.app/api/*',
+            meta: 'Bearer JWT · X-Api-Id · X-Api-Hash',
+            detail:
+              'Регистрация с PoW SHA-256, QR-авторизация, история чатов, чанковая загрузка по 2 МБ и дельты since_usn.',
+          },
+          {
+            label: 'WEBSOCKET RPC',
+            endpoint: 'wss://api.theaver.app/api/ws',
+            meta: 'req_id ack · idempotent local_id',
+            detail:
+              'Двунаправленные фреймы { type, req_id, data }, статусы набора текста, read_history и сигналинг LiveKit-звонков.',
+          },
+          {
+            label: 'HTTP BOT API & MINI APPS',
+            endpoint: 'https://api.theaver.app/bot<token>/<method>',
+            meta: 'window.Theaver.WebApp v8 · HMAC-SHA256',
+            detail:
+              'Вебхуки с X-Theaver-Bot-Api-Secret-Token, инлайн-кнопки, крипто-проверка initData и внутренние счета THV.',
+          },
+        ],
+      }
+    : {
+        title: 'Developer & Platform Documentation — Theaver',
+        description:
+          'Open client protocol docs, custom api_id / api_hash clients, WebSocket RPC, since_usn delta sync, HTTP Bot API, Mini Apps SDK v8, and user guide.',
+        eyebrow: 'THEAVER DOCUMENTATION HUB',
+        h1: 'Open protocol for custom clients, bots, and daily workflows.',
+        subtitle:
+          'Explore verified REST and WebSocket RPC contracts backed by the Go server, register custom api_id / api_hash pairs in the Developer Console or @BotMother, and build Mini Apps.',
+        ctaApps: 'Client Apps (api_id)',
+        ctaFirstClient: 'Build Your First Client',
+        ctaSearch: 'Search Docs',
+        ctaOpenApi: 'OpenAPI 3.1 Spec',
+        ctaGithub: 'GitHub',
+        surfacesHeading: 'Platform entrypoints',
+        surfaces: [
+          {
+            label: 'CLIENT REST API',
+            endpoint: 'https://api.theaver.app/api/*',
+            meta: 'Bearer JWT · X-Api-Id · X-Api-Hash',
+            detail:
+              'PoW SHA-256 registration, QR login, cursor history, 2 MiB chunked media uploads, and since_usn delta sync.',
+          },
+          {
+            label: 'WEBSOCKET RPC',
+            endpoint: 'wss://api.theaver.app/api/ws',
+            meta: 'req_id ack · idempotent local_id',
+            detail:
+              'Bidirectional { type, req_id, data } frames for messaging, typing indicators, read_history, and call signaling.',
+          },
+          {
+            label: 'HTTP BOT API & MINI APPS',
+            endpoint: 'https://api.theaver.app/bot<token>/<method>',
+            meta: 'window.Theaver.WebApp v8 · HMAC-SHA256',
+            detail:
+              'Webhooks with X-Theaver-Bot-Api-Secret-Token, inline keyboards, verified initData, and internal THV invoices.',
+          },
+        ],
+      };
+
+const appsHref = localizePath('/developers/apps', locale);
+const firstClientHref = localizePath('/docs/client/overview-and-api-id', locale);
+---
+
+<BaseLayout title={c.title} description={c.description} canonicalPath={currentPath}>
+  <div class="flex min-h-screen flex-col">
+    <Header locale={locale} currentPath={currentPath} mode="utility" />
+
+    <main class="container-page flex-1 py-12 lg:py-16">
+      <!-- Hero band -->
+      <section class="max-w-3xl pb-12">
+        <div class="mb-4 font-mono text-[12px] tracking-[0.06em] text-[var(--text-muted)]">
+          {c.eyebrow}
+        </div>
+        <h1 class="text-[clamp(2rem,4.5vw,3.125rem)] font-bold leading-[1.08] tracking-[-0.03em] text-[var(--text-primary)]">
+          {c.h1}
+        </h1>
+        <p class="mt-5 text-[17px] leading-[1.6] text-[var(--text-secondary)]">
+          {c.subtitle}
+        </p>
+
+        <div class="mt-7 flex flex-wrap items-center gap-3">
+          <a href={appsHref} class="btn-primary">
+            <Icon name="key" size={16} />
+            <span>{c.ctaApps}</span>
+          </a>
+          <a href={firstClientHref} class="btn-secondary">
+            <Icon name="code" size={16} />
+            <span>{c.ctaFirstClient}</span>
+          </a>
+          <button type="button" data-open-search class="btn-secondary">
+            <Icon name="search" size={16} />
+            <span>{c.ctaSearch}</span>
+            <kbd class="keycap ml-1">⌘K</kbd>
+          </button>
+          <a
+            href="/openapi.json"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn-secondary font-mono text-[13px]"
+          >
+            <Icon name="terminal" size={15} />
+            <span>{c.ctaOpenApi}</span>
+          </a>
+          <a
+            href={GITHUB_REPO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn-secondary"
+          >
+            <Icon name="github" size={16} />
+            <span>{c.ctaGithub}</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- Base Protocol Surfaces -->
+      <section aria-labelledby="surfaces-title" class="pb-14">
+        <h2 id="surfaces-title" class="mb-4 font-mono text-[12px] uppercase tracking-[0.06em] text-[var(--text-muted)]">
+          {c.surfacesHeading}
+        </h2>
+        <div class="grid gap-4 lg:grid-cols-3">
+          {c.surfaces.map((surface) => (
+            <div class="ink-card flex flex-col gap-2.5 p-5">
+              <div class="font-mono text-[11px] font-semibold tracking-[0.05em] text-[var(--accent)]">
+                {surface.label}
+              </div>
+              <code class="break-all font-mono text-[13px] font-semibold text-[var(--text-primary)]">
+                {surface.endpoint}
+              </code>
+              <div class="font-mono text-[11.5px] text-[var(--text-muted)]">{surface.meta}</div>
+              <p class="mt-1 text-[13.5px] leading-relaxed text-[var(--text-secondary)]">
+                {surface.detail}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- Architecture Diagram -->
+      <section class="pb-14">
+        <BotPlatformDiagram locale={locale} />
+      </section>
+
+      <!-- Track Cards -->
+      <div class="flex flex-col gap-14">
+        {groupedTracks.map((track) => (
+          <section aria-labelledby={`track-${track.key}`}>
+            <div class="mb-5 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--border-hairline)] pb-4">
+              <div class="max-w-2xl">
+                <div class="mb-1.5 font-mono text-[11.5px] tracking-[0.06em] text-[var(--accent)]">
+                  {track.eyebrow}
+                </div>
+                <h2
+                  id={`track-${track.key}`}
+                  class="text-[24px] font-semibold tracking-[-0.02em] text-[var(--text-primary)]"
+                >
+                  {track.title}
+                </h2>
+                <p class="mt-1.5 text-[14.5px] leading-relaxed text-[var(--text-secondary)]">
+                  {track.summary}
+                </p>
+              </div>
+              <div class="font-mono text-[12px] text-[var(--text-muted)]">
+                {track.items.length} {locale === 'ru' ? 'разделов' : 'guides'}
+              </div>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {track.items.map((item, idx) => {
+                const href = localizePath(`/docs/${item.cleanSlug}`, locale);
+                const ordinal = String(idx + 1).padStart(2, '0');
+                return (
+                  <a
+                    href={href}
+                    class="ink-card group flex flex-col justify-between gap-4 p-5 transition-colors duration-150 hover:border-[var(--border-strong)]"
+                  >
+                    <div>
+                      <div class="mb-2 flex items-center justify-between gap-2">
+                        <span class="font-mono text-[11.5px] font-semibold text-[var(--accent)]">
+                          {ordinal}
+                        </span>
+                        <Icon
+                          name="arrow-right"
+                          size={15}
+                          class="text-[var(--text-muted)] transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-[var(--text-primary)]"
+                        />
+                      </div>
+                      <h3 class="text-[16px] font-semibold tracking-[-0.01em] text-[var(--text-primary)]">
+                        {item.entry.data.title}
+                      </h3>
+                      <p class="mt-1.5 text-[13.5px] leading-relaxed text-[var(--text-secondary)]">
+                        {item.entry.data.description}
+                      </p>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+      </div>
+    </main>
+
+    <Footer locale={locale} />
+  </div>
+</BaseLayout>

@@ -50,21 +50,15 @@ const canonicalUrl = locale === 'ru' ? ruUrl : enUrl;
     <meta name="twitter:image" content={image} />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="icon" type="image/png" href="/app-icon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
     <script is:inline>
       (() => {
         try {
           const pref = localStorage.getItem('theaver-theme') || 'system';
-          const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          const resolved = pref === 'light' || pref === 'dark' ? pref : sysDark ? 'dark' : 'light';
+          const mq = window.matchMedia('(prefers-color-scheme: dark)');
+          const resolved = pref === 'light' || pref === 'dark' ? pref : mq.matches ? 'dark' : 'light';
           document.documentElement.dataset.theme = resolved;
           document.documentElement.dataset.themePref = pref;
         } catch {
@@ -75,5 +69,9 @@ const canonicalUrl = locale === 'ru' ? ruUrl : enUrl;
   </head>
   <body>
     <slot />
+    <script>
+      import { initClientUI } from '../lib/client-ui';
+      initClientUI();
+    </script>
   </body>
 </html>

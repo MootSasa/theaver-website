@@ -1,0 +1,137 @@
+---
+title: Authentication & Sessions
+description: Discovery, SHA-256 Proof-of-Work challenges, registration, password/2FA login, QR code linking, OAuth, and session lifecycle.
+track: client
+order: 2
+---
+
+All public authentication entrypoints live under `/api/auth/*`. When identifying as a custom client (`api_id >= 100000`), send both `X-Api-Id` and `X-Api-Hash` on every request in the flow.
+
+## 1. Provider discovery & Proof-of-Work challenge
+
+Before registering, fetch current anti-abuse configuration and mint a short-lived SHA-256 Proof-of-Work solution:
+
+<ApiEndpoint method="GET" path="/api/auth/providers" auth="Public" />
+<ApiEndpoint method="GET" path="/api/auth/challenge?purpose=register" auth="Public" />
+<ApiEndpoint method="GET" path="/api/auth/check-username?username=alice" auth="Public" />
+
+`/api/auth/challenge` returns `{ "challenge": "<ts>.<diff>.<purpose>.<rndHex>.<hmacHex>", "difficulty_bits": 18, "expires_in_seconds": 300 }`. Find an integer string `nonce` such that `SHA256(utf8(challenge + ":" + nonce))` starts with at least `difficulty_bits` zero bits.
+
+<CodeTabs tabs={['TypeScript', 'Python', 'Go']}>
+```ts
+import { createHash } from 'node:crypto';
+
+export function solvePoW(challenge: string, difficultyBits: number): string {
+  for (let nonce = 0; ; nonce++) {
+    const digest = createHash('sha256')
+      .update(`${challenge}:${nonce}`, 'utf8')
+      .digest();
+    if (hasLeadingZeroBits(digest, difficultyBits)) return String(nonce);
+  }
+}
+
+function hasLeadingZeroBits(buf: Uint8Array, bits: number): boolean {
+  let rem = bits;
+  for (const byte of buf) {
+    if (rem <= 0) return true;
+    if (rem >= 8) {
+      if (byte !== 0) return false;
+      rem -= 8;
+    } else {
+      return (byte >> (8 - rem)) === 0;
+    }
+  }
+  return rem <= 0;
+}
+```
+
+```python
+import hashlib
+
+def solve_pow(challenge: str, difficulty_bits: int) -> str:
+    nonce = 0
+    while True:
+        digest = hashlib.sha256(f"{challenge}:{nonce}".encode("utf-8")).digest()
+        leading = 0
+        for b in digest:
+            if b == 0:
+                leading += 8
+            else:
+                leading += (8 - b.bit_length())
+                break
+        if leading >= difficulty_bits:
+            return str(nonce)
+        nonce += 1
+```
+
+```go
+package main
+
+import (
+	"crypto/sha256"
+	"math/bits"
+	"strconv"
+)
+
+func SolvePoW(challenge string, difficultyBits int) string {
+	for nonce := 0; ; nonce++ {
+		sum := sha256.Sum256([]byte(challenge + ":" + strconv.Itoa(nonce)))
+		leading := 0
+		for _, b := range sum {
+			if b == 0 {
+				leading += 8
+				continue
+			}
+			leading += bits.LeadingZeros8(b)
+			break
+		}
+		if leading >= difficultyBits {
+			return strconv.Itoa(nonce)
+		}
+	}
+}
+```
+</CodeTabs>
+
+## 2. Three-step registration
+
+1. **Start verification:** `POST /api/auth/register/start` with `{ email, phone, country_code, pow_challenge, pow_nonce, oauth_registration_token?, locale, device_id }`. Sends the email OTP and, when required by region policy, opens a Reverse-SMS verification (`GET /api/auth/phone-verify/:id/status`, format `THV-XXXXXX`).
+2. **Verify OTP:** `POST /api/auth/register/verify` with `{ email, phone, country_code, email_code, phone_verification_id?, oauth_registration_token? }`. Returns a short-lived `registration_ticket`.
+3. **Create account:** `POST /api/auth/register` with `{ username, password, display_name, first_name, last_name, phone, country_code, registration_ticket, device_id, device_name, device_type, os_name, os_version, app_version }`. Returns `{ token, refresh_token, user, device_id }`.
+
+## 3. Password & 2FA sign-in
+
+<ApiEndpoint method="POST" path="/api/auth/login" auth="Public" />
+
+Send `{ identifier, password, two_factor_password?, recovery_code?, country_code?, device_id, device_name, device_type, os_name, os_version, app_version }` (legacy alias `username_or_email` is also accepted).
+
+- If cloud 2FA is active and `two_factor_password` was omitted, the server returns `requires_2fa: true` alongside a password hint (`two_factor_hint`). Re-submit the request with `two_factor_password` or a single-use `recovery_code`.
+- If the account had an active scheduled deletion (within the 7-day grace period), signing in cancels deletion automatically.
+
+## 4. QR code sign-in & device transfer
+
+| Step | Endpoint | Caller | Notes |
+|---|---|---|---|
+| Create session | `POST /api/auth/qr/create` | New client | Optional `scope: "developer_portal"`; returns `{ token, short_code, qr_secret, qr_url ("theaver://qr-login?token=..."), expires_at }` |
+| Poll state | `GET /api/auth/qr/status/:token` | New client | Send header `X-QR-Secret: <qr_secret>`; states: `pending`, `awaiting_2fa`, `confirmed`, `expired` |
+| Confirm scan | `POST /api/auth/sessions/qr/confirm` | Authorized client (JWT) | Body `{ token }` or `{ short_code }` |
+| Finish 2FA | `POST /api/auth/qr/verify-2fa` | New client | Header `X-QR-Secret` + `{ token, two_factor_password?, recovery_code? }` |
+
+Clients can also push a single-use transfer token from an existing device via `POST /api/auth/sessions/qr/grant` and exchange it on the target device with `POST /api/auth/qr/claim`.
+
+## 5. OAuth login & recovery
+
+- **OAuth flow:** `POST /api/auth/oauth/:provider/start` → redirect browser to provider → `GET` / `POST /api/auth/oauth/:provider/callback` → poll `GET /api/auth/oauth/session/:id/status` → submit 2FA via `POST /api/auth/oauth/session/:id/verify-2fa` or link existing account via `POST /api/auth/oauth/confirm-link`.
+- **Password & 2FA reset:** `POST /api/auth/password/send-code` + `POST /api/auth/password/reset`, `POST /api/auth/2fa/reset/send-code` + `POST /api/auth/2fa/reset/confirm`, or recovery code sign-in `POST /api/auth/recover`.
+
+## 6. Session management & token refresh
+
+| Route | Auth | Purpose |
+|---|---|---|
+| `GET /api/auth/sessions` | JWT | Lists active device sessions (`device_id`, `device_name`, `device_type`, `api_app_id`, IP, last active) |
+| `POST /api/auth/refresh` | Public (`refresh_token`) | Issues fresh access JWT |
+| `PATCH /api/auth/sessions/:deviceId/rename` | JWT | Renames a session entry |
+| `POST /api/auth/logout` | JWT | Ends current device session |
+| `POST /api/auth/logout-device` | JWT | Terminates another device by `device_id` |
+| `POST /api/auth/terminate-others` | JWT | Terminates every other active session |
+| `GET` / `PUT /api/auth/sessions/ttl` | JWT | Configures idle session auto-expiration |

@@ -1,0 +1,171 @@
+---
+import ScreenshotFrame from '../ScreenshotFrame.astro';
+import type { Locale } from '../../lib/i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const alt =
+  locale === 'ru'
+    ? {
+        desktop: 'Окно Theaver на компьютере: список чатов, диалог и панель тредов',
+        chats: 'Левая панель Theaver со списком чатов и папок',
+        dialog: 'Центральный диалог с сообщениями и медиа в Theaver',
+        inspector: 'Правая боковая панель профиля и обсуждений в Theaver',
+      }
+    : {
+        desktop: 'Theaver desktop workspace with chat list, conversation, and side panel',
+        chats: 'Theaver left chat list and folder pane',
+        dialog: 'Theaver central active conversation pane',
+        inspector: 'Theaver right thread and profile inspector pane',
+      };
+---
+
+<div class="hero-stage-scope" id="hero-scroll-stage">
+  <!-- Unified frame for mobile/tablet & reduced-motion default -->
+  <div class="lg:hidden">
+    <ScreenshotFrame
+      name="hero-desktop"
+      locale={locale}
+      alt={alt.desktop}
+      width={1200}
+      height={750}
+    />
+  </div>
+
+  <!-- 3-pane composited desktop stage (looks identical to unified window at rest, fans out cleanly on scroll) -->
+  <div class="hero-stage-desktop hidden lg:block">
+    <div class="hero-stage-window mx-auto grid max-w-[1040px] grid-cols-[320fr_580fr_300fr] items-stretch overflow-visible rounded-[var(--radius-frame)] border border-[var(--border-hairline)] bg-[var(--bg-deep)] shadow-[var(--frame-shadow)]">
+      <div class="hero-pane hero-pane-left overflow-hidden rounded-l-[var(--radius-frame)] border-r border-[var(--border-hairline)]">
+        <ScreenshotFrame
+          name="hero-pane-chats"
+          locale={locale}
+          alt={alt.chats}
+          width={320}
+          height={750}
+          framed={false}
+        />
+      </div>
+
+      <div class="hero-pane hero-pane-center relative z-10 overflow-hidden bg-[var(--bg-deep)]">
+        <ScreenshotFrame
+          name="hero-pane-dialog"
+          locale={locale}
+          alt={alt.dialog}
+          width={580}
+          height={750}
+          priority={true}
+          framed={false}
+        />
+      </div>
+
+      <div class="hero-pane hero-pane-right overflow-hidden rounded-r-[var(--radius-frame)] border-l border-[var(--border-hairline)]">
+        <ScreenshotFrame
+          name="hero-pane-inspector"
+          locale={locale}
+          alt={alt.inspector}
+          width={300}
+          height={750}
+          framed={false}
+        />
+      </div>
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  @keyframes theaver-pane-fan-left {
+    entry 100%,
+    exit 0% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    exit 75%,
+    exit 100% {
+      transform: translate3d(-18px, 12px, 0) scale(0.98);
+    }
+  }
+
+  @keyframes theaver-pane-fan-center {
+    entry 100%,
+    exit 0% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    exit 75%,
+    exit 100% {
+      transform: translate3d(0, -10px, 0) scale(1.015);
+    }
+  }
+
+  @keyframes theaver-pane-fan-right {
+    entry 100%,
+    exit 0% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    exit 75%,
+    exit 100% {
+      transform: translate3d(18px, 14px, 0) scale(0.98);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    @supports ((animation-timeline: view()) and (animation-range: entry)) {
+      .hero-stage-scope {
+        view-timeline: --hero-stage block;
+        timeline-scope: --hero-stage;
+      }
+
+      .hero-pane-left {
+        animation: theaver-pane-fan-left auto linear both;
+        animation-timeline: --hero-stage;
+      }
+
+      .hero-pane-center {
+        animation: theaver-pane-fan-center auto linear both;
+        animation-timeline: --hero-stage;
+      }
+
+      .hero-pane-right {
+        animation: theaver-pane-fan-right auto linear both;
+        animation-timeline: --hero-stage;
+      }
+    }
+  }
+</style>
+
+<script is:inline>
+  (() => {
+    const stage = document.getElementById('hero-scroll-stage');
+    if (!stage) return;
+    if (
+      !CSS.supports('(animation-timeline: view()) and (animation-range: entry)') &&
+      window.matchMedia('(prefers-reduced-motion: no-preference)').matches
+    ) {
+      const left = stage.querySelector('.hero-pane-left');
+      const center = stage.querySelector('.hero-pane-center');
+      const right = stage.querySelector('.hero-pane-right');
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            const exitFactor = entry.boundingClientRect.top < 120
+              ? Math.min(1, Math.max(0, (120 - entry.boundingClientRect.top) / Math.max(240, entry.boundingClientRect.height)))
+              : 0;
+            if (left instanceof HTMLElement) {
+              left.style.transform = `translate3d(${-18 * exitFactor}px, ${12 * exitFactor}px, 0) scale(${1 - 0.02 * exitFactor})`;
+            }
+            if (center instanceof HTMLElement) {
+              center.style.transform = `translate3d(0, ${-10 * exitFactor}px, 0) scale(${1 + 0.015 * exitFactor})`;
+            }
+            if (right instanceof HTMLElement) {
+              right.style.transform = `translate3d(${18 * exitFactor}px, ${14 * exitFactor}px, 0) scale(${1 - 0.02 * exitFactor})`;
+            }
+          }
+        },
+        { threshold: Array.from({ length: 41 }, (_, i) => i / 40) },
+      );
+      observer.observe(stage);
+    }
+  })();
+</script>

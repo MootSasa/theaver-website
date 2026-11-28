@@ -1,0 +1,59 @@
+---
+title: Медиа, чанковая загрузка, стикеры и GIF
+description: Прямая загрузка файлов, возобновляемая чанковая загрузка частями по 2 МБ, дедупликация SHA-256, стикеры и GIF.
+track: client
+order: 6
+---
+
+Медиафайлы сохраняются в объектное хранилище MinIO с автоматической дедупликацией по `SHA-256`, вычислением размеров кадра и генерацией превью.
+
+## Прямая загрузка небольших файлов
+
+<ApiEndpoint method="POST" path="/api/files/upload" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/files/upload-avatar" auth="JWT" />
+
+- Для вложений отправьте `multipart/form-data` с полем `file` на `/api/files/upload` (или получите прямой URL через `POST /api/files/upload-presigned`).
+- Аватары загружаются полем `avatar` (и необязательными параметрами обрезки `avatar_crop`) на `/api/files/upload-avatar`.
+
+## Чанковая загрузка крупных файлов
+
+Для видео, архивов и нестабильной сети используйте чанковую загрузку сегментами по `2 MiB`:
+
+<ApiEndpoint method="POST" path="/api/files/upload/chunked/init" auth="JWT" />
+<ApiEndpoint method="PUT" path="/api/files/upload/chunked/part?upload_id=...&part_number=1" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/files/upload/chunked/complete" auth="JWT" />
+<ApiEndpoint method="POST" path="/api/files/upload/chunked/cancel" auth="JWT" />
+
+1. **Инициализация:** `POST /api/files/upload/chunked/init` с `{ file_name, total_size, mime_type, parts_count }`. Ответ: `{ upload_id, chunk_size: 2097152 }`.
+2. **Загрузка частей:** `PUT /api/files/upload/chunked/part?upload_id=<id>&part_number=<1..N>` — бинарное тело (`application/octet-stream`) или multipart-поле `chunk`.
+3. **Сборка:** `POST /api/files/upload/chunked/complete` с `{ upload_id }`. Возвращает:
+
+```json
+{
+  "file_id": 841902331,
+  "object_name": "2026/11/a4e8c1...mp4",
+  "url": "/api/files/download/2026/11/a4e8c1...mp4",
+  "file_name": "demo.mp4",
+  "size": 18422091,
+  "mime_type": "video/mp4",
+  "sha256": "e3b0c442...",
+  "thumb_base64": "...",
+  "thumb_url": "/api/files/download/thumbs/a4e8c1.jpg",
+  "width": 1920,
+  "height": 1080,
+  "duration": 42.5
+}
+```
+
+## Скачивание вложений и аватаров
+
+- **Файлы сообщений:** `GET /api/files/download/*objectName` с заголовком `Authorization: Bearer <jwt>` или `GET /api/files/download-presigned/*objectName` (поддерживается заголовок `Range` для перемотки видео).
+- **Аватары и баннеры:** `GET /api/files/avatar/*objectName?mt=<hmac_ticket>` автоматически учитывает настройки приватности пользователя.
+
+## Стикеры, кастомные эмодзи и GIF
+
+| Раздел | Маршруты |
+|---|---|
+| Наборы стикеров | `/api/stickers/packs*`, избранные `/api/stickers/favorites/:id`, недавние `/api/stickers/recent*` |
+| Импорт внешнего набора | `POST /api/stickers/import-pack` (ссылка или slug набора) |
+| Поиск и избранное GIF | `GET /api/gifs/trending`, `GET /api/gifs/search?q=...`, `GET/POST/DELETE /api/gifs/saved` |

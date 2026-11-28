@@ -8,18 +8,20 @@ const { tabs, id = `tabs-${Math.random().toString(36).slice(2, 8)}` } = Astro.pr
 ---
 
 <div class="ink-card my-5 w-full min-w-0 max-w-full overflow-hidden" data-code-tabs={id}>
-  <div class="flex flex-wrap items-center gap-1 border-b border-[var(--border-hairline)] bg-[var(--bg-deep)] px-3 py-2" role="tablist">
+  <div class="flex flex-wrap items-center gap-1 border-b border-[var(--border-hairline)] bg-[var(--bg-deep)] px-3 pt-2" role="tablist">
     {tabs.map((tab, idx) => (
       <button
         type="button"
         role="tab"
+        id={`${id}-tab-${idx}`}
         aria-selected={idx === 0 ? 'true' : 'false'}
+        tabindex={idx === 0 ? 0 : -1}
         data-tab-index={idx}
         class:list={[
-          'rounded-[var(--radius-chip)] px-3 py-1 font-mono text-[12px] transition-colors duration-150',
+          'rounded-t-[var(--radius-chip)] border-b-2 px-3 py-1.5 font-mono text-[12px] transition-colors duration-150',
           idx === 0
-            ? 'bg-[var(--bg-raised)] font-medium text-[var(--text-primary)]'
-            : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]',
+            ? 'border-[var(--accent)] bg-[var(--bg-raised)] font-semibold text-[var(--text-primary)]'
+            : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]',
         ]}
       >
         {tab}
@@ -42,25 +44,48 @@ const { tabs, id = `tabs-${Math.random().toString(36).slice(2, 8)}` } = Astro.pr
       if (!panelsContainer) return;
       const panels = Array.from(panelsContainer.children);
 
-      function activate(index) {
+      function activate(index, moveFocus) {
+        const clamped = ((index % buttons.length) + buttons.length) % buttons.length;
         buttons.forEach((btn, i) => {
-          const active = i === index;
+          const active = i === clamped;
           btn.setAttribute('aria-selected', active ? 'true' : 'false');
+          btn.setAttribute('tabindex', active ? '0' : '-1');
+          btn.classList.toggle('border-[var(--accent)]', active);
+          btn.classList.toggle('border-transparent', !active);
           btn.classList.toggle('bg-[var(--bg-raised)]', active);
-          btn.classList.toggle('font-medium', active);
+          btn.classList.toggle('font-semibold', active);
           btn.classList.toggle('text-[var(--text-primary)]', active);
           btn.classList.toggle('text-[var(--text-muted)]', !active);
         });
         panels.forEach((panel, i) => {
-          panel.classList.toggle('hidden', i !== index);
+          const active = i === clamped;
+          panel.hidden = !active;
+          panel.classList.toggle('hidden', !active);
         });
+        if (moveFocus && buttons[clamped]) {
+          buttons[clamped].focus();
+        }
       }
 
-      activate(0);
-      buttons.forEach((btn) => {
+      activate(0, false);
+      buttons.forEach((btn, idx) => {
         btn.addEventListener('click', () => {
-          const idx = Number(btn.getAttribute('data-tab-index') || '0');
-          activate(idx);
+          activate(idx, false);
+        });
+        btn.addEventListener('keydown', (event) => {
+          if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            activate(idx + 1, true);
+          } else if (event.key === 'ArrowLeft') {
+            event.preventDefault();
+            activate(idx - 1, true);
+          } else if (event.key === 'Home') {
+            event.preventDefault();
+            activate(0, true);
+          } else if (event.key === 'End') {
+            event.preventDefault();
+            activate(buttons.length - 1, true);
+          }
         });
       });
     });

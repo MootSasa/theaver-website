@@ -1,0 +1,264 @@
+---
+title: Building Your First Client
+description: Complete runnable client example using api_id / api_hash, REST login, delta sync (since_usn), WebSocket RPC, plus building the official Flutter app from source.
+track: client
+order: 11
+---
+
+Below is a complete, runnable CLI client that authenticates with a custom `api_id` and `api_hash` (created in [`/developers/apps`](/developers/apps) or `@BotMother`), pulls active chats, catches up via `since_usn`, opens `wss://api.theaver.app/api/ws`, and replies to incoming messages idempotently with `local_id`.
+
+## Complete minimal client
+
+Set `THEAVER_API_ID`, `THEAVER_API_HASH`, `THEAVER_USER`, and `THEAVER_PASS` in your environment before running:
+
+<CodeTabs tabs={['TypeScript', 'Python', 'Go']}>
+```ts
+import { randomUUID } from 'node:crypto';
+
+const REST = 'https://api.theaver.app';
+const WS = 'wss://api.theaver.app/api/ws';
+const API_ID = process.env.THEAVER_API_ID!;
+const API_HASH = process.env.THEAVER_API_HASH!;
+const DEVICE_ID = `cli-${randomUUID()}`;
+
+const commonHeaders = {
+  'Content-Type': 'application/json',
+  'X-Api-Id': API_ID,
+  'X-Api-Hash': API_HASH,
+  'X-Device-ID': DEVICE_ID,
+  'X-Device-Name': 'Minimal TS Client',
+  'X-Device-Type': 'cli',
+  'X-App-Version': '1.0.0',
+};
+
+async function api<T>(path: string, init: RequestInit = {}, token?: string): Promise<T> {
+  const res = await fetch(`${REST}${path}`, {
+    ...init,
+    headers: {
+      ...commonHeaders,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init.headers || {}),
+    },
+  });
+  const body = await res.json();
+  if (!res.ok) throw new Error(`${res.status} ${body.error ?? 'ERROR'}: ${body.description ?? body.message}`);
+  return body as T;
+}
+
+async function main() {
+  // 1. Authenticate session
+  const login = await api<{ token: string; user: { id: number; username: string } }>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({
+      identifier: process.env.THEAVER_USER,
+      password: process.env.THEAVER_PASS,
+      device_id: DEVICE_ID,
+      device_name: 'Minimal TS Client',
+      device_type: 'cli',
+      os_name: process.platform,
+      os_version: process.version,
+      app_version: '1.0.0',
+    }),
+  });
+  const token = login.token;
+  console.log(`Signed in as @${login.user.username} (${login.user.id})`);
+
+  // 2. Load dialog list & initial delta cursor
+  const chatsRes = await api<{ chats: Array<{ id: number; title?: string; name?: string }> }>('/api/chats', {}, token);
+  console.log(`Loaded ${chatsRes.chats.length} chats`);
+
+  let sinceUsn = 0;
+  let hasMore = true;
+  while (hasMore) {
+    const sync = await api<{ max_usn: number; has_more: boolean; events: unknown[] }>(
+      `/api/updates?since_usn=${sinceUsn}&limit=200`,
+      {},
+      token
+    );
+    sinceUsn = sync.max_usn;
+    hasMore = sync.has_more;
+  }
+  console.log(`Delta cursor synchronized at usn=${sinceUsn}`);
+
+  // 3. Connect WebSocket & handle ping / echo
+  const ws = new WebSocket(`${WS}?token=${encodeURIComponent(token)}&device_id=${encodeURIComponent(DEVICE_ID)}`);
+  ws.addEventListener('open', () => {
+    setInterval(() => ws.send(JSON.stringify({ type: 'ping', req_id: randomUUID() })), 25_000);
+  });
+
+  ws.addEventListener('message', (ev) => {
+    const frame = JSON.parse(String(ev.data));
+    if (frame.type === 'new_message' && frame.message?.sender_id !== login.user.id) {
+      const msg = frame.message;
+      if (msg.content === '!ping') {
+        ws.send(
+          JSON.stringify({
+            type: 'send_message',
+            req_id: randomUUID(),
+            data: {
+              chat_id: msg.chat_id,
+              content: 'pong from custom client',
+              local_id: randomUUID(),
+              reply_to_message_id: msg.id,
+            },
+          })
+        );
+      }
+    }
+  });
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
+```
+
+```python
+import asyncio, json, os, urllib.request, uuid
+import websockets
+
+REST = "https://api.theaver.app"
+WS = "wss://api.theaver.app/api/ws"
+DEVICE_ID = f"py-{uuid.uuid4()}"
+BASE_HEADERS = {
+    "Content-Type": "application/json",
+    "X-Api-Id": os.environ["THEAVER_API_ID"],
+    "X-Api-Hash": os.environ["THEAVER_API_HASH"],
+    "X-Device-ID": DEVICE_ID,
+    "X-Device-Name": "Minimal Python Client",
+    "X-Device-Type": "cli",
+    "X-App-Version": "1.0.0",
+}
+
+def rest_call(path: str, payload: dict | None = None, token: str | None = None) -> dict:
+    headers = dict(BASE_HEADERS)
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    data = json.dumps(payload).encode() if payload is not None else None
+    req = urllib.request.Request(f"{REST}{path}", data=data, headers=headers, method="POST" if data else "GET")
+    with urllib.request.urlopen(req) as resp:
+        return json.loads(resp.read().decode())
+
+async def main() -> None:
+    auth = rest_call("/api/auth/login", {
+        "identifier": os.environ["THEAVER_USER"],
+        "password": os.environ["THEAVER_PASS"],
+        "device_id": DEVICE_ID,
+        "device_name": "Minimal Python Client",
+        "device_type": "cli",
+        "app_version": "1.0.0",
+    })
+    token, my_id = auth["token"], auth["user"]["id"]
+    chats = rest_call("/api/chats", token=token).get("chats", [])
+    usn = rest_call("/api/updates?since_usn=0&limit=100", token=token)["max_usn"]
+    print(f"Signed in ({len(chats)} chats, max_usn={usn})")
+
+    url = f"{WS}?token={token}&device_id={DEVICE_ID}"
+    async with websockets.connect(url) as ws:
+        async for raw in ws:
+            frame = json.loads(raw)
+            msg = frame.get("message") or {}
+            if frame.get("type") == "new_message" and msg.get("sender_id") != my_id and msg.get("content") == "!ping":
+                await ws.send(json.dumps({
+                    "type": "send_message",
+                    "req_id": str(uuid.uuid4()),
+                    "data": {
+                        "chat_id": msg["chat_id"],
+                        "content": "pong from python client",
+                        "local_id": str(uuid.uuid4()),
+                        "reply_to_message_id": msg["id"],
+                    },
+                }))
+
+asyncio.run(main())
+```
+
+```go
+package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/url"
+	"os"
+	"time"
+
+	"github.com/gorilla/websocket"
+)
+
+func main() {
+	deviceID := fmt.Sprintf("go-%d", time.Now().UnixNano())
+	loginBody, _ := json.Marshal(map[string]any{
+		"identifier": os.Getenv("THEAVER_USER"),
+		"password":   os.Getenv("THEAVER_PASS"),
+		"device_id":  deviceID,
+		"device_type": "cli",
+	})
+	req, _ := http.NewRequest("POST", "https://api.theaver.app/api/auth/login", bytes.NewReader(loginBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Api-Id", os.Getenv("THEAVER_API_ID"))
+	req.Header.Set("X-Api-Hash", os.Getenv("THEAVER_API_HASH"))
+	req.Header.Set("X-Device-ID", deviceID)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	var auth struct {
+		Token string `json:"token"`
+		User  struct {
+			ID int `json:"id"`
+		} `json:"user"`
+	}
+	_ = json.NewDecoder(resp.Body).Decode(&auth)
+
+	wsURL := fmt.Sprintf("wss://api.theaver.app/api/ws?token=%s&device_id=%s", url.QueryEscape(auth.Token), deviceID)
+	conn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+
+	for {
+		var frame map[string]any
+		if err := conn.ReadJSON(&frame); err != nil {
+			panic(err)
+		}
+		if frame["type"] == "new_message" {
+			msg, _ := frame["message"].(map[string]any)
+			if msg["content"] == "!ping" {
+				_ = conn.WriteJSON(map[string]any{
+					"type":   "send_message",
+					"req_id": fmt.Sprintf("req-%d", time.Now().UnixNano()),
+					"data": map[string]any{
+						"chat_id":  msg["chat_id"],
+						"content":  "pong from go client",
+						"local_id": fmt.Sprintf("loc-%d", time.Now().UnixNano()),
+					},
+				})
+			}
+		}
+	}
+}
+```
+</CodeTabs>
+
+## Building the official Flutter client from source
+
+You can also compile the open-source official multi-platform client ([`MootSasa/theaver-frontend`](https://github.com/MootSasa/theaver-frontend)) directly with Flutter `3.44.9+` and optionally override the client `api_id` / `api_hash` via `--dart-define`:
+
+```bash
+git clone https://github.com/MootSasa/theaver-frontend.git
+cd theaver-frontend
+flutter pub get
+
+# Example: desktop release build pointed at your custom api_id / api_hash
+flutter build linux --release \
+  --dart-define=THEAVER_API_ID=100420 \
+  --dart-define=THEAVER_API_HASH=your_64_hex_hash
+```

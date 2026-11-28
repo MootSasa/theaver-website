@@ -1,66 +1,62 @@
 ---
 title: WebSocket API и RPC
-description: Двунаправленный WebSocket-протокол (/api/ws) для быстрых RPC-вызовов и событий в реальном времени.
+description: Двунаправленный WebSocket-поток (/api/ws), структура RPC-фреймов ({ type, req_id, data }) и push-события реального времени.
 track: client
-order: 4
+order: 9
 ---
 
-Подключение к WebSocket устанавливается по адресу:
+Подключитесь к потоку WebSocket, передав JWT и идентификатор устройства в строке запроса или заголовках:
 
 ```text
-wss://api.theaver.app/api/ws?token=<jwt_token>
+wss://api.theaver.app/api/ws?token=<jwt_token>&device_id=<device_id>
 ```
 
-Нативные клиенты могут передавать токен в заголовке `Authorization: Bearer <jwt_token>`.
+Нативные клиенты также могут передавать `Authorization: Bearer <jwt_token>` и `X-Device-ID` при handshake (браузеры — через `Sec-WebSocket-Protocol`). Сразу после соединения сервер присылает `{ "type": "connected", "user_id": "...", "timestamp": "..." }`.
 
-## Клиентские RPC-вызовы (Client → Server)
+## Формат клиентских RPC-вызовов (`Client → Server`)
 
-Если фрейм содержит строковый `req_id`, сервер гарантированно отвечает фреймом `rpc_result` или `rpc_error` с тем же `req_id`.
+Параметры вызова передаются внутри вложенного объекта `data`, а поле `req_id` сопоставляет ответ с конкретным запросом:
 
 ```json
 {
   "type": "send_message",
   "req_id": "req-101",
-  "chat_id": 849201432,
-  "content": "Привет через WebSocket RPC",
-  "local_id": "client-uuid-991",
-  "reply_to_id": null
+  "data": {
+    "chat_id": 849201432,
+    "content": "Привет через WebSocket RPC",
+    "local_id": "client-uuid-991",
+    "reply_to_message_id": null
+  }
 }
 ```
 
-### Поддерживаемые RPC-методы
+Если передан `req_id`, сервер гарантированно отвечает либо `{ "type": "rpc_result", "req_id": "req-101", "ok": true, "result": { ... }, "timestamp": "..." }`, либо `{ "type": "rpc_error", "req_id": "req-101", "ok": false, "error_code": 429, "error": "SLOWMODE_WAIT", "description": "...", "parameters": { "retry_after": 12 } }`. Неизвестный `type` возвращает `UNKNOWN_METHOD`.
 
-| `type` | Ключевые параметры | Описание |
+### Поддерживаемые методы RPC
+
+| `type` | Ключевые поля в `data` | Поведение |
 |---|---|---|
-| `send_message` | `chat_id`, `content`, `local_id`, `reply_to_id`, `thread_root_id`, `attachment_ids`, `entities`, `is_silent` | Идемпотентная отправка сообщения; возвращает созданный `Message` в `result` |
-| `read_history` / `mark_read` | `chat_id`, `max_id` | Обновляет High-Water Mark прочтения и возвращает `unread_count` |
-| `typing` | `chat_id`, `action` (`typing`, `record_voice`, `upload_photo`) | Рассылает статус активности в чат (не чаще 1 раза в 2 сек) |
-| `active_chat` | `chat_id` | Сообщает открытый чат для подавления лишних push-уведомлений |
-| `emoji_interaction` | `chat_id`, `message_id`, `emoji` | Синхронизирует полноэкранный эффект по нажатию на эмодзи |
-| `call.signal` | `call_id`, SDP / ICE payload | Сигналинг WebRTC для звонков 1:1 и комнат |
-| `ping` | `req_id` (опционально) | Проверка соединения, отвечает событием `pong` |
+| `ping` | опционально `req_id` | Проверка соединения; отвечает `pong` |
+| `client_state` | Статус активности приложения | Управляет подавлением фоновых push-уведомлений |
+| `active_chat` | `chat_id` (`0` при сворачивании) | Подавляет уведомления для открытого диалога |
+| `typing` | `chat_id`, `action` | `typing`, `record_voice`, `record_round`, `uploading_photo`, `uploading_video`, `uploading_file`, `uploading_audio`, `choosing_sticker`, `stop` |
+| `emoji_interaction` | `chat_id`, `message_id`, `emoji` | Синхронизирует полноэкранные эффекты нажатий эмодзи |
+| `send_message` | `chat_id`, `content`, `local_id`, `file_url`, `message_type`, `topic_id`, `is_round`, `is_view_once`, `ttl_seconds`, `send_as_anonymous` | Идемпотентная отправка; возвращает `result.message` (или `{ deduplicated: true, message }`) |
+| `read_history` / `mark_read` | `chat_id`, `max_id` | Сдвигает High-Water Mark и пересчитывает непрочитанное |
+| `callback_query` | Данные inline-кнопки бота | Вызывает callback бота и возвращает всплывающий ответ или URL |
+| `call.*` | `call_id`, потоки, SDP/ICE | `call.start`, `call.accept`, `call.decline`, `call.leave`, `call.transfer_device`, `call.update_state`, `call.stream.*`, `call.signal` |
 
-## Медиатракт звонков и стримов
+## События от сервера (`Server → Client`)
 
-Голосовые комнаты, звонки и демонстрация экрана `1080p60` используют **LiveKit SFU** с резервным релеем **Coturn** поверх TLS-порта `443` (`turn.theaver.app`), чтобы звонки устанавливались даже в закрытых корпоративных сетях.
+Все события приходят в формате `{ "type": "<event_type>", ... }` и параллельно записываются в журнал `usn` для дозагрузки через `/api/updates?since_usn=...`:
 
-<CallMediaDiagram locale="ru" />
-
-## Серверные события реального времени (Server → Client)
-
-| `type` | Содержимое payload | Когда отправляется |
-|---|---|---|
-| `new_message` | Полный объект `Message` | Новое сообщение в чате |
-| `new_chat` | Полный объект `Chat` | Добавление в новый диалог, группу или канал |
-| `message_edited` | Обновлённый объект `Message` | Изменение текста, entities или кнопок сообщения |
-| `message_deleted` | `{"message_id", "chat_id"}` | Удаление сообщения для всех участников |
-| `message_read` | `{"chat_id", "user_id", "max_id", "last_read_outbox_message_id"}` | Собеседник прочитал сообщения до `max_id` |
-| `unread_count_updated` | `{"chat_id", "unread_count", "last_read_inbox_message_id"}` | Синхронизация счётчика непрочитанных между своими устройствами |
-| `message_reaction_updated` | `{"chat_id", "message_id", "reactions", "emoji", "action"}` | Постановка или снятие реакции |
-| `poll_updated` | Объект `Poll` | Голосование или закрытие опроса |
-| `draft_updated` | `{"chat_id", "draft"}` | Синхронизация черновика с другого устройства |
-| `typing` | `{"chat_id", "user_id", "action"}` | Индикатор набора текста или загрузки |
-| `user_online` / `user_offline` / `user_status` | `{"user_id", "is_online", "last_seen"}` | События статуса с учётом настроек приватности |
-| `callback_query_answer` | `{"query_id", "text", "show_alert", "url"}` | Ответ бота на нажатие inline-кнопки |
-| `inline_query_results` | `{"query_id", "results", "next_offset"}` | Результаты inline-поиска от бота |
-| `session_terminated` | `{"session_id", "reason"}` | Текущая сессия была завершена удалённо |
+| Тип события | Когда возникает |
+|---|---|
+| `new_message`, `message_edited`, `message_deleted`, `message_burned` | Новое, изменённое, удалённое или сгоревшее по TTL сообщение |
+| `message_read`, `unread_count_updated`, `unread_badges_updated`, `message_listened` | Изменение указателей High-Water Mark, бейджей или прослушивания голосовых |
+| `message_reaction_updated`, `message_pinned`, `message_unpinned`, `message_views_updated`, `post_comments_updated` | Реакции, закрепы, просмотры в канале или счётчик комментариев |
+| `new_chat`, `chat_update`, `chat_deleted`, `chat_archive_updated`, `chat_settings_updated`, `chat_appearance_updated`, `chat_auto_delete_updated`, `chat_unread_marked`, `forum_topic_updated` | Создание или изменение чата, темы форума, архива и оформления |
+| `member_joined`, `member_updated`, `join_requests_updated`, `scheduled_messages_updated` | Состав участников, заявки на вступление или очередь отложки |
+| `draft_updated`, `typing`, `emoji_interaction`, `screenshot_taken` | Облачный черновик, набор текста, эффекты эмодзи, уведомление о скриншоте |
+| `user_online`, `user_offline`, `user_status`, `user_avatar_updated`, `user_appearance_updated`, `contact_updated`, `contact_deleted` | Статусы онлайна, аватары и контакты |
+| `session_terminated`, `app_update_available` | Отзыв текущей сессии или выход новой версии |

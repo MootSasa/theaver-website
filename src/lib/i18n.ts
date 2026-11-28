@@ -25,6 +25,7 @@ export interface SiteStrings {
     features: string;
     downloads: string;
     docs: string;
+    developers: string;
     changelog: string;
     github: string;
     openWeb: string;
@@ -46,11 +47,12 @@ export interface SiteStrings {
     product: string;
     developers: string;
     resources: string;
-    legal: string;
     features: string;
     downloads: string;
     webClient: string;
     changelog: string;
+    docsHub: string;
+    developerApps: string;
     botPlatform: string;
     miniApps: string;
     restApi: string;
@@ -71,6 +73,7 @@ export interface SiteStrings {
   };
   docsUi: {
     onThisPage: string;
+    overview: string;
     editOnGithub: string;
     previous: string;
     next: string;
@@ -78,6 +81,8 @@ export interface SiteStrings {
     searchEmpty: string;
     searchHint: string;
     close: string;
+    copied: string;
+    copyFailed: string;
   };
 }
 
@@ -87,6 +92,7 @@ export const UI_STRINGS: Record<Locale, SiteStrings> = {
       features: 'Features',
       downloads: 'Downloads',
       docs: 'Docs',
+      developers: 'Apps (api_id)',
       changelog: 'Changelog',
       github: 'GitHub',
       openWeb: 'Open Web',
@@ -104,19 +110,20 @@ export const UI_STRINGS: Record<Locale, SiteStrings> = {
       toggleLabel: 'Theme',
     },
     footer: {
-      tagline: 'Cross-platform messenger with an open client, desktop multi-pane layout, calls, and Bot API.',
+      tagline: 'Fast chats, drop-in voice rooms, split-screen desktop panes, and an open platform for custom apps and bots.',
       product: 'Product',
       developers: 'Developers',
       resources: 'Resources',
-      legal: 'Legal',
       features: 'Features',
       downloads: 'Downloads',
       webClient: 'Web Client',
       changelog: 'Changelog',
+      docsHub: 'Documentation Portal',
+      developerApps: 'Client Apps (api_id)',
       botPlatform: 'Bots & @BotMother',
       miniApps: 'Mini Apps v8',
       restApi: 'Client REST API',
-      wsRpc: 'WebSocket RPC',
+      wsRpc: 'Realtime RPC',
       userGuide: 'User Guide',
       verifyBuilds: 'Verify Signatures',
       sourceCode: 'Client Source Code',
@@ -129,27 +136,31 @@ export const UI_STRINGS: Record<Locale, SiteStrings> = {
     tracks: {
       guide: 'User Guide',
       bots: 'Bots & Mini Apps',
-      client: 'Open Client & API',
+      client: 'Build Your Own Client',
     },
     docsUi: {
       onThisPage: 'On this page',
+      overview: 'All Documentation',
       editOnGithub: 'Edit on GitHub',
       previous: 'Previous',
       next: 'Next',
       searchTitle: 'Search documentation',
-      searchEmpty: 'Type to search guides, Bot API methods, and client specs.',
+      searchEmpty: 'Type to search client APIs, Bot API methods, and guides.',
       searchHint: 'No matching documentation pages found.',
       close: 'Close',
+      copied: 'Copied',
+      copyFailed: 'Copy failed',
     },
   },
   ru: {
     nav: {
-      features: 'Возможности',
+      features: 'Фишки',
       downloads: 'Скачать',
-      docs: 'Документация',
+      docs: 'Доки',
+      developers: 'Свои клиенты',
       changelog: 'Обновления',
       github: 'GitHub',
-      openWeb: 'Веб-клиент',
+      openWeb: 'Браузер',
       download: 'Скачать',
       searchPlaceholder: 'Поиск по документации...',
       searchButton: 'Поиск',
@@ -164,19 +175,20 @@ export const UI_STRINGS: Record<Locale, SiteStrings> = {
       toggleLabel: 'Тема',
     },
     footer: {
-      tagline: 'Кроссплатформенный мессенджер с открытым клиентом, несколькими панелями на ПК, звонками и Bot API.',
+      tagline: 'Быстрые чаты, войсы без лишних ссылок, несколько панелей на компьютере и открытая платформа для ботов и своих клиентов.',
       product: 'Продукт',
       developers: 'Разработчикам',
       resources: 'Ресурсы',
-      legal: 'Правовая информация',
       features: 'Возможности',
       downloads: 'Загрузки',
       webClient: 'Веб-клиент',
       changelog: 'История обновлений',
+      docsHub: 'Портал документации',
+      developerApps: 'Консоль клиентов (api_id)',
       botPlatform: 'Боты и @BotMother',
       miniApps: 'Mini Apps v8',
       restApi: 'Клиентский REST API',
-      wsRpc: 'WebSocket RPC',
+      wsRpc: 'Поток событий',
       userGuide: 'Гид пользователя',
       verifyBuilds: 'Проверка подписей',
       sourceCode: 'Исходный код клиента',
@@ -189,17 +201,20 @@ export const UI_STRINGS: Record<Locale, SiteStrings> = {
     tracks: {
       guide: 'Гид пользователя',
       bots: 'Боты и Mini Apps',
-      client: 'Открытый клиент и API',
+      client: 'Создание своего клиента',
     },
     docsUi: {
       onThisPage: 'На этой странице',
+      overview: 'Обзор документации',
       editOnGithub: 'Редактировать на GitHub',
       previous: 'Назад',
       next: 'Далее',
       searchTitle: 'Поиск по документации',
-      searchEmpty: 'Введите запрос для поиска по руководствам, Bot API и спецификациям.',
-      searchHint: 'По вашему запросу ничего не найдено.',
+      searchEmpty: 'Введи запрос: методы клиентского API, WebSocket, Bot API или гайды.',
+      searchHint: 'По этому запросу пока ничего не нашлось.',
       close: 'Закрыть',
+      copied: 'Скопировано',
+      copyFailed: 'Не скопировалось',
     },
   },
 };
